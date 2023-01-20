@@ -14,7 +14,9 @@ import pandas
 import pandas as pd
 import yaml
 
+from algorithms.decision_engines.som import Som
 from algorithms.decision_engines.stide import Stide
+from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from algorithms.performance_measurement import Performance
 from tsa.confusion_matrix import ConfusionMatrix
 from dataloader.dataloader_factory import dataloader_factory
@@ -74,6 +76,9 @@ class AttackMixin:
             }
 
 
+DECISION_ENGINES = {de.__name__: de for de in [AE, Stide, Som]}
+
+
 class Experiment:
     def __init__(self, parameters, result_file: str):
         self.scenario_path = f"{LID_DS_BASE_PATH}/{LID_DS_VERSION}/{parameters['scenario_name']}"
@@ -82,6 +87,7 @@ class Experiment:
                                         **parameters["attack_mixin"])
         self.result_file = result_file
         self._tmp_results_df = None
+        self.parameters = parameters
 
     def start(self):
         start_at = 0
@@ -94,27 +100,52 @@ class Experiment:
             results = self.train_test(contamined_set["path"])
             self.store_results({**results, **contamined_set})
 
+    def _get_param(self, *keys, default=None, required=True, exp_type=None):
+        if default is not None:
+            required = False
+        cur_obj = self.parameters
+        cur_key = ""
+        for key in keys:
+            if not isinstance(cur_obj, dict):
+                raise ValueError("Parameter '%s' is not a dict." % cur_key)
+            if key not in cur_obj:
+                if not required:
+                    return default
+                else:
+                    raise ValueError("Cannot find parameter for key %s at %s" % (key, cur_key))
+            cur_obj = cur_obj[key]
+            cur_key = "%s.%s" % (cur_key, key)
+        if exp_type is not None and not isinstance(cur_obj, exp_type):
+            raise ValueError("Parameter %s is not of expected type %s" % (cur_key, exp_type))
+        return cur_obj
+
     def train_test(self, scenario_path):
         # just load < closing system calls for this example
         dataloader = dataloader_factory(scenario_path, direction=Direction.BOTH)
 
-        ### features (for more information see Paper:
-        # https://dbs.uni-leipzig.de/file/EISA2021_Improving%20Host-based%20Intrusion%20Detection%20Using%20Thread%20Information.pdf
-        THREAD_AWARE = True
-        WINDOW_LENGTH = 1000
-        NGRAM_LENGTH = 5
-
+        DecisionEngineClass = DECISION_ENGINES[self.parameters["decision_engine"]["name"]]
         ### building blocks
         # first: map each systemcall to an integer
         syscall_name = SyscallName()
-        int_embedding = IntEmbedding(syscall_name)
-        one_hot_encoding = OneHotEncoding(syscall_name)
-        # now build ngrams from these integers
-        ngram = Ngram([int_embedding], THREAD_AWARE, NGRAM_LENGTH)
-        ngram_ae = Ngram([one_hot_encoding], THREAD_AWARE, NGRAM_LENGTH)
-        # finally calculate the STIDE algorithm using these ngrams
-        #ae = AE(ngram_ae)
-        decision_engine = AE(ngram_ae)
+        feature_name = self._get_param("features", "name")
+        if feature_name == "OneHotEncodingNgram":
+            embedding = OneHotEncoding(syscall_name)
+        elif feature_name == "IntEmbeddingNgram":
+            embedding = IntEmbedding(syscall_name)
+        elif feature_name == "W2VEmbedding":
+            embedding = W2VEmbedding(syscall_name,
+                                     window_size=self._get_param("features", "window_size"),
+                                     vector_size=self._get_param("features", "vector_size"),
+                                     epochs = self._get_param("features", "epochs")
+                                     )
+        else:
+            raise ValueError("%s is not a valid name" % feature_name)
+        thread_aware = self._get_param("features", "thread_aware", default=True)
+        n_gram_length = self._get_param("features", "n_gram_length", default=7)
+        ngram = Ngram([embedding], thread_aware, n_gram_length)
+
+        decision_engine_args = self._get_param("decision_engine", "args", default={}, exp_type=dict)
+        decision_engine = DecisionEngineClass(ngram, **decision_engine_args)
         # decider threshold
         decider_1 = MaxScoreThreshold(decision_engine)
         ### the IDS
@@ -141,7 +172,8 @@ class Experiment:
 
     def calc_extended_results(self, performance: Performance):
         results = performance.get_results()
-        cm = ConfusionMatrix(tn=results["true_negatives"], fp=results["false_positives"], tp=results["true_positives"], fn=results["false_negatives"])
+        cm = ConfusionMatrix(tn=results["true_negatives"], fp=results["false_positives"], tp=results["true_positives"],
+                             fn=results["false_negatives"])
         metrics = cm.calc_unweighted_measurements()
         return {**results, **metrics}
 
@@ -159,6 +191,7 @@ def split_list(l, fraction_sublist1: float):
     size = len(l)
     split_at = math.floor(fraction_sublist1 * size)
     return l[:split_at], l[split_at:]
+
 
 def main():
     parser = argparse.ArgumentParser()
