@@ -16,6 +16,7 @@ import yaml
 
 from algorithms.decision_engines.som import Som
 from algorithms.decision_engines.stide import Stide
+from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from algorithms.performance_measurement import Performance
 from tsa.confusion_matrix import ConfusionMatrix
@@ -146,6 +147,8 @@ class Experiment:
 
         decision_engine_args = self._get_param("decision_engine", "args", default={}, exp_type=dict)
         decision_engine = DecisionEngineClass(ngram, **decision_engine_args)
+        if DecisionEngineClass == DECISION_ENGINES["Stide"]:
+            decision_engine = StreamSum(decision_engine, False, 500, False)
         # decider threshold
         decider_1 = MaxScoreThreshold(decision_engine)
         ### the IDS
