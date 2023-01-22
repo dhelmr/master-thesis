@@ -4,15 +4,19 @@ Example execution of LIDS Framework
 import argparse
 import math
 import os
+import pickle
 import sys
 import datetime
+import tempfile
 import uuid
 from pprint import pprint
 from shutil import copyfile, copytree
 
+import mlflow
 import pandas
 import pandas as pd
 import yaml
+from mlflow import MlflowClient
 
 from algorithms.decision_engines.som import Som
 from algorithms.decision_engines.stide import Stide
@@ -81,25 +85,32 @@ DECISION_ENGINES = {de.__name__: de for de in [AE, Stide, Som]}
 
 
 class Experiment:
-    def __init__(self, parameters, result_file: str):
+    def __init__(self, parameters, mlflow: MlflowClient):
         self.scenario_path = f"{LID_DS_BASE_PATH}/{LID_DS_VERSION}/{parameters['scenario_name']}"
         self.tmp_dir = "tmp"
         self.attack_mixin = AttackMixin(tmp_dir=self.tmp_dir, scenario_path=self.scenario_path,
                                         **parameters["attack_mixin"])
-        self.result_file = result_file
         self._tmp_results_df = None
         self.parameters = parameters
+        self.mlflow = mlflow
 
     def start(self):
         start_at = 0
-        if os.path.isfile(self.result_file):
-            self._tmp_results_df = pd.read_csv(self.result_file)
-            start_at = len(self._tmp_results_df)
-
         print(start_at)
         for contamined_set in self.attack_mixin.iter_contaminated_sets(start_at):
-            results = self.train_test(contamined_set["path"])
-            self.store_results({**results, **contamined_set})
+            with mlflow.start_run() as run:
+                mlflow.log_params(convert_mlflow_dict(contamined_set))
+                mlflow.log_params(convert_mlflow_dict(self.parameters))
+                additional_params, results, ids = self.train_test(contamined_set["path"])
+                self.log_ids(ids)
+                mlflow.log_params(convert_mlflow_dict(additional_params))
+                for metric_key, value in convert_mlflow_dict(results).items():
+                    try:
+                        value = float(value)
+                    except ValueError:
+                        print("Skip metric", metric_key)
+                        continue
+                    mlflow.log_metric(metric_key, value)
 
     def _get_param(self, *keys, default=None, required=True, exp_type=None):
         if default is not None:
@@ -123,10 +134,8 @@ class Experiment:
     def train_test(self, scenario_path):
         # just load < closing system calls for this example
         dataloader = dataloader_factory(scenario_path, direction=Direction.BOTH)
-
         DecisionEngineClass = DECISION_ENGINES[self.parameters["decision_engine"]["name"]]
-        ### building blocks
-        # first: map each systemcall to an integer
+
         syscall_name = SyscallName()
         feature_name = self._get_param("features", "name")
         if feature_name == "OneHotEncodingNgram":
@@ -158,20 +167,16 @@ class Experiment:
                   plot_switch=False)
 
         print("at evaluation:")
-        # detection
-        # normal / seriell
-        # results = ids.detect().get_results()
-        # parallel / map-reduce
         performance = ids.detect()
 
         results = self.calc_extended_results(performance)
-        # TODO move to calc_extended_results
-        results['config'] = ids.get_config_tree_links()
-        results['scenario'] = scenario_path
-        results['dataset'] = "2021"
-        results['direction'] = dataloader.get_direction_string()
-        results['date'] = str(datetime.datetime.now().date())
-        return results
+        additional_parameters = {
+            "config": ids.get_config_tree_links(),
+            "scenario": scenario_path,
+            'dataset': "2021",
+            "direction": dataloader.get_direction_string(),
+        }
+        return additional_parameters, results, ids
 
     def calc_extended_results(self, performance: Performance):
         results = performance.get_results()
@@ -180,13 +185,11 @@ class Experiment:
         metrics = cm.calc_unweighted_measurements()
         return {**results, **metrics}
 
-    def store_results(self, results):
-        if self._tmp_results_df is None:
-            self._tmp_results_df = pandas.DataFrame([results])
-        else:
-            self._tmp_results_df = self._tmp_results_df.append([results])
-        self._tmp_results_df.to_csv(self.result_file)
-
+    def log_ids(self, ids):
+        outfile = tempfile.mktemp()
+        with open(outfile, "wb") as f:
+            pickle.dump(ids, f)
+        mlflow.log_artifact(outfile, "ids.pickle")
 
 def split_list(l, fraction_sublist1: float):
     if fraction_sublist1 < 0 or fraction_sublist1 > 1:
@@ -195,12 +198,27 @@ def split_list(l, fraction_sublist1: float):
     split_at = math.floor(fraction_sublist1 * size)
     return l[:split_at], l[split_at:]
 
+def convert_mlflow_dict(nested_dict: dict):
+    mlflow_dict = {}
+    for key, value  in nested_dict.items():
+        if isinstance(value, dict):
+            for subkey, subvalue in convert_mlflow_dict(value).items():
+                mlflow_dict[f"{key}.{subkey}"] = subvalue
+        else:
+            mlflow_dict[key] = str(value)
+    for key, value in dict(mlflow_dict).items():
+        if len(value) > 500:
+            print("Skip", key, "because it exceeds mlflow length limit")
+            del mlflow_dict[key]
+    return mlflow_dict
+
 
 def main():
+    mlflow_client = MlflowClient()
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", required=True, help="Experiment config yaml file.")
-    parser.add_argument("-o", "--output", required=True, help="Results csv.")
     args = parser.parse_args()
     with open(args.config) as f:
         exp_parameters = yaml.safe_load(f)
-    Experiment(exp_parameters, result_file=args.output).start()
+    Experiment(exp_parameters, mlflow=mlflow_client).start()
