@@ -77,7 +77,8 @@ class AttackMixin:
             yield {
                 "path": workdir,
                 "num_attacks": num_attacks,
-                "attacks": attacks
+                "attacks": attacks,
+                "iteration": i
             }
 
 
@@ -94,15 +95,14 @@ class Experiment:
         self.parameters = parameters
         self.mlflow = mlflow
 
-    def start(self):
-        start_at = 0
+    def start(self, start_at=0):
         print(start_at)
         for contamined_set in self.attack_mixin.iter_contaminated_sets(start_at):
             with mlflow.start_run() as run:
                 mlflow.log_params(convert_mlflow_dict(contamined_set))
                 mlflow.log_params(convert_mlflow_dict(self.parameters))
                 additional_params, results, ids = self.train_test(contamined_set["path"])
-                self.log_ids(ids)
+                self.log_artifacts(ids)
                 mlflow.log_params(convert_mlflow_dict(additional_params))
                 for metric_key, value in convert_mlflow_dict(results).items():
                     try:
@@ -185,11 +185,17 @@ class Experiment:
         metrics = cm.calc_unweighted_measurements()
         return {**results, **metrics}
 
-    def log_ids(self, ids):
+    def log_artifacts(self, ids):
         outfile = tempfile.mktemp()
         with open(outfile, "wb") as f:
             pickle.dump(ids, f)
         mlflow.log_artifact(outfile, "ids.pickle")
+
+        outfile = tempfile.mktemp()
+        with open(outfile, "w") as f:
+            yaml.dump(self.parameters, f)
+        mlflow.log_artifact(outfile, "config.yaml")
+
 
 def split_list(l, fraction_sublist1: float):
     if fraction_sublist1 < 0 or fraction_sublist1 > 1:
@@ -212,13 +218,13 @@ def convert_mlflow_dict(nested_dict: dict):
             del mlflow_dict[key]
     return mlflow_dict
 
-
 def main():
     mlflow_client = MlflowClient()
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", required=True, help="Experiment config yaml file.")
+    parser.add_argument("--start-at", "-s", required=True, help="Start at iteration", type=int, default=0)
     args = parser.parse_args()
     with open(args.config) as f:
         exp_parameters = yaml.safe_load(f)
-    Experiment(exp_parameters, mlflow=mlflow_client).start()
+    Experiment(exp_parameters, mlflow=mlflow_client).start(args.start_at)
