@@ -53,15 +53,13 @@ class AttackMixin:
         self.step_size = step_size
         self.max_attack_fraction = max_attack_fraction
 
-    def iter_contaminated_sets(self, start_at: int = 0):
+    def iter_contaminated_sets(self):
         training_dir = os.path.join(self.scenario_path, "training")
         attack_dir = os.path.join(self.scenario_path, "test", "normal_and_attack")
         attack_files = os.listdir(attack_dir)
         attack_files.sort()
         attack_mixins, test_split_files = split_list(attack_files, self.max_attack_fraction)
         for i, num_attacks in enumerate(range(0, len(attack_files), self.step_size)):
-            if i < start_at:
-                continue
             workdir = os.path.join(self.tmp_dir, uuid.uuid4().__str__())
             os.mkdir(workdir)
             attacks = attack_files[:num_attacks]
@@ -77,8 +75,7 @@ class AttackMixin:
             yield {
                 "path": workdir,
                 "num_attacks": num_attacks,
-                "attacks": attacks,
-                "iteration": i
+                "attacks": attacks
             }
 
 
@@ -87,30 +84,39 @@ DECISION_ENGINES = {de.__name__: de for de in [AE, Stide, Som]}
 
 class Experiment:
     def __init__(self, parameters, mlflow: MlflowClient):
-        self.scenario_path = f"{LID_DS_BASE_PATH}/{LID_DS_VERSION}/{parameters['scenario_name']}"
         self.tmp_dir = "tmp"
-        self.attack_mixin = AttackMixin(tmp_dir=self.tmp_dir, scenario_path=self.scenario_path,
-                                        **parameters["attack_mixin"])
         self._tmp_results_df = None
         self.parameters = parameters
         self.mlflow = mlflow
+        self.scenarios = self._get_param("scenarios", exp_type=list)
 
-    def start(self, start_at=0):
-        print(start_at)
-        for contamined_set in self.attack_mixin.iter_contaminated_sets(start_at):
-            with mlflow.start_run() as run:
-                mlflow.log_params(convert_mlflow_dict(contamined_set))
-                mlflow.log_params(convert_mlflow_dict(self.parameters))
-                additional_params, results, ids = self.train_test(contamined_set["path"])
-                self.log_artifacts(ids)
-                mlflow.log_params(convert_mlflow_dict(additional_params))
-                for metric_key, value in convert_mlflow_dict(results).items():
-                    try:
-                        value = float(value)
-                    except ValueError:
-                        print("Skip metric", metric_key)
-                        continue
-                    mlflow.log_metric(metric_key, value)
+    def start(self, start_at=0, dry_run=False):
+        i = -1
+        for scenario_name in self.scenarios:
+            scenario_path = f"{LID_DS_BASE_PATH}/{LID_DS_VERSION}/{scenario_name}"
+            attack_mixin = AttackMixin(tmp_dir=self.tmp_dir, scenario_path=scenario_path,
+                                            **self.parameters["attack_mixin"])
+            for contamined_set in attack_mixin.iter_contaminated_sets():
+                i=i+1
+                if i < start_at:
+                    continue
+                if dry_run:
+                    print("Dry Run: ", contamined_set)
+                    continue
+                with mlflow.start_run() as run:
+                    mlflow.log_params(convert_mlflow_dict(contamined_set))
+                    mlflow.log_params(convert_mlflow_dict(self.parameters))
+                    mlflow.log_params(convert_mlflow_dict({"iteration":i}))
+                    additional_params, results, ids = self.train_test(contamined_set["path"])
+                    self.log_artifacts(ids)
+                    mlflow.log_params(convert_mlflow_dict(additional_params))
+                    for metric_key, value in convert_mlflow_dict(results).items():
+                        try:
+                            value = float(value)
+                        except ValueError:
+                            print("Skip metric", metric_key)
+                            continue
+                        mlflow.log_metric(metric_key, value)
 
     def _get_param(self, *keys, default=None, required=True, exp_type=None):
         if default is not None:
@@ -197,12 +203,12 @@ class Experiment:
         mlflow.log_dict(self.parameters, "config.json")
 
     @staticmethod
-    def continue_run(mlflow_client: MlflowClient, run_id: str):
+    def continue_run(mlflow_client: MlflowClient, run_id: str, dry_run=False):
         run = mlflow_client.get_run(run_id)
         artifact_uri = run.info.artifact_uri
         config_json = mlflow.artifacts.load_dict(artifact_uri + "/config.json")
         iteration = int(run.data.params.get("iteration"))
-        Experiment(config_json, mlflow_client).start(iteration+1)
+        Experiment(config_json, mlflow_client).start(iteration+1, dry_run=dry_run)
 
 
 def split_list(l, fraction_sublist1: float):
@@ -234,6 +240,7 @@ def main():
     parser.add_argument("-c", "--config", required=False, help="Experiment config yaml file.")
     parser.add_argument("--start-at", "-s", required=False, help="Start at iteration", type=int, default=0)
     parser.add_argument("--continue-run", "-r", required=False, help="Continue run id from mlflow", type=str)
+    parser.add_argument("--dry-run", action="store_true", default=False, help="If set, only attack mixin datasets will be created, and no Anomaly Detection is done. Useful for debugging.")
     args = parser.parse_args()
     if args.config is None and args.continue_run is None:
         print("Either --config or --continue-run must be set")
@@ -247,7 +254,7 @@ def main():
         with open(args.config) as f:
             exp_parameters = yaml.safe_load(f)
         start_at = args.start_at
-        Experiment(exp_parameters, mlflow=mlflow_client).start(start_at)
+        Experiment(exp_parameters, mlflow=mlflow_client).start(start_at, dry_run=args.dry_run)
     if args.continue_run is not None:
-        Experiment.continue_run(mlflow_client, args.continue_run)
+        Experiment.continue_run(mlflow_client, args.continue_run, args.dry_run)
 
