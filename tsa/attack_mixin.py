@@ -190,11 +190,19 @@ class Experiment:
         with open(outfile, "wb") as f:
             pickle.dump(ids, f)
         mlflow.log_artifact(outfile, "ids.pickle")
+        #outfile = tempfile.mktemp()
+        #with open(outfile, "w") as f:
+        #    yaml.dump(self.parameters, f)
+        #mlflow.log_artifact(outfile, "config.yaml")
+        mlflow.log_dict(self.parameters, "config.json")
 
-        outfile = tempfile.mktemp()
-        with open(outfile, "w") as f:
-            yaml.dump(self.parameters, f)
-        mlflow.log_artifact(outfile, "config.yaml")
+    @staticmethod
+    def continue_run(mlflow_client: MlflowClient, run_id: str):
+        run = mlflow_client.get_run(run_id)
+        artifact_uri = run.info.artifact_uri
+        config_json = mlflow.artifacts.load_dict(artifact_uri + "/config.json")
+        iteration = int(run.data.params.get("iteration"))
+        Experiment(config_json, mlflow_client).start(iteration+1)
 
 
 def split_list(l, fraction_sublist1: float):
@@ -218,13 +226,28 @@ def convert_mlflow_dict(nested_dict: dict):
             del mlflow_dict[key]
     return mlflow_dict
 
+
 def main():
     mlflow_client = MlflowClient()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--config", required=True, help="Experiment config yaml file.")
-    parser.add_argument("--start-at", "-s", required=True, help="Start at iteration", type=int, default=0)
+    parser.add_argument("-c", "--config", required=False, help="Experiment config yaml file.")
+    parser.add_argument("--start-at", "-s", required=False, help="Start at iteration", type=int, default=0)
+    parser.add_argument("--continue-run", "-r", required=False, help="Continue run id from mlflow", type=str)
     args = parser.parse_args()
-    with open(args.config) as f:
-        exp_parameters = yaml.safe_load(f)
-    Experiment(exp_parameters, mlflow=mlflow_client).start(args.start_at)
+    if args.config is None and args.continue_run is None:
+        print("Either --config or --continue-run must be set")
+        parser.print_help()
+        exit(1)
+    if args.config is not None and args.continue_run is not None:
+        print("Only one of --config and --continue-run can be set")
+        parser.print_help()
+        exit(1)
+    if args.config is not None:
+        with open(args.config) as f:
+            exp_parameters = yaml.safe_load(f)
+        start_at = args.start_at
+        Experiment(exp_parameters, mlflow=mlflow_client).start(start_at)
+    if args.continue_run is not None:
+        Experiment.continue_run(mlflow_client, args.continue_run)
+
