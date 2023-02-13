@@ -129,14 +129,14 @@ class AttackMixin:
             run_path = os.path.join(workdir, "runs.csv")
             run_df = pd.read_csv(run_path)
 
-            remove_attacks = [" %s" % a for a in attack_records if a not in attack_mixins]
+            included_attacks = attack_mixins[:config.num_attacks]
+
+            remove_attacks = [" %s" % a for a in attack_mixins if a not in included_attacks]  # TODO correct at csv read time
             print("remove:", remove_attacks)
             run_df = run_df[~run_df[' scenario_name'].isin(remove_attacks)]
 
-            attacks = [" %s" % a for a in attack_mixins[:config.num_attacks]]
-            for _, row in run_df.loc[run_df[' scenario_name'].isin(attacks)].iterrows():
-                print("Change from ", row[" is_executing_exploit"])
-                row[" is_executing_exploit"] = False
+            included_attacks_formatted = [" %s" % a for a in included_attacks] # TODO correct at csv read time
+            run_df.loc[run_df[' scenario_name'].isin(included_attacks_formatted), " is_executing_exploit"] = False
 
             run_df.to_csv(run_path, index=False)
             return workdir
@@ -186,7 +186,7 @@ class Experiment:
                     print("Skip", mixin_config)
                     continue
                 if dry_run:
-                    print("Dry Run: ", mixin_config)
+                    print(i, "Dry Run: ", mixin_config)
                     continue
                 with mlflow.start_run() as run:
                     run_path = attack_mixin.exec_config(mixin_config)
