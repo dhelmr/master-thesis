@@ -1,4 +1,3 @@
-* support LIDS 2019 
 * own files for:
   * Experiment
   * Attack Mixins (renane 2019/2021)
