@@ -38,6 +38,7 @@ from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.ngram import Ngram
 from algorithms.decision_engines.ae import AE
+from tsa.dataloader_2019 import ContaminatedDataLoader2019
 
 try:
     LID_DS_BASE_PATH = os.environ['LID_DS_BASE']
@@ -46,9 +47,10 @@ except KeyError as exc:
                      "Please specify as argument or set Environment Variable "
                      "$LID_DS_BASE") from exc
 
+
 @dataclass
 class AttackMixinConfig:
-    dataset_version: str # TODO use enum
+    dataset_version: str  # TODO use enum
     num_attacks: int
     scenario_name: str
     scenario_path: str
@@ -57,110 +59,6 @@ class AttackMixinConfig:
     def to_dict(self):
         return self.__dict__
 
-
-class AttackMixin:
-    def __init__(self, scenario_path: str, tmp_dir: str, dataset_version: str,
-                 max_attack_fraction: float,  step_size: int = None, step_size_fraction: float = None):
-        self.scenario_path = scenario_path
-        self.tmp_dir = tmp_dir
-        if step_size is None and step_size_fraction is None:
-            raise ValueError("Either step_size or step_size_fraction must be set")
-        self.step_size = step_size
-        self.step_size_fraction = step_size_fraction
-        self.dataset_version = dataset_version
-        self.max_attack_fraction = max_attack_fraction
-        self.scenario_name = scenario_path.split(os.path.sep)[-1]
-
-    def iter_contaminated_sets(self):
-        if self.dataset_version == "LID-DS-2021":
-            return self._iter_contamined_2021()
-        elif self.dataset_version == "LID-DS-2019":
-            return self._iter_contamined_2019()
-        else:
-            raise ValueError("Unknown lidds version %s" % self.dataset_version)
-    def _iter_contamined_2021(self):
-        training_dir = os.path.join(self.scenario_path, "training")
-        attack_dir = os.path.join(self.scenario_path, "test", "normal_and_attack")
-        attack_files = os.listdir(attack_dir)
-        attack_files.sort()
-        attack_mixins, test_split_files = split_list(attack_files, self.max_attack_fraction)
-        if self.step_size_fraction is not None:
-            step_size = math.ceil(self.step_size_fraction * len(attack_files))
-        else:
-            step_size = self.step_size
-        for i, num_attacks in enumerate(range(0, len(attack_mixins), step_size)):
-            yield AttackMixinConfig(
-                dataset_version="LID-DS-2021",
-                num_attacks=num_attacks,
-                scenario_path=self.scenario_path,
-                scenario_name=self.scenario_name,
-                attack_names=attack_mixins[:num_attacks]
-            )
-
-
-    def exec_config(self, config: AttackMixinConfig):
-        # TODO refactor
-        if config.dataset_version == "LID-DS-2021":
-            training_dir = os.path.join(self.scenario_path, "training")
-            attack_dir = os.path.join(self.scenario_path, "test", "normal_and_attack")
-            workdir = os.path.join(self.tmp_dir, uuid.uuid4().__str__())
-            attack_files = os.listdir(attack_dir)
-            attack_mixins, test_split_files = split_list(attack_files, self.max_attack_fraction)
-            attacks = attack_mixins[:config.num_attacks]
-            os.mkdir(workdir)
-            copytree(os.path.join(self.scenario_path, "training"), os.path.join(workdir, "training"))
-            copytree(os.path.join(self.scenario_path, "validation"), os.path.join(workdir, "validation"))
-            os.mkdir(os.path.join(workdir, "test"))
-            copytree(os.path.join(self.scenario_path, "test", "normal"), os.path.join(workdir, "test", "normal"))
-            os.mkdir(os.path.join(workdir, "test", "normal_and_attack"))
-            for f in test_split_files:
-                copyfile(os.path.join(attack_dir, f), os.path.join(workdir, "test", "normal_and_attack", f))
-            for f in attacks:
-                copyfile(os.path.join(attack_dir, f), os.path.join(workdir, "training", f))
-            return workdir
-        elif config.dataset_version == "LID-DS-2019":
-            dl = dataloader_factory(self.scenario_path)
-            attack_records = [t.name for t in dl.test_data() if t.metadata()["exploit"] == True]
-            attack_records.sort()
-            workdir = os.path.join(self.tmp_dir, uuid.uuid4().__str__())
-            # os.mkdir(workdir)
-            attack_mixins, test_split_files = split_list(attack_records, self.max_attack_fraction)
-            copytree(self.scenario_path, workdir)
-            run_path = os.path.join(workdir, "runs.csv")
-            run_df = pd.read_csv(run_path)
-
-            included_attacks = attack_mixins[:config.num_attacks]
-
-            remove_attacks = [" %s" % a for a in attack_mixins if a not in included_attacks]  # TODO correct at csv read time
-            print("remove:", remove_attacks)
-            run_df = run_df[~run_df[' scenario_name'].isin(remove_attacks)]
-
-            included_attacks_formatted = [" %s" % a for a in included_attacks] # TODO correct at csv read time
-            run_df.loc[run_df[' scenario_name'].isin(included_attacks_formatted), " is_executing_exploit"] = False
-
-            run_df.to_csv(run_path, index=False)
-            return workdir
-        else:
-            raise ValueError("Unknown version: "+config.dataset_version)
-
-    def _iter_contamined_2019(self):
-        dl = dataloader_factory(self.scenario_path)
-        attack_records =  [t.name for t in dl.test_data() if t.metadata()["exploit"] == True]
-        attack_records.sort()
-        print(attack_records)
-        attack_mixins, test_split_files = split_list(attack_records, self.max_attack_fraction)
-        if self.step_size_fraction is not None:
-            step_size = math.ceil(self.step_size_fraction*len(attack_records))
-        else:
-            step_size = self.step_size
-        for i, num_attacks in enumerate(range(0, len(attack_mixins), step_size)):
-            yield AttackMixinConfig(
-                dataset_version="LID-DS-2019",
-                num_attacks=num_attacks,
-                scenario_name=self.scenario_name,
-                scenario_path=self.scenario_path,
-                attack_names=attack_mixins[:num_attacks]
-            )
 
 DECISION_ENGINES = {de.__name__: de for de in [AE, Stide, Som]}
 
@@ -174,26 +72,28 @@ class Experiment:
         self.scenarios = self._get_param("scenarios", exp_type=list)
 
     def start(self, start_at=0, dry_run=False):
+        max_attacks = self._get_param("attack_mixin", "max_attacks", exp_type=int)
+        dataloader_config = self._get_param("attack_mixin", "dataloader", exp_type=dict)
         i = -1
         for scenario in self.scenarios:
             lid_ds_version, scenario_name = scenario.split("/")
+            dataloader_class = self._get_dataloader_cls(lid_ds_version)
             scenario_path = f"{LID_DS_BASE_PATH}/{lid_ds_version}/{scenario_name}"
-            attack_mixin = AttackMixin(tmp_dir=self.tmp_dir, dataset_version=lid_ds_version,
-                                       scenario_path=scenario_path, **self.parameters["attack_mixin"])
-            for mixin_config in attack_mixin.iter_contaminated_sets():
-                i = i+1
+            for num_attacks in range(max_attacks):
+                dataloader = dataloader_class(scenario_path, num_attacks=num_attacks, direction=Direction.BOTH,
+                                              **dataloader_config)
+                i = i + 1
                 if i < start_at:
-                    print("Skip", mixin_config)
+                    print("Skip", dataloader.__dict__)
                     continue
                 if dry_run:
-                    print(i, "Dry Run: ", mixin_config)
+                    print(i, "Dry Run: ", dataloader.__dict__)
                     continue
                 with mlflow.start_run() as run:
-                    run_path = attack_mixin.exec_config(mixin_config)
-                    mlflow.log_params(convert_mlflow_dict(mixin_config.to_dict()))
+                    mlflow.log_params(convert_mlflow_dict(dataloader.cfg_dict()))
                     mlflow.log_params(convert_mlflow_dict(self.parameters))
                     mlflow.log_params(convert_mlflow_dict({"iteration": i}))
-                    additional_params, results, ids = self.train_test(run_path)
+                    additional_params, results, ids = self.train_test(dataloader)
                     self.log_artifacts(ids)
                     mlflow.log_params(convert_mlflow_dict(additional_params))
                     for metric_key, value in convert_mlflow_dict(results).items():
@@ -204,28 +104,15 @@ class Experiment:
                             continue
                         mlflow.log_metric(metric_key, value)
 
-    def _get_param(self, *keys, default=None, required=True, exp_type=None):
-        if default is not None:
-            required = False
-        cur_obj = self.parameters
-        cur_key = ""
-        for key in keys:
-            if not isinstance(cur_obj, dict):
-                raise ValueError("Parameter '%s' is not a dict." % cur_key)
-            if key not in cur_obj:
-                if not required:
-                    return default
-                else:
-                    raise ValueError("Cannot find parameter for key %s at %s" % (key, cur_key))
-            cur_obj = cur_obj[key]
-            cur_key = "%s.%s" % (cur_key, key)
-        if exp_type is not None and not isinstance(cur_obj, exp_type):
-            raise ValueError("Parameter %s is not of expected type %s" % (cur_key, exp_type))
-        return cur_obj
+    def _get_dataloader_cls(self, lid_ds_version):
+        if lid_ds_version == "LID-DS-2019":
+            return ContaminatedDataLoader2019
+        else:
+            raise ValueError("%s is not supported." % lid_ds_version)
 
-    def train_test(self, scenario_path):
+    def train_test(self, dataloader):
         # just load < closing system calls for this example
-        dataloader = dataloader_factory(scenario_path, direction=Direction.BOTH)
+
         DecisionEngineClass = DECISION_ENGINES[self.parameters["decision_engine"]["name"]]
 
         syscall_name = SyscallName()
@@ -264,8 +151,7 @@ class Experiment:
 
         results = self.calc_extended_results(performance)
         additional_parameters = {
-            "config": ids.get_config_tree_links(),
-            "direction": dataloader.get_direction_string(),
+            "config": ids.get_config_tree_links()
         }
         return additional_parameters, results, ids
 
@@ -275,6 +161,25 @@ class Experiment:
                              fn=results["false_negatives"])
         metrics = cm.calc_unweighted_measurements()
         return {"ids": results, "cm": metrics}
+
+    def _get_param(self, *keys, default=None, required=True, exp_type=None):
+        if default is not None:
+            required = False
+        cur_obj = self.parameters
+        cur_key = ""
+        for key in keys:
+            if not isinstance(cur_obj, dict):
+                raise ValueError("Parameter '%s' is not a dict." % cur_key)
+            if key not in cur_obj:
+                if not required:
+                    return default
+                else:
+                    raise ValueError("Cannot find parameter for key %s at %s" % (key, cur_key))
+            cur_obj = cur_obj[key]
+            cur_key = "%s.%s" % (cur_key, key)
+        if exp_type is not None and not isinstance(cur_obj, exp_type):
+            raise ValueError("Parameter %s is not of expected type %s" % (cur_key, exp_type))
+        return cur_obj
 
     def log_artifacts(self, ids):
         outfile = tempfile.mktemp()
