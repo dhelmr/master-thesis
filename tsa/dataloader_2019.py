@@ -12,7 +12,7 @@ from dataloader.recording_2019 import Recording2019
 from dataloader.base_data_loader import BaseDataLoader
 
 
-class DataLoader2019(BaseDataLoader):
+class ContaminatedDataLoader2019(BaseDataLoader):
 
     def __init__(self, scenario_path: str, num_attacks: int, direction: Direction = Direction.OPEN,
                  validation_ratio: float = 0.2, cont_ratio: float = 0.2, shuffle_cont_seed=0,
@@ -33,19 +33,33 @@ class DataLoader2019(BaseDataLoader):
         self._num_attacks = num_attacks
         if validation_ratio < 0 or validation_ratio > 1:
             raise ValueError("validation_ratio must be in interval [0,1]")
-
-        self.extract_recordings()
+        self._initialized = False
 
     def training_data(self) -> list:
+        self._init_once()
         return self._normal_recordings[:self._training_size] + self._contamined_recordings
 
     def validation_data(self) -> list:
+        self._init_once()
         return self._normal_recordings[self._training_size:self._training_size + self._validation_size]
 
     def test_data(self) -> list:
+        self._init_once()
         return self._normal_recordings[self._training_size + self._validation_size:] + self._exploit_recordings
 
-    def extract_recordings(self):
+    def cfg_dict(self):
+        return {
+            "scenario_path": self.scenario_path,
+            "training_size": self._training_size,
+            "validation_size": self._validation_size,
+            "direction": self._direction,
+            "cont_ratio": self._cont_ratio,
+            "shuffle_cont_seed": self._shuffle_cont_seed,
+            "validation_ratio": self._validation_ratio,
+            "num_attacks": self._num_attacks
+        }
+
+    def _extract_recordings(self):
         with open(self._runs_path, 'r') as runs_csv:
             recording_reader = csv.reader(runs_csv, skipinitialspace=True)
             next(recording_reader)
@@ -63,7 +77,13 @@ class DataLoader2019(BaseDataLoader):
         self._normal_recordings = normal_recordings
         self._contamined_recordings, self._exploit_recordings = split_list(exploit_recordings, self._cont_ratio)
         random.Random(self._shuffle_cont_seed).shuffle(self._contamined_recordings)
-        self._contamined_recordings = self._contamined_recordings[:self.num_attacks]
+        self._contamined_recordings = self._contamined_recordings[:self._num_attacks]
+
+    def _init_once(self):
+        if self._initialized:
+            return
+        self._extract_recordings()
+        self._initialized = True
 
     def distinct_syscalls_training_data(self) -> int:
         json_path = 'distinct_syscalls.json'
