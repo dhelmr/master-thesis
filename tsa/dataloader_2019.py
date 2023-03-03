@@ -8,7 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from dataloader.direction import Direction
-from dataloader.recording_2019 import Recording2019
+from dataloader.recording_2019 import Recording2019, RecordingDataParts
 from dataloader.base_data_loader import BaseDataLoader
 
 
@@ -22,7 +22,7 @@ class ContaminatedDataLoader2019(BaseDataLoader):
         self._runs_path = os.path.join(scenario_path, 'runs.csv')
         self._normal_recordings = None
         self._exploit_recordings = None
-        self._contamined_recordings = None
+        self._contaminated_recordings = None
         self._distinct_syscalls = None
         self._training_size = training_size
         self._validation_size = validation_size
@@ -37,7 +37,7 @@ class ContaminatedDataLoader2019(BaseDataLoader):
 
     def training_data(self) -> list:
         self._init_once()
-        return self._normal_recordings[:self._training_size] + self._contamined_recordings
+        return self._normal_recordings[:self._training_size] + self._contaminated_recordings
 
     def validation_data(self) -> list:
         self._init_once()
@@ -60,24 +60,32 @@ class ContaminatedDataLoader2019(BaseDataLoader):
         }
 
     def _extract_recordings(self):
+        exploit_recording_lines = []
         with open(self._runs_path, 'r') as runs_csv:
             recording_reader = csv.reader(runs_csv, skipinitialspace=True)
             next(recording_reader)
 
             normal_recordings = []
-            exploit_recordings = []
-
             for recording_line in recording_reader:
                 recording = Recording2019(recording_line, self.scenario_path, self._direction)
                 if not recording.metadata()['exploit']:
                     normal_recordings.append(recording)
                 else:
-                    exploit_recordings.append(recording)
+                    exploit_recording_lines.append((recording_line, recording))
 
         self._normal_recordings = normal_recordings
-        self._contamined_recordings, self._exploit_recordings = split_list(exploit_recordings, self._cont_ratio)
-        random.Random(self._shuffle_cont_seed).shuffle(self._contamined_recordings)
-        self._contamined_recordings = self._contamined_recordings[:self._num_attacks]
+        training_exploit_lines, test_exploit_lines = split_list(exploit_recording_lines, self._cont_ratio)
+        self._exploit_recordings = [recording for (_, recording) in test_exploit_lines]
+
+        # create contaminated recordings that will be added to the training phase
+        random.Random(self._shuffle_cont_seed).shuffle(training_exploit_lines)
+        training_exploit_lines = training_exploit_lines[:self._num_attacks]
+        for recording_line in training_exploit_lines:
+            recording_line[RecordingDataParts.IS_EXECUTING_EXPLOIT] = "false"
+        self._contaminated_recordings = [
+            Recording2019(r, self.scenario_path, self._direction) for r in training_exploit_lines
+        ]
+
 
     def _init_once(self):
         if self._initialized:
