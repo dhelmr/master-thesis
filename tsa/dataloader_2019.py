@@ -80,11 +80,11 @@ class ContaminatedDataLoader2019(BaseDataLoader):
         # create contaminated recordings that will be added to the training phase
         random.Random(self._shuffle_cont_seed).shuffle(training_exploit_lines)
         training_exploit_lines = training_exploit_lines[:self._num_attacks]
-        for recording_line in training_exploit_lines:
+        self._contaminated_recordings = []
+        for recording_line, _ in training_exploit_lines:
             recording_line[RecordingDataParts.IS_EXECUTING_EXPLOIT] = "false"
-        self._contaminated_recordings = [
-            Recording2019(r, self.scenario_path, self._direction) for r in training_exploit_lines
-        ]
+            self._contaminated_recordings.append(Recording2019(recording_line, self.scenario_path, self._direction))
+
 
 
     def _init_once(self):
