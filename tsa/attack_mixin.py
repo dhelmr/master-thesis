@@ -65,7 +65,6 @@ DECISION_ENGINES = {de.__name__: de for de in [AE, Stide, Som]}
 
 class Experiment:
     def __init__(self, parameters, mlflow: MlflowClient):
-        self.tmp_dir = "tmp"
         self._tmp_results_df = None
         self.parameters = parameters
         self.mlflow = mlflow
