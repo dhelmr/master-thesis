@@ -79,7 +79,7 @@ class Experiment:
             lid_ds_version, scenario_name = scenario.split("/")
             dataloader_class = self._get_dataloader_cls(lid_ds_version)
             scenario_path = f"{LID_DS_BASE_PATH}/{lid_ds_version}/{scenario_name}"
-            for num_attacks in range(max_attacks):
+            for num_attacks in range(max_attacks+1):
                 dataloader = dataloader_class(scenario_path, num_attacks=num_attacks, direction=Direction.BOTH,
                                               **dataloader_config)
                 i = i + 1
