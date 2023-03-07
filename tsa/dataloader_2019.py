@@ -1,15 +1,14 @@
-import math
 import os
 import csv
 import json
 import random
 
-import pandas as pd
 from tqdm import tqdm
 
 from dataloader.direction import Direction
 from dataloader.recording_2019 import Recording2019, RecordingDataParts
 from dataloader.base_data_loader import BaseDataLoader
+from tsa.utils import split_list
 
 
 class ContaminatedDataLoader2019(BaseDataLoader):
@@ -79,6 +78,7 @@ class ContaminatedDataLoader2019(BaseDataLoader):
 
         # create contaminated recordings that will be added to the training phase
         random.Random(self._shuffle_cont_seed).shuffle(training_exploit_lines)
+        # TODO handle case num_attacks > len(training_exploit_lines)
         training_exploit_lines = training_exploit_lines[:self._num_attacks]
         self._contaminated_recordings = []
         for recording_line, _ in training_exploit_lines:
@@ -119,9 +119,3 @@ class ContaminatedDataLoader2019(BaseDataLoader):
             return self._distinct_syscalls
 
 
-def split_list(l, fraction_sublist1: float):
-    if fraction_sublist1 < 0 or fraction_sublist1 > 1:
-        raise ValueError("Argument fraction_sublist1 must be between 0 and 1, but is: %s" % fraction_sublist1)
-    size = len(l)
-    split_at = math.floor(fraction_sublist1 * size)
-    return l[:split_at], l[split_at:]
