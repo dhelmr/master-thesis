@@ -39,6 +39,7 @@ from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.ngram import Ngram
 from algorithms.decision_engines.ae import AE
 from tsa.dataloader_2019 import ContaminatedDataLoader2019
+from tsa.dataloader_2021 import ContaminatedDataLoader2021
 
 try:
     LID_DS_BASE_PATH = os.environ['LID_DS_BASE']
@@ -106,6 +107,8 @@ class Experiment:
     def _get_dataloader_cls(self, lid_ds_version):
         if lid_ds_version == "LID-DS-2019":
             return ContaminatedDataLoader2019
+        if lid_ds_version == "LID-DS-2021":
+            return ContaminatedDataLoader2021
         else:
             raise ValueError("%s is not supported." % lid_ds_version)
 
