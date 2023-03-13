@@ -8,6 +8,7 @@ from tqdm import tqdm
 from dataloader.direction import Direction
 from dataloader.recording_2019 import Recording2019, RecordingDataParts
 from dataloader.base_data_loader import BaseDataLoader
+from tsa.dataloader_2021 import get_scenario_name
 from tsa.utils import split_list
 
 
@@ -48,14 +49,15 @@ class ContaminatedDataLoader2019(BaseDataLoader):
 
     def cfg_dict(self):
         return {
-            "scenario_path": self.scenario_path,
+            "scenario": get_scenario_name(self.scenario_path),
             "training_size": self._training_size,
             "validation_size": self._validation_size,
             "direction": self._direction,
             "cont_ratio": self._cont_ratio,
             "shuffle_cont_seed": self._shuffle_cont_seed,
             "validation_ratio": self._validation_ratio,
-            "num_attacks": self._num_attacks
+            "num_attacks": self._num_attacks,
+            "attack_names": [r.name for r in self._contaminated_recordings]
         }
 
     def _extract_recordings(self):

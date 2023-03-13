@@ -6,7 +6,9 @@ from dataloader.recording_2021 import Recording2021
 from tsa.utils import split_list
 import random
 
-
+def get_scenario_name(scenario_path):
+    last = scenario_path.split("/")[-2:]
+    return "/".join(last)
 class ContaminatedRecording2021(Recording2021):
     def __init__(self, original_recording: Recording2021):
         super().__init__(original_recording.path, original_recording.name, original_recording._direction)
@@ -53,12 +55,13 @@ class ContaminatedDataLoader2021(DataLoader2021):
 
     def cfg_dict(self):
         return {
-            "scenario_path": self.scenario_path,
+            "scenario": get_scenario_name(self.scenario_path),
             "training_size": -1,
             "validation_size": -1,
             "direction": self._direction,
             "cont_ratio": self._cont_ratio,
             "shuffle_cont_seed": self._shuffle_cont_seed,
             "validation_ratio": self._validation_ratio,
-            "num_attacks": self._num_attacks
+            "num_attacks": self._num_attacks,
+            "attack_names": list(self._contaminated_recordings)
         }
