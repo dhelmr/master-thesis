@@ -63,6 +63,11 @@ class AttackMixinConfig:
 
 DECISION_ENGINES = {de.__name__: de for de in [AE, Stide, Som]}
 
+RANDOM_SEED = 0
+torch.manual_seed(RANDOM_SEED)
+random.seed(RANDOM_SEED)
+np.random.seed(RANDOM_SEED)
+
 
 class Experiment:
     def __init__(self, parameters, mlflow: MlflowClient):
