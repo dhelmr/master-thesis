@@ -43,6 +43,7 @@ class NgramNaiveBayes:
         self._post_hist = Histogram()
         self._size = 0
         self._pseudo_count = pseudo_count
+        self._logprob_cache = {}
 
     def add(self, ngram):
         prior = ngram[:-1]
@@ -55,17 +56,24 @@ class NgramNaiveBayes:
         self._size -= 1
         self._post_hist.remove(ngram)
         self._prior_hist.remove(prior)
+        del self._logprob_cache[prior]
 
-    def get_prob(self, ngram) -> float:
+    def get_log_prob(self, ngram) -> float:
         prior = ngram[:-1]
+        if prior in self._logprob_cache and ngram in self._logprob_cache[prior]:
+            return self._logprob_cache[prior][ngram]
         prior_count = self._prior_hist.get_count(prior) + self._pseudo_count
         post_count = self._post_hist.get_count(ngram) + self._pseudo_count
-        return post_count / prior_count
+        logprob = math.log2(post_count / prior_count)
+        if prior not in self._logprob_cache:
+            self._logprob_cache[prior] = {}
+        self._logprob_cache[prior][ngram] = logprob
+        return logprob
 
     def sum_prob(self):
         sum_logp = 0
         for ngram in self._post_hist:
-            sum_logp += math.log2(self.get_prob(ngram))
+            sum_logp += self.get_log_prob(ngram)
         return sum_logp
 
     def __contains__(self, item):
@@ -82,16 +90,19 @@ class OutlierDetector(BuildingBlock):
         self._input = building_block
         self._dependency_list = [building_block]
         self._normal_dist = NgramNaiveBayes()
-        self._anomalies_dist = NgramNaiveBayes()
+        self._anomalies = []
         self._training_data = []
         self._lam = lam
         self._c = c
+        self._log_lam = math.log2(self._lam)
+        self._log_reverse_lam = math.log2(1 - self._lam)
 
-    def _ll(self):
-        # TODO optimize
-        return self._normal_dist._size * math.log2(
-            1 - self._lam) + self._normal_dist.sum_prob() + self._anomalies_dist._size * math.log2(
-            self._lam) + self._anomalies_dist.sum_prob()
+    def _ll(self, anomaly_length = None):
+        if anomaly_length is None:
+            anomaly_length = len(self._anomalies)
+        logp_anomaly = math.log2(1/len(self._training_data))
+        ll_anomalies = anomaly_length * logp_anomaly
+        return self._normal_dist._size * self._log_reverse_lam + self._normal_dist.sum_prob() + anomaly_length * self._log_lam + ll_anomalies
 
     def _calculate(self, syscall: Syscall):
         ngram = self._input.get_result(syscall)
@@ -112,16 +123,16 @@ class OutlierDetector(BuildingBlock):
         for ngram in tqdm(self._training_data):
             normal_ll = self._ll()
             self._normal_dist.remove(ngram)
-            self._anomalies_dist.add(ngram)
-            anomaly_ll = self._ll()
+            anomaly_ll = self._ll(anomaly_length=len(self._anomalies)+1)
             diff = anomaly_ll - normal_ll
             if diff <= self._c:
                 # difference of likelihoods is not big enough => ngram is not an anomaly
                 # move it back to normal dist
                 self._normal_dist.add(ngram)
-                self._anomalies_dist.remove(ngram)
+            else:
+                self._anomalies.append(ngram)
         del self._training_data
-        print("Anomalies:", self._anomalies_dist)
+        print("Anomalies:", self._anomalies)
         print("Normal:", self._normal_dist)
 
     def depends_on(self) -> list:
