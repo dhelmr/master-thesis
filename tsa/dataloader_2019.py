@@ -56,8 +56,8 @@ class ContaminatedDataLoader2019(BaseDataLoader):
             "cont_ratio": self._cont_ratio,
             "shuffle_cont_seed": self._shuffle_cont_seed,
             "validation_ratio": self._validation_ratio,
-            "num_attacks": self._num_attacks,
-            "attack_names": [r.name for r in self._contaminated_recordings]
+            "num_attacks": self._num_attacks
+            #"attack_names": [r.name for r in self._contaminated_recordings]
         }
 
     def _extract_recordings(self):

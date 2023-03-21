@@ -11,11 +11,14 @@ import tempfile
 import uuid
 from dataclasses import dataclass
 from pprint import pprint
+import random
 from shutil import copyfile, copytree
 
 import mlflow
+import numpy as np
 import pandas
 import pandas as pd
+import torch
 import yaml
 from mlflow import MlflowClient
 from typing import List
@@ -40,6 +43,7 @@ from algorithms.features.impl.ngram import Ngram
 from algorithms.decision_engines.ae import AE
 from tsa.dataloader_2019 import ContaminatedDataLoader2019
 from tsa.dataloader_2021 import ContaminatedDataLoader2021
+from tsa.preprocessing import OutlierDetector
 
 try:
     LID_DS_BASE_PATH = os.environ['LID_DS_BASE']
@@ -140,9 +144,10 @@ class Experiment:
         n_gram_length = self._get_param("features", "n_gram_length", default=7)
         print(embedding, thread_aware, n_gram_length)
         ngram = Ngram([embedding], thread_aware, n_gram_length)
+        prepr = OutlierDetector(ngram)
 
         decision_engine_args = self._get_param("decision_engine", "args", default={}, exp_type=dict)
-        decision_engine = DecisionEngineClass(ngram, **decision_engine_args)
+        decision_engine = DecisionEngineClass(prepr, **decision_engine_args)
         if DecisionEngineClass == DECISION_ENGINES["Stide"]:
             decision_engine = StreamSum(decision_engine, False, 500, False)
         # decider threshold
