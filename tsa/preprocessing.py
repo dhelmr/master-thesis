@@ -9,11 +9,13 @@ from dataloader.syscall import Syscall
 class Histogram:
     def __init__(self):
         self._counts = {}
+        self._size = 0
 
     def add(self, element):
         if element not in self._counts:
             self._counts[element] = 0
         self._counts[element] = self._counts[element] + 1
+        self._size += 1
 
     def remove(self, element):
         if element not in self._counts:
@@ -21,6 +23,7 @@ class Histogram:
         self._counts[element] -= 1
         if self._counts[element] == 0:
             del self._counts[element]
+        self._size -= 1
 
     def get_count(self, element):
         if element in self._counts:
@@ -36,6 +39,14 @@ class Histogram:
     def __contains__(self, item):
         return item in self._counts and self._counts[item] > 0
 
+    def __str__(self):
+        return self._counts.__str__()
+
+    def __len__(self):
+        return self._size
+
+    def keys(self):
+        return self._counts.keys()
 
 class NgramNaiveBayes:
     def __init__(self, pseudo_count=1):
@@ -90,7 +101,7 @@ class OutlierDetector(BuildingBlock):
         self._input = building_block
         self._dependency_list = [building_block]
         self._normal_dist = NgramNaiveBayes()
-        self._anomalies = []
+        self._anomalies = {}
         self._training_data = []
         self._lam = lam
         self._c = c

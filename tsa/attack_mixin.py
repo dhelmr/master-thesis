@@ -28,6 +28,7 @@ from algorithms.decision_engines.stide import Stide
 from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from algorithms.performance_measurement import Performance
+from tsa.analyse import TrainingSetAnalyser
 from tsa.confusion_matrix import ConfusionMatrix
 from dataloader.dataloader_factory import dataloader_factory
 
@@ -144,10 +145,11 @@ class Experiment:
         n_gram_length = self._get_param("features", "n_gram_length", default=7)
         print(embedding, thread_aware, n_gram_length)
         ngram = Ngram([embedding], thread_aware, n_gram_length)
+        analyser = TrainingSetAnalyser(ngram)
         # prepr = OutlierDetector(ngram)
 
         decision_engine_args = self._get_param("decision_engine", "args", default={}, exp_type=dict)
-        decision_engine = DecisionEngineClass(ngram, **decision_engine_args)
+        decision_engine = DecisionEngineClass(analyser, **decision_engine_args)
         if DecisionEngineClass == DECISION_ENGINES["Stide"]:
             decision_engine = StreamSum(decision_engine, False, 500, False)
         # decider threshold
@@ -163,7 +165,8 @@ class Experiment:
 
         results = self.calc_extended_results(performance)
         additional_parameters = {
-            "config": ids.get_config_tree_links()
+            "config": ids.get_config_tree_links(),
+            **analyser.get_analyse_result()
         }
         return additional_parameters, results, ids
 
