@@ -1,8 +1,5 @@
-* own files for:
-  * Experiment
-  * Attack Mixins (renane 2019/2021)
-
-* use links instead of copy dataset for attack mixins
-
-* refactor creation of building blocks
+* refactor creation of building blocks (more generic)
+* store building blocks config as mlflow parameters (generic)
 * make use of mlflow experiment ID
+
+* tests for Dataloader

@@ -146,10 +146,10 @@ class Experiment:
         print(embedding, thread_aware, n_gram_length)
         ngram = Ngram([embedding], thread_aware, n_gram_length)
         analyser = TrainingSetAnalyser(ngram)
-        # prepr = OutlierDetector(ngram)
+        prepr = OutlierDetector(analyser)
 
         decision_engine_args = self._get_param("decision_engine", "args", default={}, exp_type=dict)
-        decision_engine = DecisionEngineClass(analyser, **decision_engine_args)
+        decision_engine = DecisionEngineClass(prepr, **decision_engine_args)
         if DecisionEngineClass == DECISION_ENGINES["Stide"]:
             decision_engine = StreamSum(decision_engine, False, 500, False)
         # decider threshold
