@@ -143,13 +143,14 @@ class Experiment:
             raise ValueError("%s is not a valid name" % feature_name)
         thread_aware = self._get_param("features", "thread_aware", default=True)
         n_gram_length = self._get_param("features", "n_gram_length", default=7)
-        print(embedding, thread_aware, n_gram_length)
-        ngram = Ngram([embedding], thread_aware, n_gram_length)
+        embedding_analyser = TrainingSetAnalyser(embedding)
+        ngram = Ngram([embedding_analyser], thread_aware, n_gram_length)
         analyser = TrainingSetAnalyser(ngram)
         prepr = OutlierDetector(analyser)
+        analyser2 = TrainingSetAnalyser(prepr)
 
         decision_engine_args = self._get_param("decision_engine", "args", default={}, exp_type=dict)
-        decision_engine = DecisionEngineClass(prepr, **decision_engine_args)
+        decision_engine = DecisionEngineClass(analyser2, **decision_engine_args)
         if DecisionEngineClass == DECISION_ENGINES["Stide"]:
             decision_engine = StreamSum(decision_engine, False, 500, False)
         # decider threshold
@@ -166,7 +167,9 @@ class Experiment:
         results = self.calc_extended_results(performance)
         additional_parameters = {
             "config": ids.get_config_tree_links(),
-            **analyser.get_analyse_result()
+            "tsa_embedding": embedding_analyser.get_analyse_result(),
+            "tsa": analyser.get_analyse_result(),
+            "tsa2": analyser2.get_analyse_result()
         }
         return additional_parameters, results, ids
 
