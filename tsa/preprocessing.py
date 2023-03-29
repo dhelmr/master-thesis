@@ -10,12 +10,14 @@ class Histogram:
     def __init__(self):
         self._counts = {}
         self._size = 0
+        self._unique_elements = 0
 
     def add(self, element, count=1):
         if count < 1:
             raise ValueError(f"Invalid count {count}. Must be >= 1.")
         if element not in self._counts:
             self._counts[element] = 0
+            self._unique_elements += 1
         self._counts[element] = self._counts[element] + count
         self._size += count
 
@@ -25,6 +27,7 @@ class Histogram:
         self._counts[element] -= 1
         if self._counts[element] == 0:
             del self._counts[element]
+            self._unique_elements -= 1
         self._size -= 1
 
     def get_count(self, element):
@@ -53,6 +56,7 @@ class Histogram:
             raise ValueError(f"Not in histogram: {element}")
         self._size -= self._counts[element]
         del self._counts[element]
+        self._unique_elements += 1
 
     def reduce(self, element, reduce_by: int):
         if element not in self._counts:
@@ -64,6 +68,9 @@ class Histogram:
         self._counts[element] -= reduce_by
         if self._counts[element] == 0:
             del self._counts[element]
+            self._unique_elements += 1
+    def unique_elements(self):
+        return self._unique_elements
 
 class NgramNaiveBayes:
     def __init__(self, pseudo_count=1):
@@ -93,7 +100,7 @@ class NgramNaiveBayes:
         if prior in self._logprob_cache and ngram in self._logprob_cache[prior]:
             return self._logprob_cache[prior][ngram]
         prior_count = self._prior_hist.get_count(prior) + self._pseudo_count
-        post_count = self._post_hist.get_count(ngram) + self._pseudo_count
+        post_count = self._post_hist.get_count(ngram) + self._pseudo_count * self._post_hist.unique_elements()
         logprob = math.log2(post_count / prior_count)
         if prior not in self._logprob_cache:
             self._logprob_cache[prior] = {}
