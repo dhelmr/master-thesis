@@ -3,3 +3,5 @@
 * make use of mlflow experiment ID
 * fine-granular num of attack (sys call level)
 * tests for Dataloader
+* use itertools permutations instead of random list shuffle
+* mlflow on cluster (sqlite db/...)

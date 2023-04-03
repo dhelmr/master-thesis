@@ -200,14 +200,6 @@ class Experiment:
         return cur_obj
 
     def log_artifacts(self, ids):
-        outfile = tempfile.mktemp()
-        with open(outfile, "wb") as f:
-            pickle.dump(ids, f)
-        mlflow.log_artifact(outfile, "ids.pickle")
-        # outfile = tempfile.mktemp()
-        # with open(outfile, "w") as f:
-        #    yaml.dump(self.parameters, f)
-        # mlflow.log_artifact(outfile, "config.yaml")
         mlflow.log_dict(self.parameters, "config.json")
 
     @staticmethod
