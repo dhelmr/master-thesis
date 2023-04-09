@@ -92,7 +92,7 @@ class Experiment:
             lid_ds_version, scenario_name = scenario.split("/")
             dataloader_class = self._get_dataloader_cls(lid_ds_version)
             scenario_path = f"{LID_DS_BASE_PATH}/{lid_ds_version}/{scenario_name}"
-            for num_attacks in range(max_attacks+1):
+            for num_attacks in range(max_attacks + 1):
                 dataloader = dataloader_class(scenario_path, num_attacks=num_attacks, direction=Direction.BOTH,
                                               **dataloader_config)
                 i = i + 1
@@ -152,10 +152,15 @@ class Experiment:
         # TODO: "Pipeline" class/obj
         analyser = TrainingSetAnalyser(features)
         analysers = [analyser]
-        for preprocessor_name in self._get_param("preprocessing", default=[]):
+        for preprocessor_cfg in self._get_param("preprocessing", default=[]):
+            preprocessor_name = preprocessor_cfg["name"]
             if preprocessor_name not in PREPROCESSORS:
                 raise ValueError(f"{preprocessor_name} is not a valid preprocessor.")
-            features = PREPROCESSORS[preprocessor_name](analyser)
+            if "args" in preprocessor_cfg:
+                args = preprocessor_cfg["args"]
+            else:
+                args = {}
+            features = PREPROCESSORS[preprocessor_name](analyser, **args)
             analyser = TrainingSetAnalyser(features)
             analysers.append(analyser)
 
@@ -176,7 +181,7 @@ class Experiment:
 
         results = self.calc_extended_results(performance)
         additional_parameters = {
-            f"tsa{i+1}": analyser.get_analyse_result() for i, analyser in enumerate(analysers)
+            f"tsa{i + 1}": analyser.get_analyse_result() for i, analyser in enumerate(analysers)
         }
         additional_parameters["config"] = ids.get_config_tree_links(),
         return additional_parameters, results, ids

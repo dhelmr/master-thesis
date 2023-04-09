@@ -14,7 +14,10 @@ features:
   thread_aware: true
   n_gram_length: 5
 preprocessing:
- - MixedModelOD
+ - name: MixedModelOD
+   args:
+     lam: 0.2
+     c: 0.2
 decision_engine:
   name: Stide
 decider:
