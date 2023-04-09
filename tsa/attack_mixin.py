@@ -67,6 +67,9 @@ class AttackMixinConfig:
 
 
 DECISION_ENGINES = {de.__name__: de for de in [AE, Stide, Som]}
+PREPROCESSORS = {
+    "MixedModelOD": OutlierDetector
+}
 
 RANDOM_SEED = 0
 torch.manual_seed(RANDOM_SEED)
@@ -144,13 +147,20 @@ class Experiment:
         thread_aware = self._get_param("features", "thread_aware", default=True)
         n_gram_length = self._get_param("features", "n_gram_length", default=7)
         embedding_analyser = TrainingSetAnalyser(embedding)
-        ngram = Ngram([embedding_analyser], thread_aware, n_gram_length)
-        analyser = TrainingSetAnalyser(ngram)
-        prepr = OutlierDetector(analyser)
-        analyser2 = TrainingSetAnalyser(prepr)
+        features = Ngram([embedding_analyser], thread_aware, n_gram_length)
+
+        # TODO: "Pipeline" class/obj
+        analyser = TrainingSetAnalyser(features)
+        analysers = [analyser]
+        for preprocessor_name in self._get_param("preprocessing", default=[]):
+            if preprocessor_name not in PREPROCESSORS:
+                raise ValueError(f"{preprocessor_name} is not a valid preprocessor.")
+            features = PREPROCESSORS[preprocessor_name](analyser)
+            analyser = TrainingSetAnalyser(features)
+            analysers.append(analyser)
 
         decision_engine_args = self._get_param("decision_engine", "args", default={}, exp_type=dict)
-        decision_engine = DecisionEngineClass(analyser2, **decision_engine_args)
+        decision_engine = DecisionEngineClass(analyser, **decision_engine_args)
         if DecisionEngineClass == DECISION_ENGINES["Stide"]:
             decision_engine = StreamSum(decision_engine, False, 500, False)
         # decider threshold
@@ -166,11 +176,9 @@ class Experiment:
 
         results = self.calc_extended_results(performance)
         additional_parameters = {
-            "config": ids.get_config_tree_links(),
-            "tsa_embedding": embedding_analyser.get_analyse_result(),
-            "tsa": analyser.get_analyse_result(),
-            "tsa2": analyser2.get_analyse_result()
+            f"tsa{i+1}": analyser.get_analyse_result() for i, analyser in enumerate(analysers)
         }
+        additional_parameters["config"] = ids.get_config_tree_links(),
         return additional_parameters, results, ids
 
     def calc_extended_results(self, performance: Performance):
