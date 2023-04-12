@@ -1,0 +1,28 @@
+scenarios:
+ - LID-DS-2019/CVE-2019-5418
+ - LID-DS-2019/Bruteforce_CWE-307
+ - LID-DS-2019/CVE-2012-2122
+ - LID-DS-2019/CVE-2014-0160
+ - LID-DS-2019/CVE-2017-7529
+ - LID-DS-2019/CVE-2018-3760
+ - LID-DS-2019/SQL_Injection_CWE-89  
+ - LID-DS-2019/ZipSlip
+features:
+  name: IntEmbeddingNgram
+  thread_aware: true
+  n_gram_length: 5
+preprocessing:
+ - name: MixedModelOD
+   args:
+     lam: 0.05
+     c: 0.05
+decision_engine:
+  name: Stide
+decider:
+  name: max_score
+attack_mixin:
+  dataloader:
+    validation_ratio: 0.2
+    cont_ratio: 0.2
+    shuffle_cont_seed: 5
+  max_attacks: 1
