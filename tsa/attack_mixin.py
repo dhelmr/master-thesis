@@ -44,7 +44,7 @@ from algorithms.features.impl.ngram import Ngram
 from algorithms.decision_engines.ae import AE
 from tsa.dataloader_2019 import ContaminatedDataLoader2019
 from tsa.dataloader_2021 import ContaminatedDataLoader2021
-from tsa.preprocessing import OutlierDetector
+from tsa.preprocessing import OutlierDetector, LOF, MixedModelOutlierDetector
 
 try:
     LID_DS_BASE_PATH = os.environ['LID_DS_BASE']
@@ -68,7 +68,8 @@ class AttackMixinConfig:
 
 DECISION_ENGINES = {de.__name__: de for de in [AE, Stide, Som]}
 PREPROCESSORS = {
-    "MixedModelOD": OutlierDetector
+    "MixedModelOD": MixedModelOutlierDetector,
+    "LOF": LOF
 }
 
 RANDOM_SEED = 0

@@ -1,5 +1,7 @@
+import abc
 import math
 
+from sklearn.neighbors import LocalOutlierFactor
 from tqdm import tqdm
 
 from algorithms.building_block import BuildingBlock
@@ -69,8 +71,10 @@ class Histogram:
         if self._counts[element] == 0:
             del self._counts[element]
             self._unique_elements += 1
+
     def unique_elements(self):
         return self._unique_elements
+
 
 class NgramNaiveBayes:
     def __init__(self, pseudo_count=1):
@@ -133,23 +137,12 @@ class NgramNaiveBayes:
 
 class OutlierDetector(BuildingBlock):
 
-    def __init__(self, building_block: BuildingBlock = None, lam=0.2, c=0.2):
+    def __init__(self, building_block: BuildingBlock = None):
         super().__init__()
         self._input = building_block
         self._dependency_list = [building_block]
-        self._normal_dist = NgramNaiveBayes()
+        self._training_data = list()
         self._anomalies = set()
-        self._num_anomalies = 0
-        self._training_data = set()
-        self._lam = lam
-        self._c = c
-        self._log_lam = math.log2(self._lam)
-        self._log_reverse_lam = math.log2(1 - self._lam)
-
-    def _ll(self, anomaly_length):
-        logp_anomaly = math.log2(1 / len(self._training_data))
-        ll_anomalies = anomaly_length * logp_anomaly
-        return self._normal_dist._size * self._log_reverse_lam + self._normal_dist.sum_prob() + anomaly_length * self._log_lam + ll_anomalies
 
     def _calculate(self, syscall: Syscall):
         ngram = self._input.get_result(syscall)
@@ -162,12 +155,55 @@ class OutlierDetector(BuildingBlock):
         ngram = self._input.get_result(syscall)
         if ngram is None:
             return
-        self._normal_dist.add(ngram)
-        self._training_data.add(ngram)
+        self._training_data.append(ngram)
 
     def fit(self):
+        self._anomalies = self.detect_anomalies(self._training_data)
+        del self._training_data
+    @abc.abstractmethod
+    def detect_anomalies(self, training_data):
+        raise NotImplemented()
+
+    def depends_on(self) -> list:
+        return self._dependency_list
+
+
+class LOF(OutlierDetector):
+    def __init__(self, building_block, **kwargs):
+        super().__init__(building_block)
+        self.lof = LocalOutlierFactor(**kwargs)
+    def detect_anomalies(self, training_data):
+        pred = self.lof.fit_predict(training_data)
+        anomalies = set()
+        for i, p in enumerate(pred):
+            if p < 0:
+                anomalies.add(training_data[i])
+        return anomalies
+
+
+class MixedModelOutlierDetector(OutlierDetector):
+    def __init__(self, building_block: BuildingBlock = None, lam=0.2, c=0.2):
+        super().__init__(building_block)
+        self._normal_dist = NgramNaiveBayes()
+        self._num_anomalies = 0
+        self._lam = lam
+        self._c = c
+        self._log_lam = math.log2(self._lam)
+        self._log_reverse_lam = math.log2(1 - self._lam)
+
+
+    def _ll(self, anomaly_length):
+        logp_anomaly = math.log2(1 / len(self._training_data))
+        ll_anomalies = anomaly_length * logp_anomaly
+        return self._normal_dist._size * self._log_reverse_lam + self._normal_dist.sum_prob() + anomaly_length * self._log_lam + ll_anomalies
+
+    def detect_anomalies(self, training_data):
         print("Find anomalies in training data...")
-        for ngram in tqdm(self._training_data):
+        anomalies = set()
+        for ngram in training_data:
+            self._normal_dist.add(ngram)
+        training_data_set = set(training_data)
+        for ngram in tqdm(training_data_set):
             normal_ll = self._ll(self._num_anomalies)
             remove_count = self._normal_dist.remove_all(ngram)
             anomaly_ll = self._ll(anomaly_length=self._num_anomalies + remove_count)
@@ -177,11 +213,6 @@ class OutlierDetector(BuildingBlock):
                 # move it back to normal dist
                 self._normal_dist.add(ngram, remove_count)
             else:
-                self._anomalies.add(ngram)
+                anomalies.add(ngram)
                 self._num_anomalies += remove_count
-        del self._training_data
-        print("Anomalies:", self._anomalies)
-        print("Normal:", self._normal_dist)
-
-    def depends_on(self) -> list:
-        return self._dependency_list
+        return anomalies
