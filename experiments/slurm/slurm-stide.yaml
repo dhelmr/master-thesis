@@ -5,10 +5,7 @@ scenarios:
  - LID-DS-2019/CVE-2014-0160
  - LID-DS-2019/CVE-2017-7529
  - LID-DS-2019/CVE-2018-3760
- - LID-DS-2019/EPS_CWE-434
- - LID-DS-2019/PHP_CWE-434
- - LID-DS-2019/SQL_Injection_CWE-89  
- - LID-DS-2019/ZipSlip
+ - LID-DS-2019/SQL_Injection_CWE-89
 features:
   name: IntEmbeddingNgram
   thread_aware: true

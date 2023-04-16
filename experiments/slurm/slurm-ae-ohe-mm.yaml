@@ -14,6 +14,11 @@ decision_engine:
   name: AE
 decider:
   name: max_score
+preprocessing:
+ - name: MixedModelOD
+   args:
+     lam: 0.1
+     c: 0.1
 attack_mixin:
   dataloader:
     validation_ratio: 0.2
