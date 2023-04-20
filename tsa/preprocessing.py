@@ -205,14 +205,17 @@ class MixedModelOutlierDetector(OutlierDetector):
         training_data_set = set(training_data)
         for ngram in tqdm(training_data_set):
             normal_ll = self._ll(self._num_anomalies)
-            remove_count = self._normal_dist.remove_all(ngram)
-            anomaly_ll = self._ll(anomaly_length=self._num_anomalies + remove_count)
+            self._normal_dist.remove(ngram)
+            anomaly_ll = self._ll(anomaly_length=self._num_anomalies + 1)
             diff = anomaly_ll - normal_ll
             if diff <= self._c:
                 # difference of likelihoods is not big enough => ngram is not an anomaly
                 # move it back to normal dist
-                self._normal_dist.add(ngram, remove_count)
+                self._normal_dist.add(ngram, 1)
             else:
+                remove_count = 1
+                if ngram in self._normal_dist:
+                    remove_count += self._normal_dist.remove_all(ngram)
                 anomalies.add(ngram)
                 self._num_anomalies += remove_count
         return anomalies
