@@ -126,42 +126,45 @@ class Experiment:
         else:
             raise ValueError("%s is not supported." % lid_ds_version)
 
-    def train_test(self, dataloader):
-        # just load < closing system calls for this example
-
-        DecisionEngineClass = DECISION_ENGINES[self.parameters["decision_engine"]["name"]]
-
+    def make_feature_extractor(self, cfg_prefix=[]):
         syscall_name = SyscallName()
-        feature_name = self._get_param("features", "name")
+        feature_name = self._get_param(*cfg_prefix, "features", "name")
         if feature_name == "OneHotEncodingNgram":
             embedding = OneHotEncoding(syscall_name)
         elif feature_name == "IntEmbeddingNgram":
             embedding = IntEmbedding(syscall_name)
         elif feature_name == "W2VEmbedding":
             embedding = W2VEmbedding(syscall_name,
-                                     window_size=self._get_param("features", "window_size"),
-                                     vector_size=self._get_param("features", "vector_size"),
-                                     epochs=self._get_param("features", "epochs")
+                                     window_size=self._get_param(*cfg_prefix,"features", "window_size"),
+                                     vector_size=self._get_param(*cfg_prefix,"features", "vector_size"),
+                                     epochs=self._get_param(*cfg_prefix,"features", "epochs")
                                      )
         else:
             raise ValueError("%s is not a valid name" % feature_name)
-        thread_aware = self._get_param("features", "thread_aware", default=True)
-        n_gram_length = self._get_param("features", "n_gram_length", default=7)
-        embedding_analyser = TrainingSetAnalyser(embedding)
-        features = Ngram([embedding_analyser], thread_aware, n_gram_length)
+        thread_aware = self._get_param(*cfg_prefix,"features", "thread_aware", default=True)
+        n_gram_length = self._get_param(*cfg_prefix,"features", "n_gram_length", default=7)
+        features = Ngram([embedding], thread_aware, n_gram_length)
+        return features
+    def train_test(self, dataloader):
+        # just load < closing system calls for this example
 
+        DecisionEngineClass = DECISION_ENGINES[self.parameters["decision_engine"]["name"]]
+
+
+        features = self.make_feature_extractor()
         # TODO: "Pipeline" class/obj
         analyser = TrainingSetAnalyser(features)
         analysers = [analyser]
-        for preprocessor_cfg in self._get_param("preprocessing", default=[]):
-            preprocessor_name = preprocessor_cfg["name"]
+        for i, _ in enumerate(self._get_param("preprocessing", default=[])):
+            cfg_prefix = ["preprocessing", i]
+            preprocessor_name = self._get_param(*cfg_prefix, "name")
             if preprocessor_name not in PREPROCESSORS:
                 raise ValueError(f"{preprocessor_name} is not a valid preprocessor.")
-            if "args" in preprocessor_cfg:
-                args = preprocessor_cfg["args"]
-            else:
-                args = {}
-            features = PREPROCESSORS[preprocessor_name](analyser, **args)
+            args = self._get_param(*cfg_prefix, "args", default={})
+            train_features = None
+            if self._exists_param(*cfg_prefix, "features"):
+                train_features = self.make_feature_extractor(cfg_prefix)
+            features = PREPROCESSORS[preprocessor_name](analyser, train_features = train_features, **args)
             analyser = TrainingSetAnalyser(features)
             analysers.append(analyser)
 
@@ -194,15 +197,19 @@ class Experiment:
         metrics = cm.calc_unweighted_measurements()
         return {"ids": results, "cm": metrics}
 
+    def _exists_param(self, *keys) -> bool:
+        val = self._get_param(*keys, default=None, required=False)
+        return val is not None
+
     def _get_param(self, *keys, default=None, required=True, exp_type=None):
         if default is not None:
             required = False
         cur_obj = self.parameters
         cur_key = ""
         for key in keys:
-            if not isinstance(cur_obj, dict):
-                raise ValueError("Parameter '%s' is not a dict." % cur_key)
-            if key not in cur_obj:
+            if not isinstance(cur_obj, dict) and not isinstance(cur_obj, list):
+                raise ValueError("Parameter '%s' is not a dict or list." % cur_key)
+            if isinstance(cur_obj, dict) and key not in cur_obj:
                 if not required:
                     return default
                 else:
