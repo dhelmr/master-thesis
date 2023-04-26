@@ -23,6 +23,7 @@ import yaml
 from mlflow import MlflowClient
 from typing import List
 
+from algorithms.decision_engines.scg import SystemCallGraph
 from algorithms.decision_engines.som import Som
 from algorithms.decision_engines.stide import Stide
 from algorithms.features.impl.stream_sum import StreamSum
@@ -66,7 +67,7 @@ class AttackMixinConfig:
         return self.__dict__
 
 
-DECISION_ENGINES = {de.__name__: de for de in [AE, Stide, Som]}
+DECISION_ENGINES = {de.__name__: de for de in [AE, Stide, Som, SystemCallGraph]}
 PREPROCESSORS = {
     "MixedModelOD": MixedModelOutlierDetector,
     "LOF": LOF
@@ -170,8 +171,9 @@ class Experiment:
 
         decision_engine_args = self._get_param("decision_engine", "args", default={}, exp_type=dict)
         decision_engine = DecisionEngineClass(analyser, **decision_engine_args)
-        if DecisionEngineClass == DECISION_ENGINES["Stide"]:
-            decision_engine = StreamSum(decision_engine, False, 500, False)
+        if DecisionEngineClass in {DECISION_ENGINES["Stide"], DECISION_ENGINES["SystemCallGraph"]}:
+            window_length = self._get_param("decision_engine", "streaming_window_length", default=1000, exp_type=int)
+            decision_engine = StreamSum(decision_engine, False, window_length, False)
         # decider threshold
         decider_1 = MaxScoreThreshold(decision_engine)
         ### the IDS

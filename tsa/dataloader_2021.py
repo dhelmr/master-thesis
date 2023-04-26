@@ -3,7 +3,7 @@ from typing import List
 from dataloader.data_loader_2021 import DataLoader2021, RecordingType, TRAINING, TEST
 from dataloader.direction import Direction
 from dataloader.recording_2021 import Recording2021
-from tsa.utils import split_list
+from tsa.utils import split_list, random_permutation
 import random
 
 def get_scenario_name(scenario_path):
@@ -22,13 +22,13 @@ class ContaminatedRecording2021(Recording2021):
 
 class ContaminatedDataLoader2021(DataLoader2021):
     def __init__(self, scenario_path: str, num_attacks: int, direction: Direction = Direction.OPEN,
-                 validation_ratio: float = 0.2, cont_ratio: float = 0.2, shuffle_cont_seed=0,
+                 validation_ratio: float = 0.2, cont_ratio: float = 0.2, permutation_i=0,
                  training_size=200, validation_size=50):
         super().__init__(scenario_path, direction)
         self._num_attacks = num_attacks
         self._validation_ratio = validation_ratio
         self._cont_ratio = cont_ratio
-        self._shuffle_cont_seed = shuffle_cont_seed
+        self._permutation_i = permutation_i
         self._init_contaminated()
 
     def _init_contaminated(self):
@@ -38,10 +38,9 @@ class ContaminatedDataLoader2021(DataLoader2021):
         exploits = [t for t in test_recordings if t.metadata()["exploit"] == True]
         for_training, _ = split_list(exploits, self._cont_ratio)
         contaminated_recording_names = [r.name for r in for_training]
-        random.Random(self._shuffle_cont_seed).shuffle(contaminated_recording_names)
         # TODO handle case num_attacks > len(contaminated_recording_names)
-        self._contaminated_recordings = set(contaminated_recording_names[:self._num_attacks])
-        self._exclude_recordings = set(contaminated_recording_names[self._num_attacks:])
+        self._contaminated_recordings = set(random_permutation(contaminated_recording_names, self._num_attacks, self._permutation_i))
+        self._exclude_recordings = set([r for r in contaminated_recording_names if r not in self._contaminated_recordings])
         print(self._exclude_recordings, self._contaminated_recordings)
     def training_data(self, recording_type: RecordingType = None) -> list:
         training_data = super().training_data()
@@ -60,7 +59,7 @@ class ContaminatedDataLoader2021(DataLoader2021):
             "validation_size": -1,
             "direction": self._direction,
             "cont_ratio": self._cont_ratio,
-            "shuffle_cont_seed": self._shuffle_cont_seed,
+            "permutation_i": self._permutation_i,
             "validation_ratio": self._validation_ratio,
             "num_attacks": self._num_attacks,
             "attack_names": list(self._contaminated_recordings)

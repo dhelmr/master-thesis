@@ -1,7 +1,6 @@
 import os
 import csv
 import json
-import random
 
 from tqdm import tqdm
 
@@ -9,13 +8,13 @@ from dataloader.direction import Direction
 from dataloader.recording_2019 import Recording2019, RecordingDataParts
 from dataloader.base_data_loader import BaseDataLoader
 from tsa.dataloader_2021 import get_scenario_name
-from tsa.utils import split_list
+from tsa.utils import split_list, random_permutation
 
 
 class ContaminatedDataLoader2019(BaseDataLoader):
 
     def __init__(self, scenario_path: str, num_attacks: int, direction: Direction = Direction.OPEN,
-                 validation_ratio: float = 0.2, cont_ratio: float = 0.2, shuffle_cont_seed=0,
+                 validation_ratio: float = 0.2, cont_ratio: float = 0.2, permutation_i=0,
                  training_size=200, validation_size=50):
         super().__init__(scenario_path)
         self.scenario_path = scenario_path
@@ -28,7 +27,7 @@ class ContaminatedDataLoader2019(BaseDataLoader):
         self._validation_size = validation_size
         self._direction = direction
         self._cont_ratio = cont_ratio
-        self._shuffle_cont_seed = shuffle_cont_seed
+        self._permutation_i = permutation_i
         self._validation_ratio = validation_ratio
         self._num_attacks = num_attacks
         if validation_ratio < 0 or validation_ratio > 1:
@@ -54,10 +53,9 @@ class ContaminatedDataLoader2019(BaseDataLoader):
             "validation_size": self._validation_size,
             "direction": self._direction,
             "cont_ratio": self._cont_ratio,
-            "shuffle_cont_seed": self._shuffle_cont_seed,
+            "permutation_i": self._permutation_i,
             "validation_ratio": self._validation_ratio,
             "num_attacks": self._num_attacks
-            #"attack_names": [r.name for r in self._contaminated_recordings]
         }
 
     def _extract_recordings(self):
@@ -79,14 +77,13 @@ class ContaminatedDataLoader2019(BaseDataLoader):
         self._exploit_recordings = [recording for (_, recording) in test_exploit_lines]
 
         # create contaminated recordings that will be added to the training phase
-        random.Random(self._shuffle_cont_seed).shuffle(training_exploit_lines)
         # TODO handle case num_attacks > len(training_exploit_lines)
-        training_exploit_lines = training_exploit_lines[:self._num_attacks]
+        training_exploit_lines = random_permutation(training_exploit_lines, self._num_attacks, self._permutation_i)
         self._contaminated_recordings = []
         for recording_line, _ in training_exploit_lines:
             recording_line[RecordingDataParts.IS_EXECUTING_EXPLOIT] = "false"
             self._contaminated_recordings.append(Recording2019(recording_line, self.scenario_path, self._direction))
-
+        print(self._num_attacks, training_exploit_lines)
 
 
     def _init_once(self):
