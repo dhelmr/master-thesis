@@ -23,6 +23,8 @@ import yaml
 from mlflow import MlflowClient
 from typing import List
 
+from mlflow.entities import RunStatus
+
 from algorithms.decision_engines.scg import SystemCallGraph
 from algorithms.decision_engines.som import Som
 from algorithms.decision_engines.stide import Stide
@@ -136,21 +138,21 @@ class Experiment:
             embedding = IntEmbedding(syscall_name)
         elif feature_name == "W2VEmbedding":
             embedding = W2VEmbedding(syscall_name,
-                                     window_size=self._get_param(*cfg_prefix,"features", "window_size"),
-                                     vector_size=self._get_param(*cfg_prefix,"features", "vector_size"),
-                                     epochs=self._get_param(*cfg_prefix,"features", "epochs")
+                                     window_size=self._get_param(*cfg_prefix, "features", "window_size"),
+                                     vector_size=self._get_param(*cfg_prefix, "features", "vector_size"),
+                                     epochs=self._get_param(*cfg_prefix, "features", "epochs")
                                      )
         else:
             raise ValueError("%s is not a valid name" % feature_name)
-        thread_aware = self._get_param(*cfg_prefix,"features", "thread_aware", default=True)
-        n_gram_length = self._get_param(*cfg_prefix,"features", "n_gram_length", default=7)
+        thread_aware = self._get_param(*cfg_prefix, "features", "thread_aware", default=True)
+        n_gram_length = self._get_param(*cfg_prefix, "features", "n_gram_length", default=7)
         features = Ngram([embedding], thread_aware, n_gram_length)
         return features
+
     def train_test(self, dataloader):
         # just load < closing system calls for this example
 
         DecisionEngineClass = DECISION_ENGINES[self.parameters["decision_engine"]["name"]]
-
 
         features = self.make_feature_extractor()
         # TODO: "Pipeline" class/obj
@@ -165,7 +167,7 @@ class Experiment:
             train_features = None
             if self._exists_param(*cfg_prefix, "features"):
                 train_features = self.make_feature_extractor(cfg_prefix)
-            features = PREPROCESSORS[preprocessor_name](analyser, train_features = train_features, **args)
+            features = PREPROCESSORS[preprocessor_name](analyser, train_features=train_features, **args)
             analyser = TrainingSetAnalyser(features)
             analysers.append(analyser)
 
@@ -257,6 +259,17 @@ def convert_mlflow_dict(nested_dict: dict):
     return mlflow_dict
 
 
+
+def last_successful_run_id(mlflow_client: MlflowClient, experiment_name: str) -> str:
+    exp = mlflow_client.get_experiment_by_name(experiment_name)
+    if exp is None:
+        raise RuntimeError("Experiment with name '%s' not found." % experiment_name)
+    for r in mlflow_client.search_runs(experiment_ids=[exp.experiment_id], order_by=["start_time DESC", "end_time DESC"]):
+        if r.info.status == "FINISHED":
+            return r.info.run_id
+    raise RuntimeError("Could not find any finished run to continue from in the experiment %s." % experiment_name)
+
+
 def main():
     mlflow_client = MlflowClient()
 
@@ -264,24 +277,41 @@ def main():
     parser.add_argument("-c", "--config", required=False, help="Experiment config yaml file.")
     parser.add_argument("--start-at", "-s", required=False, help="Start at iteration", type=int, default=0)
     parser.add_argument("--continue-run", "-r", required=False, help="Continue run id from mlflow", type=str)
+    parser.add_argument("--continue", required=False, dest="continue_experiment",
+                        help="Continue from last successful run of the experiment", action="store_true", default=False)
     parser.add_argument("--dry-run", action="store_true", default=False,
                         help="If set, only attack mixin datasets will be created, and no Anomaly Detection is done. Useful for debugging.")
     parser.add_argument("--experiment", "-e", required=False, help="Sets the mlflow experiment ID", type=str)
     args = parser.parse_args()
-    if args.experiment is not None:
-        mlflow.set_experiment(args.experiment)
-    if args.config is None and args.continue_run is None:
-        print("Either --config or --continue-run must be set")
+    if args.config is None and args.continue_run is None and args.continue_experiment is False:
+        print("Either --config or --continue-run or --continue must be set")
         parser.print_help()
         exit(1)
     if args.config is not None and args.continue_run is not None:
         print("Only one of --config and --continue-run can be set")
         parser.print_help()
         exit(1)
-    if args.config is not None:
+    if args.config is not None and args.continue_experiment is True:
+        print("Only one of --config and --continue can be set")
+        parser.print_help()
+        exit(1)
+    if args.experiment is None and args.continue_experiment is True:
+        print("If --continue-experiment is set, an experiment must be specified with -e.")
+        parser.print_help()
+        exit(1)
+    if args.experiment is not None and not args.continue_experiment:
+        mlflow.set_experiment(args.experiment)
+    if args.config is None:
+        if args.continue_run is not None:
+            run_id = args.continue_run
+        elif args.continue_experiment:
+            run_id = last_successful_run_id(mlflow_client, args.experiment)
+        else:
+            raise RuntimeError("Expected the run_id to be set. Abort.")
+        print("Continue from run %s" % run_id)
+        Experiment.continue_run(mlflow_client, run_id, args.dry_run)
+    else:
         with open(args.config) as f:
             exp_parameters = yaml.safe_load(f)
         start_at = args.start_at
         Experiment(exp_parameters, mlflow=mlflow_client).start(start_at, dry_run=args.dry_run)
-    if args.continue_run is not None:
-        Experiment.continue_run(mlflow_client, args.continue_run, args.dry_run)
