@@ -309,6 +309,7 @@ def main():
         else:
             raise RuntimeError("Expected the run_id to be set. Abort.")
         print("Continue from run %s" % run_id)
+        mlflow.set_experiment(args.experiment)
         Experiment.continue_run(mlflow_client, run_id, args.dry_run)
     else:
         with open(args.config) as f:
