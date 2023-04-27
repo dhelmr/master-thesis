@@ -264,7 +264,7 @@ def last_successful_run_id(mlflow_client: MlflowClient, experiment_name: str) ->
     exp = mlflow_client.get_experiment_by_name(experiment_name)
     if exp is None:
         raise RuntimeError("Experiment with name '%s' not found." % experiment_name)
-    for r in mlflow_client.search_runs(experiment_ids=[exp.experiment_id], order_by=["start_time DESC", "end_time DESC"]):
+    for r in mlflow_client.search_runs(experiment_ids=[exp.experiment_id], order_by=["start_time DESC"]):
         if r.info.status == "FINISHED":
             return r.info.run_id
     raise RuntimeError("Could not find any finished run to continue from in the experiment %s." % experiment_name)
