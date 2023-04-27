@@ -15,7 +15,7 @@ class ContaminatedDataLoader2019(BaseDataLoader):
 
     def __init__(self, scenario_path: str, num_attacks: int, direction: Direction = Direction.OPEN,
                  validation_ratio: float = 0.2, cont_ratio: float = 0.2, permutation_i=0,
-                 training_size=200, validation_size=50):
+                 training_size=200, validation_size=50, true_metadata=False):
         super().__init__(scenario_path)
         self.scenario_path = scenario_path
         self._runs_path = os.path.join(scenario_path, 'runs.csv')
@@ -30,6 +30,7 @@ class ContaminatedDataLoader2019(BaseDataLoader):
         self._permutation_i = permutation_i
         self._validation_ratio = validation_ratio
         self._num_attacks = num_attacks
+        self._true_metadata = true_metadata
         if validation_ratio < 0 or validation_ratio > 1:
             raise ValueError("validation_ratio must be in interval [0,1]")
         self._initialized = False
@@ -81,10 +82,10 @@ class ContaminatedDataLoader2019(BaseDataLoader):
         training_exploit_lines = random_permutation(training_exploit_lines, self._num_attacks, self._permutation_i)
         self._contaminated_recordings = []
         for recording_line, _ in training_exploit_lines:
-            recording_line[RecordingDataParts.IS_EXECUTING_EXPLOIT] = "false"
+            if not self._true_metadata:
+                recording_line[RecordingDataParts.IS_EXECUTING_EXPLOIT] = "false"
             self._contaminated_recordings.append(Recording2019(recording_line, self.scenario_path, self._direction))
         print(self._num_attacks, training_exploit_lines)
-
 
     def _init_once(self):
         if self._initialized:
@@ -116,5 +117,3 @@ class ContaminatedDataLoader2019(BaseDataLoader):
             with open(self.scenario_path + json_path, 'w') as distinct_syscalls:
                 json.dump({'distinct_syscalls': self._distinct_syscalls}, distinct_syscalls)
             return self._distinct_syscalls
-
-
