@@ -24,20 +24,21 @@ scenarios:
  - LID-DS-2021/Juice-Shop
  - LID-DS-2021/PHP_CWE-434
  - LID-DS-2021/ZipSlip
-features:
-  name: W2VEmbedding
-  thread_aware: true
-  n_gram_length: 9
-  window_size: 9
-  vector_size: 11
-  epochs: 50
-decision_engine:
-  name: Som
-  args:
-   epochs: 100
-   sigma: 1.0
-decider:
-  name: max_score
+ids:
+  - name: W2VEmbedding
+    args:
+      window_size: 9
+      epochs: 50
+      vector_size: 11
+  - name: Ngram
+    args:
+      thread_aware: true
+      ngram_length: 9
+  - name: Som
+    args:
+     epochs: 100
+     sigma: 1.0
+  - name: MaxScoreThreshold
 attack_mixin:
   dataloader:
     validation_ratio: 0.2

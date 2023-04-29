@@ -25,6 +25,7 @@ from typing import List
 
 from mlflow.entities import RunStatus
 
+from algorithms.building_block import BuildingBlock
 from algorithms.decision_engines.scg import SystemCallGraph
 from algorithms.decision_engines.som import Som
 from algorithms.decision_engines.stide import Stide
@@ -43,11 +44,12 @@ from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
 from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.syscall_name import SyscallName
-from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.ngram import Ngram as _Ngram
 from algorithms.decision_engines.ae import AE
 from tsa.dataloader_2019 import ContaminatedDataLoader2019
 from tsa.dataloader_2021 import ContaminatedDataLoader2021
 from tsa.preprocessing import OutlierDetector, LOF, MixedModelOutlierDetector
+from tsa.utils import access_cfg, exists_key
 
 try:
     LID_DS_BASE_PATH = os.environ['LID_DS_BASE']
@@ -129,67 +131,23 @@ class Experiment:
         else:
             raise ValueError("%s is not supported." % lid_ds_version)
 
-    def make_feature_extractor(self, cfg_prefix=[]):
-        syscall_name = SyscallName()
-        feature_name = self._get_param(*cfg_prefix, "features", "name")
-        if feature_name == "OneHotEncodingNgram":
-            embedding = OneHotEncoding(syscall_name)
-        elif feature_name == "IntEmbeddingNgram":
-            embedding = IntEmbedding(syscall_name)
-        elif feature_name == "W2VEmbedding":
-            embedding = W2VEmbedding(syscall_name,
-                                     window_size=self._get_param(*cfg_prefix, "features", "window_size"),
-                                     vector_size=self._get_param(*cfg_prefix, "features", "vector_size"),
-                                     epochs=self._get_param(*cfg_prefix, "features", "epochs")
-                                     )
-        else:
-            raise ValueError("%s is not a valid name" % feature_name)
-        thread_aware = self._get_param(*cfg_prefix, "features", "thread_aware", default=True)
-        n_gram_length = self._get_param(*cfg_prefix, "features", "n_gram_length", default=7)
-        features = Ngram([embedding], thread_aware, n_gram_length)
-        return features
-
     def train_test(self, dataloader):
-        # just load < closing system calls for this example
+        builder = IDSPipelineBuilder()  # TODO change experiment yaml format; add own key for pipeline
+        building_block_configs = self._get_param("ids", exp_type=list)
+        decider = builder.build_all(building_block_configs)
 
-        DecisionEngineClass = DECISION_ENGINES[self.parameters["decision_engine"]["name"]]
-
-        features = self.make_feature_extractor()
-        # TODO: "Pipeline" class/obj
-        analyser = TrainingSetAnalyser(features)
-        analysers = [analyser]
-        for i, _ in enumerate(self._get_param("preprocessing", default=[])):
-            cfg_prefix = ["preprocessing", i]
-            preprocessor_name = self._get_param(*cfg_prefix, "name")
-            if preprocessor_name not in PREPROCESSORS:
-                raise ValueError(f"{preprocessor_name} is not a valid preprocessor.")
-            args = self._get_param(*cfg_prefix, "args", default={})
-            train_features = None
-            if self._exists_param(*cfg_prefix, "features"):
-                train_features = self.make_feature_extractor(cfg_prefix)
-            features = PREPROCESSORS[preprocessor_name](analyser, train_features=train_features, **args)
-            analyser = TrainingSetAnalyser(features)
-            analysers.append(analyser)
-
-        decision_engine_args = self._get_param("decision_engine", "args", default={}, exp_type=dict)
-        decision_engine = DecisionEngineClass(analyser, **decision_engine_args)
-        if DecisionEngineClass in {DECISION_ENGINES["Stide"], DECISION_ENGINES["SystemCallGraph"]}:
-            window_length = self._get_param("decision_engine", "streaming_window_length", default=1000, exp_type=int)
-            decision_engine = StreamSum(decision_engine, False, window_length, False)
-        # decider threshold
-        decider_1 = MaxScoreThreshold(decision_engine)
-        ### the IDS
         ids = IDS(data_loader=dataloader,
-                  resulting_building_block=decider_1,
+                  resulting_building_block=decider,
                   create_alarms=True,
                   plot_switch=False)
 
         print("at evaluation:")
+
         performance = ids.detect()
 
         results = self.calc_extended_results(performance)
         additional_parameters = {
-            f"tsa{i + 1}": analyser.get_analyse_result() for i, analyser in enumerate(analysers)
+            f"tsa{i + 1}": analyser.get_analyse_result() for i, analyser in enumerate(builder.analysers)
         }
         additional_parameters["config"] = ids.get_config_tree_links(),
         return additional_parameters, results, ids
@@ -201,28 +159,8 @@ class Experiment:
         metrics = cm.calc_unweighted_measurements()
         return {"ids": results, "cm": metrics}
 
-    def _exists_param(self, *keys) -> bool:
-        val = self._get_param(*keys, default=None, required=False)
-        return val is not None
-
-    def _get_param(self, *keys, default=None, required=True, exp_type=None):
-        if default is not None:
-            required = False
-        cur_obj = self.parameters
-        cur_key = ""
-        for key in keys:
-            if not isinstance(cur_obj, dict) and not isinstance(cur_obj, list):
-                raise ValueError("Parameter '%s' is not a dict or list." % cur_key)
-            if isinstance(cur_obj, dict) and key not in cur_obj:
-                if not required:
-                    return default
-                else:
-                    raise ValueError("Cannot find parameter for key %s at %s" % (key, cur_key))
-            cur_obj = cur_obj[key]
-            cur_key = "%s.%s" % (cur_key, key)
-        if exp_type is not None and not isinstance(cur_obj, exp_type):
-            raise ValueError("Parameter %s is not of expected type %s" % (cur_key, exp_type))
-        return cur_obj
+    def _get_param(self, *args, **kwargs):
+        return access_cfg(self.parameters, *args, **kwargs)
 
     def log_artifacts(self, ids):
         mlflow.log_dict(self.parameters, "config.json")
@@ -234,6 +172,99 @@ class Experiment:
         config_json = mlflow.artifacts.load_dict(artifact_uri + "/config.json")
         iteration = int(run.data.params.get("iteration"))
         Experiment(config_json, mlflow_client).start(iteration + 1, dry_run=dry_run)
+
+
+def Ngram(building_block, *args, **kwargs):
+    return _Ngram([building_block], *args, **kwargs)
+
+
+
+BUILDING_BLOCKS = {cls.__name__: cls for cls in
+                   [AE, Stide, Som, SystemCallGraph, IntEmbedding, W2VEmbedding, OneHotEncoding, Ngram, LOF,
+                    MixedModelOutlierDetector, MaxScoreThreshold, StreamSum]}
+
+BuildingBlockCfg = dict
+
+
+class IDSPipelineBuilder:
+    def __init__(self):
+        self.analysers = []
+
+    def _build_block(self, cfg: BuildingBlockCfg, last_block: BuildingBlock) -> BuildingBlock:
+        print(cfg)
+        name = access_cfg(cfg, "name")
+        if name not in BUILDING_BLOCKS:
+            raise ValueError("%s is not a valid BuildingBlock name" % name)
+        bb_class = BUILDING_BLOCKS[name]
+        bb_args = access_cfg(cfg, "args", default={})
+        if exists_key(cfg, "dependencies"):
+            arg_name = access_cfg(cfg, "dependencies", "name")
+            cfg_list = access_cfg(cfg, "dependencies", "blocks", required=True)
+            dependency_bb = self.build_all(cfg_list, add_analysers=False)
+            bb_args[arg_name] = dependency_bb
+        try:
+            bb = bb_class(last_block, **bb_args)
+        except Exception as e:
+            raise RuntimeError("Error building block %s with args %s.\nNested Error is: %s" % (name, cfg, e)) from e
+        return bb
+
+    def build_all(self, configs: List[BuildingBlockCfg], add_analysers=True):
+        last_block = SyscallName()
+        for i, cfg in enumerate(configs):
+            last_block = self._build_block(cfg, last_block)
+            if add_analysers and i < len(configs) - 1:
+                # add analysers only between building blocks
+                analyser = TrainingSetAnalyser(last_block)
+                self.analysers.append(analyser)
+                last_block = analyser
+        return last_block
+
+        # features = self.make_feature_extractor()
+        # # TODO: "Pipeline" class/obj
+        # analyser = TrainingSetAnalyser(features)
+        # self.analysers = [analyser]
+        # for i, _ in enumerate(self._get_param("preprocessing", default=[])):
+        #     cfg_prefix = ["preprocessing", i]
+        #     preprocessor_name = self._get_param(*cfg_prefix, "name")
+        #     if preprocessor_name not in PREPROCESSORS:
+        #         raise ValueError(f"{preprocessor_name} is not a valid preprocessor.")
+        #     args = self._get_param(*cfg_prefix, "args", default={})
+        #     train_features = None
+        #     if self._exists_param(*cfg_prefix, "features"):
+        #         train_features = self.make_feature_extractor(cfg_prefix)
+        #     features = PREPROCESSORS[preprocessor_name](analyser, train_features=train_features, **args)
+        #     analyser = TrainingSetAnalyser(features)
+        #     self.analysers.append(analyser)
+        #
+        # decision_engine_args = self._get_param("decision_engine", "args", default={}, exp_type=dict)
+        # decision_engine = DecisionEngineClass(analyser, **decision_engine_args)
+        # if DecisionEngineClass in {DECISION_ENGINES["Stide"], DECISION_ENGINES["SystemCallGraph"]}:
+        #     window_length = self._get_param("decision_engine", "streaming_window_length", default=1000, exp_type=int)
+        #     decision_engine = StreamSum(decision_engine, False, window_length, False)
+        # # decider threshold
+        # decider = MaxScoreThreshold(decision_engine)
+        # return decider
+    #
+    #
+    # def make_feature_extractor(self, cfg_prefix=[]):
+    #     syscall_name = SyscallName()
+    #     feature_name = self._get_param(*cfg_prefix, "features", "name")
+    #     if feature_name == "OneHotEncodingNgram":
+    #         embedding = OneHotEncoding(syscall_name)
+    #     elif feature_name == "IntEmbeddingNgram":
+    #         embedding = IntEmbedding(syscall_name)
+    #     elif feature_name == "W2VEmbedding":
+    #         embedding = W2VEmbedding(syscall_name,
+    #                                  window_size=self._get_param(*cfg_prefix, "features", "window_size"),
+    #                                  vector_size=self._get_param(*cfg_prefix, "features", "vector_size"),
+    #                                  epochs=self._get_param(*cfg_prefix, "features", "epochs")
+    #                                  )
+    #     else:
+    #         raise ValueError("%s is not a valid name" % feature_name)
+    #     thread_aware = self._get_param(*cfg_prefix, "features", "thread_aware", default=True)
+    #     n_gram_length = self._get_param(*cfg_prefix, "features", "n_gram_length", default=7)
+    #     features = Ngram([embedding], thread_aware, n_gram_length)
+    #     return features
 
 
 def split_list(l, fraction_sublist1: float):
@@ -257,7 +288,6 @@ def convert_mlflow_dict(nested_dict: dict):
             print("Skip", key, "because it exceeds mlflow length limit")
             del mlflow_dict[key]
     return mlflow_dict
-
 
 
 def last_successful_run_id(mlflow_client: MlflowClient, experiment_name: str) -> str:
