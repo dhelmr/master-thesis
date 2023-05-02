@@ -190,6 +190,7 @@ class LOF(OutlierDetector):
     def detect_anomalies(self, training_data):
         training_data = list(set(training_data))
         pred = self.lof.fit_predict(training_data)
+        print(pred)
         anomalies = set()
         for i, p in enumerate(pred):
             if p < 0:
@@ -199,8 +200,8 @@ class LOF(OutlierDetector):
 
 
 class MixedModelOutlierDetector(OutlierDetector):
-    def __init__(self, building_block: BuildingBlock = None, lam=0.2, c=0.2):
-        super().__init__(building_block)
+    def __init__(self, building_block: BuildingBlock = None, train_features=None, lam=0.2, c=0.2):
+        super().__init__(building_block, train_features)
         self._normal_dist = NgramNaiveBayes()
         self._num_anomalies = 0
         self._lam = lam

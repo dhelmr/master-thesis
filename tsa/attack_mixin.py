@@ -2,85 +2,27 @@
 Example execution of LIDS Framework
 """
 import argparse
-import math
 import os
-import pickle
-import sys
-import datetime
-import tempfile
-import uuid
 from dataclasses import dataclass
-from pprint import pprint
 import random
-from shutil import copyfile, copytree
 
 import mlflow
 import numpy as np
-import pandas
-import pandas as pd
 import torch
 import yaml
 from mlflow import MlflowClient
 from typing import List
 
-from mlflow.entities import RunStatus
+from tsa.experiment import Experiment
+from tsa.unsupervised import UnsupervisedExperiment
+from tsa.utils import access_cfg
 
-from algorithms.building_block import BuildingBlock
-from algorithms.decision_engines.scg import SystemCallGraph
-from algorithms.decision_engines.som import Som
-from algorithms.decision_engines.stide import Stide
-from algorithms.features.impl.stream_sum import StreamSum
-from algorithms.features.impl.w2v_embedding import W2VEmbedding
-from algorithms.performance_measurement import Performance
-from tsa.analyse import TrainingSetAnalyser
-from tsa.confusion_matrix import ConfusionMatrix
-from dataloader.dataloader_factory import dataloader_factory
-
-from dataloader.direction import Direction
-
-from algorithms.ids import IDS
-
-from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
-from algorithms.features.impl.one_hot_encoding import OneHotEncoding
-from algorithms.features.impl.int_embedding import IntEmbedding
-from algorithms.features.impl.syscall_name import SyscallName
-from algorithms.features.impl.ngram import Ngram as _Ngram
-from algorithms.decision_engines.ae import AE
-from tsa.dataloader_2019 import ContaminatedDataLoader2019
-from tsa.dataloader_2021 import ContaminatedDataLoader2021
-from tsa.preprocessing import OutlierDetector, LOF, MixedModelOutlierDetector
-from tsa.utils import access_cfg, exists_key
-
-try:
-    LID_DS_BASE_PATH = os.environ['LID_DS_BASE']
-except KeyError as exc:
-    raise ValueError("No LID-DS Base Path given."
-                     "Please specify as argument or set Environment Variable "
-                     "$LID_DS_BASE") from exc
-
-
-@dataclass
-class AttackMixinConfig:
-    dataset_version: str  # TODO use enum
-    num_attacks: int
-    scenario_name: str
-    scenario_path: str
-    attack_names: List[str]
-
-    def to_dict(self):
-        return self.__dict__
-
-
-DECISION_ENGINES = {de.__name__: de for de in [AE, Stide, Som, SystemCallGraph]}
-PREPROCESSORS = {
-    "MixedModelOD": MixedModelOutlierDetector,
-    "LOF": LOF
-}
 
 RANDOM_SEED = 0
 torch.manual_seed(RANDOM_SEED)
 random.seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
+
 
 
 class Experiment:
@@ -355,3 +297,15 @@ def main():
         with open(args.config) as f:
             exp_parameters = yaml.safe_load(f)
         Experiment(exp_parameters, mlflow=mlflow_client).start(args.start_at, **experiment_start_args)
+
+        start_at = args.start_at
+        exp_mode = access_cfg(exp_parameters, "mode", default="normal")
+        if exp_mode == "normal":
+            experiment = Experiment(exp_parameters, mlflow=mlflow_client)
+        elif exp_mode == "unsupervised":
+            experiment = UnsupervisedExperiment(exp_parameters, mlflow=mlflow_client)
+        else:
+            raise ValueError("Unexpected experiment mode: %s" % exp_mode)
+        experiment.start(start_at, dry_run=args.dry_run)
+
+
