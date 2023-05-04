@@ -27,7 +27,7 @@ class Experiment:
 
     def start(self, start_at=0, dry_run=False):
         max_attacks = self._get_param("attack_mixin", "max_attacks", exp_type=int)
-        dataloader_config = self._get_param("attack_mixin", "dataloader", exp_type=dict)
+        dataloader_config = self._get_dataloader_cfg()
         i = -1
         for scenario in self.scenarios:
             lid_ds_version, scenario_name = scenario.split("/")
@@ -66,6 +66,9 @@ class Experiment:
         else:
             raise ValueError("%s is not supported." % lid_ds_version)
 
+    def _get_dataloader_cfg(self):
+        return self._get_param("attack_mixin", "dataloader", exp_type=dict)
+
     def train_test(self, dataloader):
         builder = IDSPipelineBuilder()  # TODO change experiment yaml format; add own key for pipeline
         building_block_configs = self._get_param("ids", exp_type=list)
@@ -98,7 +101,8 @@ class Experiment:
         return access_cfg(self.parameters, *args, **kwargs)
 
     def log_artifacts(self, ids):
-        mlflow.log_dict(self.parameters, "config.json")
+        print(self.parameters)
+        #mlflow.log_dict(self.parameters, "config.json")
 
     @staticmethod
     def continue_run(mlflow_client: MlflowClient, run_id: str, dry_run=False):
