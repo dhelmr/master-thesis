@@ -88,10 +88,11 @@ class Experiment:
         self.mlflow = mlflow
         self.scenarios = self._get_param("scenarios", exp_type=list)
 
-    def start(self, start_at=0, dry_run=False):
+    def start(self, start_at=0, dry_run=False, num_runs=None):
         max_attacks = self._get_param("attack_mixin", "max_attacks", exp_type=int)
         dataloader_config = self._get_param("attack_mixin", "dataloader", exp_type=dict)
         i = -1
+        current_run = 0
         for scenario in self.scenarios:
             lid_ds_version, scenario_name = scenario.split("/")
             dataloader_class = self._get_dataloader_cls(lid_ds_version)
@@ -106,6 +107,10 @@ class Experiment:
                 if dry_run:
                     print(i, "Dry Run: ", dataloader.__dict__)
                     continue
+                current_run += 1
+                if num_runs is not None and current_run > num_runs:
+                    print("Reached total number of runs (%s)" % num_runs)
+                    return
                 with mlflow.start_run() as run:
                     mlflow.log_params(convert_mlflow_dict(dataloader.cfg_dict()))
                     mlflow.log_params(convert_mlflow_dict(self.parameters))
@@ -120,6 +125,7 @@ class Experiment:
                             print("Skip metric", metric_key)
                             continue
                         mlflow.log_metric(metric_key, value)
+
 
     def _get_dataloader_cls(self, lid_ds_version):
         if lid_ds_version == "LID-DS-2019":
@@ -228,12 +234,12 @@ class Experiment:
         mlflow.log_dict(self.parameters, "config.json")
 
     @staticmethod
-    def continue_run(mlflow_client: MlflowClient, run_id: str, dry_run=False):
+    def continue_run(mlflow_client: MlflowClient, run_id: str, **kwargs):
         run = mlflow_client.get_run(run_id)
         artifact_uri = run.info.artifact_uri
         config_json = mlflow.artifacts.load_dict(artifact_uri + "/config.json")
         iteration = int(run.data.params.get("iteration"))
-        Experiment(config_json, mlflow_client).start(iteration + 1, dry_run=dry_run)
+        Experiment(config_json, mlflow_client).start(iteration + 1, **kwargs)
 
 
 def split_list(l, fraction_sublist1: float):
@@ -282,6 +288,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true", default=False,
                         help="If set, only attack mixin datasets will be created, and no Anomaly Detection is done. Useful for debugging.")
     parser.add_argument("--experiment", "-e", required=False, help="Sets the mlflow experiment ID", type=str)
+    parser.add_argument("--number-runs", required=False, help="Only iterate for specific number of runs", type=int, default=None)
     args = parser.parse_args()
     if args.config is None and args.continue_run is None and args.continue_experiment is False:
         print("Either --config or --continue-run or --continue must be set")
@@ -301,6 +308,10 @@ def main():
         exit(1)
     if args.experiment is not None and not args.continue_experiment:
         mlflow.set_experiment(args.experiment)
+    experiment_start_args = {
+        "num_runs": args.number_runs,
+        "dry_run": args.dry_run
+    }
     if args.config is None:
         if args.continue_run is not None:
             run_id = args.continue_run
@@ -310,9 +321,8 @@ def main():
             raise RuntimeError("Expected the run_id to be set. Abort.")
         print("Continue from run %s" % run_id)
         mlflow.set_experiment(args.experiment)
-        Experiment.continue_run(mlflow_client, run_id, args.dry_run)
+        Experiment.continue_run(mlflow_client, run_id, **experiment_start_args)
     else:
         with open(args.config) as f:
             exp_parameters = yaml.safe_load(f)
-        start_at = args.start_at
-        Experiment(exp_parameters, mlflow=mlflow_client).start(start_at, dry_run=args.dry_run)
+        Experiment(exp_parameters, mlflow=mlflow_client).start(args.start_at, **experiment_start_args)
