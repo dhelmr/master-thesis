@@ -13,7 +13,7 @@ from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from tsa.analyse import TrainingSetAnalyser
-from tsa.preprocessing import LOF, MixedModelOutlierDetector
+from tsa.preprocessing import LOF, MixedModelOutlierDetector, TStide
 from tsa.utils import access_cfg, exists_key
 
 
@@ -23,7 +23,7 @@ def Ngram(building_block, *args, **kwargs):
 
 BUILDING_BLOCKS = {cls.__name__: cls for cls in
                    [AE, Stide, Som, SystemCallGraph, IntEmbedding, W2VEmbedding, OneHotEncoding, Ngram, LOF,
-                    MixedModelOutlierDetector, MaxScoreThreshold, StreamSum]}
+                    MixedModelOutlierDetector, MaxScoreThreshold, StreamSum, TStide]}
 BuildingBlockCfg = dict
 
 

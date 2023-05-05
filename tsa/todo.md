@@ -1,6 +1,7 @@
-* refactor creation of building blocks (more generic)
-* store building blocks config as mlflow parameters (generic)
-* experiments with t-stide, LOF, Mixed Model
+## Ideas/Backlog
+
+* Training Set Visualization
+* Zipf Law for Training Set?
 
 # MS April
 
