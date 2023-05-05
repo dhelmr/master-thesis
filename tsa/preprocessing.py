@@ -4,7 +4,7 @@ import math
 from sklearn.neighbors import LocalOutlierFactor
 from tqdm import tqdm
 
-from algorithms.building_block import BuildingBlock
+from algorithms.building_block import BuildingBlock, IDSPhase
 from dataloader.syscall import Syscall
 
 
@@ -150,10 +150,14 @@ class OutlierDetector(BuildingBlock):
             self._dependency_list = [building_block, train_features]
         self._training_data = list()
         self._anomalies = set()
-        self._in_training = True
+        self._fitted = False
 
     def _calculate(self, syscall: Syscall):
-        if not self._in_training:
+        if not self._fitted:
+            raise RuntimeError("Unexpected call of _calculate before fitted. Abort.")
+        if self._ids_phase == IDSPhase.TEST:
+            # the outlier detector only is running in training mode
+            # otherwise, the last building block's output is passed on
             return self._input.get_result(syscall)
 
         ngram = self._train_input.get_result(syscall)
@@ -174,7 +178,7 @@ class OutlierDetector(BuildingBlock):
     def fit(self):
         self._anomalies = self.detect_anomalies(self._training_data)
         del self._training_data
-        self._in_training = False
+        self._fitted = True
     @abc.abstractmethod
     def detect_anomalies(self, training_data):
         raise NotImplemented()

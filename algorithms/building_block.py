@@ -1,9 +1,13 @@
+import enum
 from collections.abc import Iterable
 
 from algorithms.building_block_id_manager import BuildingBlockIDManager
 from dataloader.syscall import Syscall
 
 
+class IDSPhase(enum.Enum):
+    TRAINING = 0
+    TEST = 1
 class BuildingBlock:
     """
     base class for features and other algorithms
@@ -15,6 +19,7 @@ class BuildingBlock:
         self.__instance_id = None
         self.__last_result = None
         self.__last_syscall_id = None
+        self._ids_phase: IDSPhase = IDSPhase.TRAINING
 
     def train_on(self, syscall: Syscall):
         """
@@ -130,3 +135,9 @@ class BuildingBlock:
             If BuildingBlock is a decider (e.g. max score threshold) return True
         """
         return False
+
+    def set_ids_phase(self, phase: IDSPhase):
+        self._ids_phase = phase
+        for dep in self.depends_on():
+            if isinstance(dep, BuildingBlock):
+                dep.set_ids_phase(phase)

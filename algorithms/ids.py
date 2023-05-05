@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 from tqdm.contrib.concurrent import process_map
 
-from algorithms.building_block import BuildingBlock
+from algorithms.building_block import BuildingBlock, IDSPhase
 from algorithms.data_preprocessor import DataPreprocessor
 from algorithms.performance_measurement import Performance
 from algorithms.score_plot import ScorePlot
@@ -34,6 +34,7 @@ class IDS:
         if not self._final_bb.is_decider():
             raise ValueError('Resulting BuildingBlock is not a decider!')
         self._data_preprocessor = DataPreprocessor(self._data_loader, resulting_building_block)
+        resulting_building_block.set_ids_phase(IDSPhase.TEST)
         self.threshold = 0.0
         self._alarm = False
         self._anomaly_scores_exploits = []

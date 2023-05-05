@@ -73,7 +73,7 @@ class DataPreprocessor:
         num_generations = len(self._building_block_manager.building_block_generations)
         for current_generation in range(0, num_generations):
             # infos
-            print(f"at generation: {current_generation + 1} of {num_generations}: {self._building_block_manager.building_block_generations[current_generation]}")
+            print(f"at generation:  {current_generation + 1} of {num_generations}: {self._building_block_manager.building_block_generations[current_generation]}")
 
             # training
             if not self._train_on_needed(self._building_block_manager.building_block_generations[current_generation]):
@@ -117,6 +117,8 @@ class DataPreprocessor:
                                             f"fitting bbs {current_generation + 1}/{num_generations}".rjust(27),
                                             unit=" bbs"):
                     current_bb.fit()
+
+
 
     def new_recording(self):
         """
