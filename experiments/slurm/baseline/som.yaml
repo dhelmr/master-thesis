@@ -24,6 +24,7 @@ scenarios:
  - LID-DS-2021/Juice-Shop
  - LID-DS-2021/PHP_CWE-434
  - LID-DS-2021/ZipSlip
+train_set_analysis: False
 features:
   name: W2VEmbedding
   thread_aware: true

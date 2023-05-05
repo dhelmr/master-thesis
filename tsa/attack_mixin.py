@@ -159,25 +159,26 @@ class Experiment:
 
         DecisionEngineClass = DECISION_ENGINES[self.parameters["decision_engine"]["name"]]
 
-        features = self.make_feature_extractor()
+        current_bb = self.make_feature_extractor()
         # TODO: "Pipeline" class/obj
-        analyser = TrainingSetAnalyser(features)
-        analysers = [analyser]
-        for i, _ in enumerate(self._get_param("preprocessing", default=[])):
-            cfg_prefix = ["preprocessing", i]
-            preprocessor_name = self._get_param(*cfg_prefix, "name")
-            if preprocessor_name not in PREPROCESSORS:
-                raise ValueError(f"{preprocessor_name} is not a valid preprocessor.")
-            args = self._get_param(*cfg_prefix, "args", default={})
-            train_features = None
-            if self._exists_param(*cfg_prefix, "features"):
-                train_features = self.make_feature_extractor(cfg_prefix)
-            features = PREPROCESSORS[preprocessor_name](analyser, train_features=train_features, **args)
-            analyser = TrainingSetAnalyser(features)
-            analysers.append(analyser)
+        if self._get_param("train_set_analysis", default=True, required=False):
+            current_bb = TrainingSetAnalyser(current_bb)
+            analysers = [current_bb]
+            for i, _ in enumerate(self._get_param("preprocessing", default=[])):
+                cfg_prefix = ["preprocessing", i]
+                preprocessor_name = self._get_param(*cfg_prefix, "name")
+                if preprocessor_name not in PREPROCESSORS:
+                    raise ValueError(f"{preprocessor_name} is not a valid preprocessor.")
+                args = self._get_param(*cfg_prefix, "args", default={})
+                train_features = None
+                if self._exists_param(*cfg_prefix, "features"):
+                    train_features = self.make_feature_extractor(cfg_prefix)
+                features = PREPROCESSORS[preprocessor_name](current_bb, train_features=train_features, **args)
+                current_bb = TrainingSetAnalyser(features)
+                analysers.append(current_bb)
 
         decision_engine_args = self._get_param("decision_engine", "args", default={}, exp_type=dict)
-        decision_engine = DecisionEngineClass(analyser, **decision_engine_args)
+        decision_engine = DecisionEngineClass(current_bb, **decision_engine_args)
         if DecisionEngineClass in {DECISION_ENGINES["Stide"], DECISION_ENGINES["SystemCallGraph"]}:
             window_length = self._get_param("decision_engine", "streaming_window_length", default=1000, exp_type=int)
             decision_engine = StreamSum(decision_engine, False, window_length, False)
