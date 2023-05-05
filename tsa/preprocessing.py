@@ -151,6 +151,7 @@ class OutlierDetector(BuildingBlock):
         self._training_data = list()
         self._anomalies = set()
         self._fitted = False
+        self.anomaly_return_value = None
 
     def _calculate(self, syscall: Syscall):
         if not self._fitted:
@@ -162,7 +163,7 @@ class OutlierDetector(BuildingBlock):
 
         ngram = self._train_input.get_result(syscall)
         if ngram in self._anomalies:
-            return None
+            return self.anomaly_return_value
         elif self._distinct_train_features:
             return self._input.get_result(syscall)
         else:
@@ -179,6 +180,8 @@ class OutlierDetector(BuildingBlock):
         self._anomalies = self.detect_anomalies(self._training_data)
         del self._training_data
         self._fitted = True
+        print("Anomalies:", self._anomalies)
+
     @abc.abstractmethod
     def detect_anomalies(self, training_data):
         raise NotImplemented()

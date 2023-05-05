@@ -137,6 +137,7 @@ class BuildingBlock:
         return False
 
     def set_ids_phase(self, phase: IDSPhase):
+        print("Set IDS Phase to", phase)
         self._ids_phase = phase
         for dep in self.depends_on():
             if isinstance(dep, BuildingBlock):
