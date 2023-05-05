@@ -25,10 +25,11 @@ class Experiment:
         self.mlflow = mlflow
         self.scenarios = self._get_param("scenarios", exp_type=list)
 
-    def start(self, start_at=0, dry_run=False):
+    def start(self, start_at=0, dry_run=False, num_runs = None):
         max_attacks = self._get_param("attack_mixin", "max_attacks", exp_type=int)
         dataloader_config = self._get_dataloader_cfg()
         i = -1
+        current_run = 0
         for scenario in self.scenarios:
             lid_ds_version, scenario_name = scenario.split("/")
             dataloader_class = self._get_dataloader_cls(lid_ds_version)
@@ -43,6 +44,10 @@ class Experiment:
                 if dry_run:
                     print(i, "Dry Run: ", dataloader.__dict__)
                     continue
+                current_run += 1
+                if num_runs is not None and current_run > num_runs:
+                    print("Reached total number of runs (%s)" % num_runs)
+                    return
                 with mlflow.start_run() as run:
                     mlflow.log_params(convert_mlflow_dict(dataloader.cfg_dict()))
                     mlflow.log_params(convert_mlflow_dict(self.parameters))

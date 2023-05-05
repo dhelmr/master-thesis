@@ -20,6 +20,8 @@ from tsa.utils import access_cfg, exists_key
 def Ngram(building_block, *args, **kwargs):
     return _Ngram([building_block], *args, **kwargs)
 
+def Ngram(building_block, *args, **kwargs):
+    return _Ngram([building_block], *args, **kwargs)
 
 BUILDING_BLOCKS = {cls.__name__: cls for cls in
                    [AE, Stide, Som, SystemCallGraph, IntEmbedding, W2VEmbedding, OneHotEncoding, Ngram, LOF,
