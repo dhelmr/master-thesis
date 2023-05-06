@@ -161,7 +161,8 @@ class Experiment:
 
         current_bb = self.make_feature_extractor()
         # TODO: "Pipeline" class/obj
-        if self._get_param("train_set_analysis", default=True, required=False):
+        use_analysers = self._get_param("train_set_analysis", default=True, required=False)
+        if use_analysers:
             current_bb = TrainingSetAnalyser(current_bb)
             analysers = [current_bb]
             for i, _ in enumerate(self._get_param("preprocessing", default=[])):
@@ -194,9 +195,11 @@ class Experiment:
         performance = ids.detect()
 
         results = self.calc_extended_results(performance)
-        additional_parameters = {
-            f"tsa{i + 1}": analyser.get_analyse_result() for i, analyser in enumerate(analysers)
-        }
+        additional_parameters = {}
+        if use_analysers:
+            additional_parameters = {
+                f"tsa{i + 1}": analyser.get_analyse_result() for i, analyser in enumerate(analysers)
+            }
         additional_parameters["config"] = ids.get_config_tree_links(),
         return additional_parameters, results, ids
 
