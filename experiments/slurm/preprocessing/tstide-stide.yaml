@@ -1,0 +1,24 @@
+scenarios:
+ - LID-DS-2019/CVE-2017-7529
+ids:
+  - name: IntEmbedding
+  - name: Ngram
+    args:
+      thread_aware: true
+      ngram_length: 5
+  - name: TStide
+    args:
+      threshold: 3
+  - name: Stide
+  - name: StreamSum
+    args:
+      thread_aware: False
+      wait_until_full: False
+      window_length: 10000
+  - name: MaxScoreThreshold
+attack_mixin:
+  dataloader:
+    validation_ratio: 0.2
+    cont_ratio: 0.2
+    permutation_i: 0
+  max_attacks: 3
