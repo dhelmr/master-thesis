@@ -1,0 +1,32 @@
+mode: unsupervised
+scenarios:
+ - LID-DS-2019/CVE-2017-7529
+ - LID-DS-2019/CVE-2019-5418
+ - LID-DS-2019/CVE-2012-2122
+ - LID-DS-2021/Bruteforce_CWE-307
+ - LID-DS-2021/CVE-2012-2122
+ - LID-DS-2021/CVE-2014-0160
+ - LID-DS-2021/CVE-2017-7529
+ - LID-DS-2021/CVE-2018-3760
+ - LID-DS-2021/CVE-2020-23839
+ - LID-DS-2021/CWE-89-SQL-injection
+ - LID-DS-2021/Juice-Shop
+ids:
+  - name: W2VEmbedding
+    args:
+      window_size: 10
+      epochs: 20
+      vector_size: 5
+  - name: Ngram
+    args:
+      thread_aware: true
+      ngram_length: 3
+  - name: LOF
+    args:
+      contamination: 0.1
+attack_mixin:
+  dataloader:
+    validation_ratio: 0.2
+    cont_ratio: 0.2
+    permutation_i: 0
+  max_attacks: 5
