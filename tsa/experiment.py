@@ -139,12 +139,11 @@ class Experiment:
 def convert_mlflow_dict(nested_dict: dict, prefix=None):
     mlflow_dict = {}
     for key, value in nested_dict.items():
+        if prefix is not None:
+            key = f"{prefix}.{key}"
         if isinstance(value, dict):
             for subkey, subvalue in convert_mlflow_dict(value).items():
-                mlkey = f"{key}.{subkey}"
-                if prefix is not None:
-                    mlkey = f"{prefix}.{mlkey}"
-                mlflow_dict[mlkey] = subvalue
+                mlflow_dict[f"{key}.{subkey}"] = subvalue
         else:
             mlflow_dict[key] = str(value)
     for key, value in dict(mlflow_dict).items():
