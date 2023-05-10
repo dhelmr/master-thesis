@@ -39,7 +39,6 @@ class Experiment:
                                               **dataloader_config)
                 i = i + 1
                 if i < start_at:
-                    print("Skip", dataloader.__dict__)
                     continue
                 if dry_run:
                     print(i, "Dry Run: ", dataloader.__dict__)
