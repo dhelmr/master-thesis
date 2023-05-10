@@ -1,3 +1,4 @@
+import tsa.unsupervised.mixed_model
 from dataloader.syscall import Direction
 from dataloader.recording_2019 import RecordingDataParts
 from dataloader.dataloader_factory import dataloader_factory
@@ -139,7 +140,7 @@ if __name__ == '__main__':
             exploit = pd.DataFrame(data_dict[entry][1])
             print(normal[0])
             cut_interval = [500, 10000]
-            exp = go.Histogram(
+            exp = tsa.unsupervised.mixed_model.Histogram(
                 x=exploit[0],
                 name='auch Angriffsverhalten',
                 marker_color='#9d0006',
@@ -147,7 +148,7 @@ if __name__ == '__main__':
                 #opacity=0.5,
                 xbins_size=16,
             )
-            norm = go.Histogram(
+            norm = tsa.unsupervised.mixed_model.Histogram(
                 x=normal[0],
                 name='nur Normalverhalten',
                 marker_color='#076678',

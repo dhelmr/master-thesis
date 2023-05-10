@@ -1,3 +1,4 @@
+import tsa.unsupervised.mixed_model
 from dataloader.syscall import Direction
 from dataloader.recording_2019 import RecordingDataParts
 from dataloader.dataloader_factory import dataloader_factory
@@ -102,14 +103,14 @@ if __name__ == '__main__':
         df_exploit = pd.DataFrame(delta_dict['exploit'])
         # df_exploit = (df_exploit)/len(df_exploit)
         # df_exploit = (df_exploit-df_exploit.mean())/df_exploit.std()
-        his_norm = go.Histogram(
+        his_norm = tsa.unsupervised.mixed_model.Histogram(
             x=df_normal[0],
             name='nur Normalverhalten',
             marker_color='#076678',
             histnorm='percent',
             opacity=0.6,
         )
-        his_exp = go.Histogram(
+        his_exp = tsa.unsupervised.mixed_model.Histogram(
             x=df_exploit[0],
             name='auch Angriffsverhalten',
             marker_color='#9d0006',

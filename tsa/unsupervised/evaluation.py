@@ -7,24 +7,6 @@ from tsa.experiment import Experiment
 from tsa.unsupervised.preprocessing import OutlierDetector
 
 
-class TrueLabelCounter(BuildingBlock):
-    def __init__(self, building_block: BuildingBlock):
-        super().__init__()
-        self._input = building_block
-        self._counts = {}
-
-    def _calculate(self, syscall: Syscall):
-        return self._input.get_result(syscall)
-
-    def train_on(self, syscall: Syscall):
-        syscall.name()
-        inp = self._input.get_result(syscall)
-        if inp is None:
-            # TODO handle?
-            return
-        return inp
-
-
 class UnsupervisedEvaluator(BuildingBlock):
     def __init__(self, building_block: OutlierDetector):
         super().__init__()
