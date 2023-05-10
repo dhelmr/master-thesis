@@ -99,7 +99,6 @@ def main():
     else:
         with open(args.config) as f:
             exp_parameters = yaml.safe_load(f)
-        start_at = args.start_at
         exp_mode = access_cfg(exp_parameters, "mode", default="normal")
         if exp_mode == "normal":
             experiment = Experiment(exp_parameters, mlflow=mlflow_client)
