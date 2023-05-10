@@ -80,7 +80,6 @@ class Experiment:
             with mlflow.start_run() as run:
                 mlflow.log_params(convert_mlflow_dict(run_cfg.to_dict()))
                 mlflow.log_params(convert_mlflow_dict(dataloader.cfg_dict(), "dataloader"))
-                mlflow.log_params(convert_mlflow_dict(self.parameters))
                 mlflow.log_dict(self.parameters, "config.json")
                 additional_params, results, ids = self.train_test(dataloader)
                 mlflow.log_params(convert_mlflow_dict(additional_params))
@@ -121,7 +120,7 @@ class Experiment:
         additional_parameters = {
             f"tsa{i + 1}": analyser.get_analyse_result() for i, analyser in enumerate(builder.analysers)
         }
-        additional_parameters["config"] = ids.get_config_tree_links(),
+        # additional_parameters["config"] = ids.get_config_tree_links(),
         return additional_parameters, results, ids
 
     def calc_extended_results(self, performance: Performance):
