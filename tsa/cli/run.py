@@ -109,7 +109,7 @@ class RunSubCommand(SubCommand):
             print("Start at iteration", start_at)
         else:
             start_at = args.start_at
-
+        mlflow.set_experiment(args.experiment)
         experiment.start(start_at, **experiment_start_args)
 
 def get_next_iteration(mlflow_client, experiment, mode, experiment_name):
