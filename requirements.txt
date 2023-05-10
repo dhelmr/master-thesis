@@ -31,4 +31,4 @@ MiniSom==2.2.9
 scikit-learn==1.0.2
 pytest==7.1.2
 tabulate==0.8.10
-mlflow==2.2.1
+mlflow==2.3.1
