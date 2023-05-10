@@ -52,8 +52,8 @@ class Experiment:
                     mlflow.log_params(convert_mlflow_dict(dataloader.cfg_dict()))
                     mlflow.log_params(convert_mlflow_dict(self.parameters))
                     mlflow.log_params(convert_mlflow_dict({"iteration": i}))
+                    mlflow.log_dict(self.parameters, "config.json")
                     additional_params, results, ids = self.train_test(dataloader)
-                    self.log_artifacts(ids)
                     mlflow.log_params(convert_mlflow_dict(additional_params))
                     for metric_key, value in convert_mlflow_dict(results).items():
                         try:
@@ -105,9 +105,6 @@ class Experiment:
     def _get_param(self, *args, **kwargs):
         return access_cfg(self.parameters, *args, **kwargs)
 
-    def log_artifacts(self, ids):
-        print(self.parameters)
-        mlflow.log_dict(self.parameters, "config.json")
 
     @staticmethod
     def continue_run(mlflow_client: MlflowClient, run_id: str, **kwargs):

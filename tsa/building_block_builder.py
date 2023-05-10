@@ -13,7 +13,7 @@ from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from tsa.analyse import TrainingSetAnalyser
-from tsa.preprocessing import LOF, MixedModelOutlierDetector, TStide
+from tsa.unsupervised.preprocessing import LOF, MixedModelOutlierDetector, TStide
 from tsa.utils import access_cfg, exists_key
 
 

@@ -4,7 +4,7 @@ from dataloader.base_data_loader import BaseDataLoader
 from dataloader.syscall import Syscall
 from tsa.building_block_builder import IDSPipelineBuilder
 from tsa.experiment import Experiment
-from tsa.preprocessing import OutlierDetector
+from tsa.unsupervised.preprocessing import OutlierDetector
 
 
 class TrueLabelCounter(BuildingBlock):
