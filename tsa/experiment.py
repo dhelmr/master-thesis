@@ -105,13 +105,6 @@ class Experiment:
         return access_cfg(self.parameters, *args, **kwargs)
 
 
-    @staticmethod
-    def continue_run(mlflow_client: MlflowClient, run_id: str, **kwargs):
-        run = mlflow_client.get_run(run_id)
-        artifact_uri = run.info.artifact_uri
-        config_json = mlflow.artifacts.load_dict(artifact_uri + "/config.json")
-        iteration = int(run.data.params.get("iteration"))
-        Experiment(config_json, mlflow_client).start(iteration + 1, **kwargs)
 
 
 def convert_mlflow_dict(nested_dict: dict):
