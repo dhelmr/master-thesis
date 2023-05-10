@@ -1,6 +1,9 @@
 from argparse import ArgumentParser
 
-from tsa.cli.run import SubCommand
+from mlflow import MlflowClient
+
+from tsa.cli.run import SubCommand, make_experiment
+from tsa.experiment_checker import ExperimentChecker
 
 
 class CheckSubCommand(SubCommand):
@@ -12,4 +15,7 @@ class CheckSubCommand(SubCommand):
         parser.add_argument("-c", "--config", required=True, help="Experiment config yaml file.")
 
     def exec(self, args, parser):
-        print("TODO CHECK")
+        mlflow_client = MlflowClient() # TODO global singleton
+        experiment = make_experiment(args.config, mlflow_client)
+        checker = ExperimentChecker(experiment)
+        checker.check_all(args.experiment)

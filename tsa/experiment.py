@@ -1,3 +1,6 @@
+import dataclasses
+from typing import List
+
 import mlflow
 import os
 from mlflow import MlflowClient
@@ -18,6 +21,17 @@ except KeyError as exc:
     raise ValueError("No LID-DS Base Path given."
                      "Please specify as argument or set Environment Variable "
                      "$LID_DS_BASE") from exc
+
+@dataclasses.dataclass
+class RunConfig:
+    lid_ds_version: str
+    scenario: str
+    num_attacks: int
+    iteration: int
+
+    def to_dict(self):
+        return dataclasses.asdict(self)
+
 class Experiment:
     def __init__(self, parameters, mlflow: MlflowClient):
         self._tmp_results_df = None
@@ -25,42 +39,58 @@ class Experiment:
         self.mlflow = mlflow
         self.scenarios = self._get_param("scenarios", exp_type=list)
 
-    def start(self, start_at=0, dry_run=False, num_runs = None):
+    def run_configurations(self) -> List[RunConfig]:
+        configs = []
         max_attacks = self._get_param("attack_mixin", "max_attacks", exp_type=int)
+        iteration = 0
+        for scenario in self.scenarios:
+            lid_ds_version, scenario_name = scenario.split("/")
+
+            for num_attacks in range(max_attacks + 1):
+                cfg = RunConfig(
+                    num_attacks=num_attacks,
+                    iteration=iteration,
+                    scenario=scenario_name,
+                    lid_ds_version=lid_ds_version
+                )
+                configs.append(cfg)
+                iteration += 1
+        return configs
+
+    def start(self, start_at=0, dry_run=False, num_runs = None):
         dataloader_config = self._get_dataloader_cfg()
         i = -1
         current_run = 0
-        for scenario in self.scenarios:
-            lid_ds_version, scenario_name = scenario.split("/")
-            dataloader_class = self._get_dataloader_cls(lid_ds_version)
-            scenario_path = f"{LID_DS_BASE_PATH}/{lid_ds_version}/{scenario_name}"
-            for num_attacks in range(max_attacks + 1):
-                dataloader = dataloader_class(scenario_path, num_attacks=num_attacks, direction=Direction.BOTH,
-                                              **dataloader_config)
-                i = i + 1
-                if i < start_at:
-                    continue
-                if dry_run:
-                    print(i, "Dry Run: ", dataloader.__dict__)
-                    continue
-                current_run += 1
-                if num_runs is not None and current_run > num_runs:
-                    print("Reached total number of runs (%s)" % num_runs)
-                    return
-                with mlflow.start_run() as run:
-                    mlflow.log_params(convert_mlflow_dict(dataloader.cfg_dict()))
-                    mlflow.log_params(convert_mlflow_dict(self.parameters))
-                    mlflow.log_params(convert_mlflow_dict({"iteration": i}))
-                    mlflow.log_dict(self.parameters, "config.json")
-                    additional_params, results, ids = self.train_test(dataloader)
-                    mlflow.log_params(convert_mlflow_dict(additional_params))
-                    for metric_key, value in convert_mlflow_dict(results).items():
-                        try:
-                            value = float(value)
-                        except ValueError:
-                            print("Skip metric", metric_key)
-                            continue
-                        mlflow.log_metric(metric_key, value)
+        for run_cfg in self.run_configurations():
+            dataloader_class = self._get_dataloader_cls(run_cfg.lid_ds_version)
+            scenario_path = f"{LID_DS_BASE_PATH}/{run_cfg.lid_ds_version}/{run_cfg.scenario}"
+
+            dataloader = dataloader_class(scenario_path, num_attacks=run_cfg.num_attacks, direction=Direction.BOTH,
+                                          **dataloader_config)
+            i = i + 1
+            if i < start_at:
+                continue
+            if dry_run:
+                print(i, "Dry Run: ", dataloader.__dict__)
+                continue
+            current_run += 1
+            if num_runs is not None and current_run > num_runs:
+                print("Reached total number of runs (%s)" % num_runs)
+                return
+            with mlflow.start_run() as run:
+                mlflow.log_params(convert_mlflow_dict(run_cfg.to_dict()))
+                mlflow.log_params(convert_mlflow_dict(dataloader.cfg_dict(), "dataloader"))
+                mlflow.log_params(convert_mlflow_dict(self.parameters))
+                mlflow.log_dict(self.parameters, "config.json")
+                additional_params, results, ids = self.train_test(dataloader)
+                mlflow.log_params(convert_mlflow_dict(additional_params))
+                for metric_key, value in convert_mlflow_dict(results).items():
+                    try:
+                        value = float(value)
+                    except ValueError:
+                        print("Skip metric", metric_key)
+                        continue
+                    mlflow.log_metric(metric_key, value)
 
     def _get_dataloader_cls(self, lid_ds_version):
         if lid_ds_version == "LID-DS-2019":
@@ -107,12 +137,15 @@ class Experiment:
 
 
 
-def convert_mlflow_dict(nested_dict: dict):
+def convert_mlflow_dict(nested_dict: dict, prefix=None):
     mlflow_dict = {}
     for key, value in nested_dict.items():
         if isinstance(value, dict):
             for subkey, subvalue in convert_mlflow_dict(value).items():
-                mlflow_dict[f"{key}.{subkey}"] = subvalue
+                mlkey = f"{key}.{subkey}"
+                if prefix is not None:
+                    mlkey = f"{prefix}.{mlkey}"
+                mlflow_dict[mlkey] = subvalue
         else:
             mlflow_dict[key] = str(value)
     for key, value in dict(mlflow_dict).items():
