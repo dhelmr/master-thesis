@@ -14,7 +14,7 @@ from mlflow import MlflowClient
 from typing import List
 
 from tsa.experiment import Experiment
-from tsa.unsupervised import UnsupervisedExperiment
+from tsa.unsupervised.evaluation import UnsupervisedExperiment
 from tsa.utils import access_cfg
 
 
