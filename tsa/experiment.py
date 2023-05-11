@@ -33,11 +33,12 @@ class RunConfig:
         return dataclasses.asdict(self)
 
 class Experiment:
-    def __init__(self, parameters, mlflow: MlflowClient):
+    def __init__(self, parameters, mlflow: MlflowClient, name):
         self._tmp_results_df = None
         self.parameters = parameters
         self.mlflow = mlflow
         self.scenarios = self._get_param("scenarios", exp_type=list)
+        self.name = name
 
     def run_configurations(self) -> List[RunConfig]:
         configs = []
@@ -58,6 +59,7 @@ class Experiment:
         return configs
 
     def start(self, start_at=0, dry_run=False, num_runs = None):
+        mlflow.set_experiment(self.name)
         dataloader_config = self._get_dataloader_cfg()
         i = -1
         current_run = 0

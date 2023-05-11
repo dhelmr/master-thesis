@@ -6,12 +6,12 @@ class ExperimentChecker:
         self.experiment = experiment
         self.mlflow_client = experiment.mlflow
 
-    def check_all(self, experiment_name: str):
+    def check_all(self):
         runs = self.experiment.run_configurations()
         counts = {r.iteration: 0 for r in runs}
-        exp = self.mlflow_client.get_experiment_by_name(experiment_name)
+        exp = self.mlflow_client.get_experiment_by_name(self.experiment.name)
         if exp is None:
-            raise RuntimeError("Experiment with name '%s' not found." % experiment_name)
+            raise RuntimeError("Experiment with name '%s' not found." % self.experiment.name)
         running_runs = []
         for r in self.mlflow_client.search_runs(experiment_ids=[exp.experiment_id], order_by=["start_time DESC"]):
             if "iteration" not in r.data.params:
@@ -43,12 +43,12 @@ class ExperimentChecker:
 
         print("Currently running:", [r.data.params["iteration"] for r in running_runs])
 
-    def next_free_iteration(self, experiment_name: str):
+    def next_free_iteration(self):
         runs = self.experiment.run_configurations()
         counts = {r.iteration: 0 for r in runs}
-        exp = self.mlflow_client.get_experiment_by_name(experiment_name)
+        exp = self.mlflow_client.get_experiment_by_name(self.experiment.name)
         if exp is None:
-            raise RuntimeError("Experiment with name '%s' not found." % experiment_name)
+            raise RuntimeError("Experiment with name '%s' not found." % self.experiment.name)
         running_runs = []
         failed_runs = []
         for r in self.mlflow_client.search_runs(experiment_ids=[exp.experiment_id], order_by=["start_time DESC"]):
