@@ -16,6 +16,6 @@ class CheckSubCommand(SubCommand):
 
     def exec(self, args, parser):
         mlflow_client = MlflowClient() # TODO global singleton
-        experiment = make_experiment(args.config, mlflow_client)
+        experiment = make_experiment(args.config, mlflow_client, args.experiment)
         checker = ExperimentChecker(experiment)
-        checker.check_all(args.experiment)
+        checker.check_all()

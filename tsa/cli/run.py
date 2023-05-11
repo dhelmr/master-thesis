@@ -82,7 +82,7 @@ class RunSubCommand(SubCommand):
         parser.add_argument("--start-at", "-s", required=False, help="Start at iteration", type=int, default=0)
         parser.add_argument("--continue", required=False, dest="continue_experiment", default=None,
                             help="Continue from last successfully 'finished' or currently 'running' run of the experiment",
-                            choices=["finished", "running", "next-free"])
+                            choices=["finished", "running", "random"])
         parser.add_argument("--dry-run", action="store_true", default=False,
                             help="If set, only attack mixin datasets will be created, and no Anomaly Detection is done. Useful for debugging.")
         parser.add_argument("--experiment", "-e", required=False, help="Sets the mlflow experiment ID", type=str)
@@ -120,8 +120,13 @@ def get_next_iteration(mlflow_client, experiment, mode):
         if run_id is None:
             print("No running run found; find last successfully finished run.")
             run_id = last_successful_run_id(mlflow_client, experiment.name)
-    elif mode == "next-free":
-        return ExperimentChecker(experiment).next_free_iteration(experiment.name)
+    elif mode == "random":
+        stats = ExperimentChecker(experiment).stats()
+        if len(stats.missing_runs) == 0:
+            raise ValueError("Experiment has no missing runs")
+        r = random.Random(None)
+        next_run = r.choice(stats.missing_runs)
+        return next_run.iteration
     else:
         raise RuntimeError("continue_experiment has unexpected value: %s" % mode)
     if run_id is not None:
