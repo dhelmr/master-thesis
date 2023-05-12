@@ -14,6 +14,7 @@ import yaml
 from mlflow import MlflowClient
 from typing import List
 
+from tsa.analysis.analyse_experiment import AnalysisExperiment
 from tsa.experiment import Experiment
 from tsa.experiment_checker import ExperimentChecker
 from tsa.unsupervised.evaluation import UnsupervisedExperiment
@@ -144,6 +145,8 @@ def make_experiment(path, mlflow_client, name):
         experiment = Experiment(config, mlflow=mlflow_client, name=name)
     elif exp_mode == "unsupervised":
         experiment = UnsupervisedExperiment(config, mlflow=mlflow_client, name=name)
+    elif exp_mode == "analysis":
+        experiment = AnalysisExperiment(config, mlflow=mlflow_client, name=name)
     else:
         raise ValueError("Unexpected experiment mode: %s" % exp_mode)
     return experiment

@@ -71,6 +71,7 @@
 ## SWE 
 
 * Serialize W2V trained model per training dataset cfg in sqlite
+* global config => store experiment prefix => make -e param optional (infer from config name)
 
 ## TSA Over Time (/loaded Recordings)
 

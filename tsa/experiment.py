@@ -7,6 +7,7 @@ from mlflow import MlflowClient
 
 from algorithms.ids import IDS
 from algorithms.performance_measurement import Performance
+from dataloader.base_data_loader import BaseDataLoader
 from dataloader.direction import Direction
 from tsa.building_block_builder import IDSPipelineBuilder
 from tsa.confusion_matrix import ConfusionMatrix
@@ -83,7 +84,7 @@ class Experiment:
                 mlflow.log_params(convert_mlflow_dict(run_cfg.to_dict()))
                 mlflow.log_params(convert_mlflow_dict(dataloader.cfg_dict(), "dataloader"))
                 mlflow.log_dict(self.parameters, "config.json")
-                additional_params, results, ids = self.train_test(dataloader)
+                additional_params, results, ids = self.train_test(dataloader, run_cfg)
                 mlflow.log_params(convert_mlflow_dict(additional_params))
                 for metric_key, value in convert_mlflow_dict(results).items():
                     try:
@@ -104,7 +105,7 @@ class Experiment:
     def _get_dataloader_cfg(self):
         return self._get_param("attack_mixin", "dataloader", exp_type=dict)
 
-    def train_test(self, dataloader):
+    def train_test(self, dataloader: BaseDataLoader, run_cfg: RunConfig):
         builder = IDSPipelineBuilder()  # TODO change experiment yaml format; add own key for pipeline
         building_block_configs = self._get_param("ids", exp_type=list)
         decider = builder.build_all(building_block_configs)

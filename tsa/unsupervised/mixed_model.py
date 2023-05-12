@@ -1,5 +1,7 @@
 import math
 
+import numpy as np
+from numpy import e
 from tqdm import tqdm
 
 from algorithms.building_block import BuildingBlock
@@ -56,7 +58,7 @@ class Histogram:
             raise ValueError(f"Not in histogram: {element}")
         self._size -= self._counts[element]
         del self._counts[element]
-        self._unique_elements += 1
+        self._unique_elements -= 1
 
     def reduce(self, element, reduce_by: int):
         if element not in self._counts:
@@ -66,13 +68,19 @@ class Histogram:
             raise ValueError(
                 f"Cannot reduce count for {element}. Reduce count {reduce_by} must be <= than current value {current}. ")
         self._counts[element] -= reduce_by
+        self._size -= reduce_by
         if self._counts[element] == 0:
             del self._counts[element]
-            self._unique_elements += 1
+            self._unique_elements -= 1
 
     def unique_elements(self):
         return self._unique_elements
 
+    def entropy(self, base=None):
+        counts_array = np.array(list(self._counts.values()))
+        norm_counts = counts_array / self._size
+        base = e if base is None else base
+        return -(norm_counts * np.log(norm_counts) / np.log(base)).sum()
 
 class NgramNaiveBayes:
     def __init__(self, pseudo_count=1):

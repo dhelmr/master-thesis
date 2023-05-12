@@ -12,7 +12,7 @@ from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
-from tsa.analyse import TrainingSetAnalyser
+from tsa.analysis.analyser import TrainingSetAnalyser
 from tsa.unsupervised.scikit import LOF
 from tsa.unsupervised.tstide import TStide
 from tsa.unsupervised.mixed_model import MixedModelOutlierDetector
@@ -27,7 +27,7 @@ def Ngram(building_block, *args, **kwargs):
 
 BUILDING_BLOCKS = {cls.__name__: cls for cls in
                    [AE, Stide, Som, SystemCallGraph, IntEmbedding, W2VEmbedding, OneHotEncoding, Ngram, LOF,
-                    MixedModelOutlierDetector, MaxScoreThreshold, StreamSum, TStide]}
+                    MixedModelOutlierDetector, MaxScoreThreshold, StreamSum, TStide, TrainingSetAnalyser]}
 BuildingBlockCfg = dict
 
 
@@ -45,7 +45,7 @@ class IDSPipelineBuilder:
         if exists_key(cfg, "dependencies"):
             arg_name = access_cfg(cfg, "dependencies", "name")
             cfg_list = access_cfg(cfg, "dependencies", "blocks", required=True)
-            dependency_bb = self.build_all(cfg_list, add_analysers=False)
+            dependency_bb = self.build_all(cfg_list)
             bb_args[arg_name] = dependency_bb
         try:
             bb = bb_class(last_block, **bb_args)
@@ -53,13 +53,8 @@ class IDSPipelineBuilder:
             raise RuntimeError("Error building block %s with args %s.\nNested Error is: %s" % (name, cfg, e)) from e
         return bb
 
-    def build_all(self, configs: List[BuildingBlockCfg], add_analysers=True):
+    def build_all(self, configs: List[BuildingBlockCfg]):
         last_block = SyscallName()
         for i, cfg in enumerate(configs):
             last_block = self._build_block(cfg, last_block)
-            if add_analysers and i < len(configs) - 1:
-                # add analysers only between building blocks
-                analyser = TrainingSetAnalyser(last_block)
-                self.analysers.append(analyser)
-                last_block = analyser
         return last_block
