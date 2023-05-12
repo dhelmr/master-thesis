@@ -43,12 +43,15 @@ class Experiment:
 
     def run_configurations(self) -> List[RunConfig]:
         configs = []
-        max_attacks = self._get_param("attack_mixin", "max_attacks", exp_type=int)
+        num_attacks_range = self._get_param("attack_mixin", "num_attacks", required=False)
+        if num_attacks_range is None:
+            max_attacks = self._get_param("attack_mixin", "max_attacks", exp_type=int)
+            num_attacks_range = range(max_attacks + 1)
         iteration = 0
         for scenario in self.scenarios:
             lid_ds_version, scenario_name = scenario.split("/")
 
-            for num_attacks in range(max_attacks + 1):
+            for num_attacks in num_attacks_range:
                 cfg = RunConfig(
                     num_attacks=num_attacks,
                     iteration=iteration,
