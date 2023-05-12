@@ -52,14 +52,13 @@ class TrainingSetAnalyser(AnalyserBB):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._histogram = Histogram()
-        self._data_list = []
+
 
     def _add_input(self, inp):
         if inp is None:
             # TODO
             return
         self._histogram.add(inp)
-        self._data_list.append(inp)
     def _make_stats(self):
         uniq = self._histogram.unique_elements()
         return {
