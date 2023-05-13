@@ -11,7 +11,8 @@ class ExperimentStats:
     counts: Dict[RunStatus, Dict[int, int]]
     skipped: List[Run]
     missing_runs: List[RunConfig]
-    duplicate_runs: List[Tuple[List[RunConfig], int]]
+    missing_runs_but_running: List[RunConfig]
+    duplicate_runs: List[Tuple[RunConfig, int]]
 
 
 class ExperimentChecker:
@@ -53,11 +54,12 @@ class ExperimentChecker:
         fin_counts = counts[RunStatus.FINISHED]
         runn_counts = counts[RunStatus.RUNNING]
 
-        missing = [run for run in runs if run.iteration not in fin_counts and run.iteration not in runn_counts]
+        missing = [run for run in runs if run.iteration not in fin_counts]
+        missing_but_running = [run for run in missing if run.iteration in runn_counts]
         duplicates = [(run, fin_counts[run.iteration]) for run in runs if run.iteration if
                       run.iteration in fin_counts and fin_counts[run.iteration] > 1]
         # TODO add running runs duplicates
-        return ExperimentStats(counts, skipped, missing, duplicates)
+        return ExperimentStats(counts, skipped, missing, missing_but_running, duplicates)
 
     def check_all(self):
         stats = self.stats()
@@ -69,7 +71,12 @@ class ExperimentChecker:
         if len(stats.missing_runs) != 0:
             print("Missing Runs:")
             for r in stats.missing_runs:
-                print(r)
+                if r in stats.missing_runs_but_running:
+                    print(r, "(RUNNING)")
+                else:
+                    print(r)
+
+
 
     def next_free_iteration(self):
         runs = self.experiment.run_configurations()
