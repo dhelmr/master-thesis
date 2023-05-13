@@ -32,8 +32,9 @@ class AnalyserBB(BuildingBlock):
         self._current_i += 1
         if self._current_i % self._update_interval == 0:
             cur_stats = self._make_stats()
-            cur_stats["syscalls"] = self._current_i
-            self._stats.append(cur_stats)
+            if isinstance(cur_stats, dict):
+                cur_stats["syscalls"] = self._current_i
+                self._stats.append(cur_stats)
 
     def depends_on(self) -> list:
         return self._dependency_list

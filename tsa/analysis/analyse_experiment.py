@@ -45,7 +45,12 @@ class AnalysisExperiment(Experiment):
         for bb in unpack_dependencies(last_bb):
             if isinstance(bb, AnalyserBB):
                 stats = bb.get_stats()
-                self.log_pandas_df(stats, name=bb.name)
+                if isinstance(stats, DataFrame):
+                    self.log_pandas_df(stats, name=bb.name)
+                elif stats is None:
+                    print("Got no stats")
+                else:
+                    print("Unknown stats type!", stats.__class__)
 
         return {}, {}, ids
 
