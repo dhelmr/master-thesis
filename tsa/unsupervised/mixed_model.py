@@ -76,11 +76,18 @@ class Histogram:
     def unique_elements(self):
         return self._unique_elements
 
+    def counts_as_np_arr(self):
+        return np.array(list(self._counts.values()))
+
     def entropy(self, base=None):
-        counts_array = np.array(list(self._counts.values()))
+        counts_array = self.counts_as_np_arr()
         norm_counts = counts_array / self._size
         base = e if base is None else base
         return -(norm_counts * np.log(norm_counts) / np.log(base)).sum()
+
+    def simpson_index(self):
+        arr = self.counts_as_np_arr()
+        return np.sum((arr * (arr-1))) / ( self._size*(self._size-1))
 
 class NgramNaiveBayes:
     def __init__(self, pseudo_count=1):

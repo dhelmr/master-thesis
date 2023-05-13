@@ -67,7 +67,8 @@ class TrainingSetAnalyser(AnalyserBB):
             "unique": uniq,
             "total": len(self._histogram),
             "u/t": uniq/len(self._histogram),
-            "entropy": self._histogram.entropy(base=e)
+            "entropy": self._histogram.entropy(base=e),
+            "simpson_index": self._histogram.simpson_index()
         }
 
 
