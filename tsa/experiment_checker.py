@@ -1,4 +1,6 @@
 import dataclasses
+import time
+from datetime import datetime, timedelta
 from typing import Dict, Tuple, List
 
 from mlflow.entities import RunStatus, Run
@@ -76,7 +78,15 @@ class ExperimentChecker:
                 else:
                     print(r)
 
-
+    def get_stale_runs(self, older_than: timedelta):
+        now = time.time()*1000
+        stale_runs = []
+        for r in self.iter_mlflow_runs():
+            status = RunStatus.from_string(r.info.status)
+            time_elapsed = timedelta(milliseconds=now - r.info.start_time)
+            if status == RunStatus.RUNNING and time_elapsed > older_than:
+                stale_runs.append(r)
+        return stale_runs
 
     def next_free_iteration(self):
         runs = self.experiment.run_configurations()
