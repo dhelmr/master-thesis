@@ -13,26 +13,14 @@
 * Training Set Visualization
 * Zipf Law for Training Set?
 * dimensions of features vs number of needed training instances?
+* date exploration with apache superset, etc.
 
 # May I (09-15)
-
-## Refactoring
-
-* num_runs problem
-* refactor + merge unsupervised eval
-* slurm files in git
-
-## slurm
-
-* input yaml config => create experiment name and run automatically
-* create parallel jobs
 
 ## experiment management
 
 * output IDS block parameters in mlflow params
 * implement parameter grid search 
-* list missing runs in experiment
-* check experiment integrity/completeness
 
 ## More Scitkit-Learn Algorithms
 
@@ -57,8 +45,6 @@
 
 ## TSA
 
-* new experiment mode for analysis
-* total/unique features
 * for density-based features: variance, ...
 * entropy values from paper
 
