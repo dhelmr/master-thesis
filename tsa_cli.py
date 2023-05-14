@@ -3,9 +3,10 @@ import sys
 
 from tsa.cli.check import CheckSubCommand
 from tsa.cli.run import RunSubCommand
+from tsa.cli.search import SearchSubCommand
 from tsa.cli.tsa import TSASubCommand
 
-commands = [RunSubCommand(), CheckSubCommand(), TSASubCommand()]
+commands = [RunSubCommand(), CheckSubCommand(), TSASubCommand(), SearchSubCommand()]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

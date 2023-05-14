@@ -31,11 +31,11 @@ def access_cfg(root_obj, *keys, default=None, required=True, exp_type=None):
             if not required:
                 return default
             else:
-                raise ValueError("Cannot find parameter for key %s at %s" % (key, cur_key))
+                raise ValueError("Cannot find parameter for key '%s' at %s" % (key, cur_key if cur_key != "" else "[ROOT]"))
         cur_obj = cur_obj[key]
         cur_key = "%s.%s" % (cur_key, key)
     if exp_type is not None and not isinstance(cur_obj, exp_type):
-        raise ValueError("Parameter %s is not of expected type %s" % (cur_key, exp_type))
+        raise ValueError("Parameter '%s' is not of expected type %s" % (cur_key, exp_type))
     return cur_obj
 
 def exists_key(root_obj, *keys) -> bool:
