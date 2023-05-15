@@ -62,7 +62,7 @@ def modify_cfg(cfg, key, new_value):
     splitted = key.split(".")
     for i in range(len(splitted)):
         if splitted[i].isdigit():
-            splitted[i] = int(i)
+            splitted[i] = int(splitted[i])
     parent_key = splitted[:-1]
     parent_obj = access_cfg(cfg, *parent_key, required=True)
     parent_obj[splitted[-1]] = new_value
