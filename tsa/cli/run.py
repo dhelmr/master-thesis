@@ -122,11 +122,16 @@ def get_next_iteration(mlflow_client, experiment, mode):
             print("No running run found; find last successfully finished run.")
             run_id = last_successful_run_id(mlflow_client, experiment.name)
     elif mode == "random":
-        stats = ExperimentChecker(experiment).stats()
-        if len(stats.missing_runs) == 0:
-            raise ValueError("Experiment has no missing runs")
+        checker = ExperimentChecker(experiment)
+        if checker.exists_in_mlflow():
+            stats = checker.stats()
+            if len(stats.missing_runs) == 0:
+                raise ValueError("Experiment has no missing runs")
+            missing_runs = stats.missing_runs
+        else:
+            missing_runs = experiment.run_configurations()
         r = random.Random(None)
-        next_run = r.choice(stats.missing_runs)
+        next_run = r.choice(missing_runs)
         return next_run.iteration
     else:
         raise RuntimeError("continue_experiment has unexpected value: %s" % mode)

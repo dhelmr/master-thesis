@@ -22,6 +22,10 @@ class ExperimentChecker:
         self.experiment = experiment
         self.mlflow_client = experiment.mlflow
 
+    def exists_in_mlflow(self) -> bool:
+        exp = self.mlflow_client.get_experiment_by_name(self.experiment.name)
+        return exp is not None
+
     def iter_mlflow_runs(self):
         exp = self.mlflow_client.get_experiment_by_name(self.experiment.name)
         if exp is None:
