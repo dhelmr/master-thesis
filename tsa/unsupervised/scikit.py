@@ -19,7 +19,6 @@ class ScitkitOD(OutlierDetector):
         else:
             training_data = list(training_data)
         pred = self._estimator.fit_predict(training_data)
-        print(pred)
         anomalies = set()
         for i, p in enumerate(pred):
             if self._is_anomaly(training_data, i, p):
