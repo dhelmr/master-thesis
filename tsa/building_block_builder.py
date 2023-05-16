@@ -15,7 +15,7 @@ from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from tsa.analysis.analyser import TrainingSetAnalyser
 from tsa.analysis.continuous_anaylser import ContinuousTrainingSetAnalyser
 from tsa.analysis.visualization_analyser import Visualize
-from tsa.unsupervised.scikit import LOF
+from tsa.unsupervised.scikit import LOF, EllipticEnvelopeOD, IsolationForestOD
 from tsa.unsupervised.tstide import TStide
 from tsa.unsupervised.mixed_model import MixedModelOutlierDetector
 from tsa.utils import access_cfg, exists_key
@@ -30,6 +30,7 @@ def Ngram(building_block, *args, **kwargs):
 BUILDING_BLOCKS = {cls.__name__: cls for cls in
                    [AE, Stide, Som, SystemCallGraph, IntEmbedding, W2VEmbedding, OneHotEncoding, Ngram, LOF,
                     MixedModelOutlierDetector, MaxScoreThreshold, StreamSum, TStide,
+                    EllipticEnvelopeOD, IsolationForestOD,
                     TrainingSetAnalyser, ContinuousTrainingSetAnalyser, Visualize]}
 BuildingBlockCfg = dict
 
