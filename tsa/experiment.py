@@ -1,4 +1,5 @@
 import dataclasses
+import itertools
 from typing import List
 
 import mlflow
@@ -15,7 +16,6 @@ from tsa.dataloader_2019 import ContaminatedDataLoader2019
 from tsa.dataloader_2021 import ContaminatedDataLoader2021
 from tsa.utils import access_cfg
 
-
 try:
     LID_DS_BASE_PATH = os.environ['LID_DS_BASE']
 except KeyError as exc:
@@ -23,15 +23,18 @@ except KeyError as exc:
                      "Please specify as argument or set Environment Variable "
                      "$LID_DS_BASE") from exc
 
+
 @dataclasses.dataclass
 class RunConfig:
     lid_ds_version: str
     scenario: str
     num_attacks: int
     iteration: int
+    permutation_i: int
 
     def to_dict(self):
         return dataclasses.asdict(self)
+
 
 class Experiment:
     def __init__(self, parameters, mlflow: MlflowClient, name):
@@ -47,32 +50,39 @@ class Experiment:
         if num_attacks_range is None:
             max_attacks = self._get_param("attack_mixin", "max_attacks", exp_type=int)
             num_attacks_range = range(max_attacks + 1)
+        permutation_i_values = self._get_param("attack_mixin", "permutation_i", required=True)
+        if not isinstance(permutation_i_values, list):
+            if not str(permutation_i_values).isdigit():
+                raise ValueError("Invalid value for permutation_i: %s" % permutation_i_values)
+            permutation_i_values = [permutation_i_values]
         iteration = 0
         for scenario in self.scenarios:
             lid_ds_version, scenario_name = scenario.split("/")
 
-            for num_attacks in num_attacks_range:
+            for num_attacks, permutation_i in itertools.product(num_attacks_range, permutation_i_values):
                 cfg = RunConfig(
                     num_attacks=num_attacks,
                     iteration=iteration,
                     scenario=scenario_name,
-                    lid_ds_version=lid_ds_version
+                    lid_ds_version=lid_ds_version,
+                    permutation_i=permutation_i
                 )
                 configs.append(cfg)
                 iteration += 1
         return configs
 
-    def start(self, start_at=0, dry_run=False, num_runs = None):
+    def start(self, start_at=0, dry_run=False, num_runs=None):
         mlflow.set_experiment(self.name)
         dataloader_config = self._get_dataloader_cfg()
         i = -1
         current_run = 0
         for run_cfg in self.run_configurations():
+            print("Execute run", run_cfg.to_dict())
             dataloader_class = self._get_dataloader_cls(run_cfg.lid_ds_version)
             scenario_path = f"{LID_DS_BASE_PATH}/{run_cfg.lid_ds_version}/{run_cfg.scenario}"
 
             dataloader = dataloader_class(scenario_path, num_attacks=run_cfg.num_attacks, direction=Direction.BOTH,
-                                          **dataloader_config)
+                                          permutation_i=run_cfg.permutation_i, **dataloader_config)
             i = i + 1
             if i < start_at:
                 continue
@@ -138,8 +148,6 @@ class Experiment:
 
     def _get_param(self, *args, **kwargs):
         return access_cfg(self.parameters, *args, **kwargs)
-
-
 
 
 def convert_mlflow_dict(nested_dict: dict, prefix=None):

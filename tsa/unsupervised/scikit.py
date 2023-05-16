@@ -24,7 +24,6 @@ class ScitkitOD(OutlierDetector):
         for i, p in enumerate(pred):
             if self._is_anomaly(training_data, i, p):
                 anomalies.add(training_data[i])
-        print("%s anomalies found", len(anomalies))
         return anomalies
 
     def _is_anomaly(self, X, index, pred_value):

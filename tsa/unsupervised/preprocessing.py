@@ -49,7 +49,7 @@ class OutlierDetector(BuildingBlock):
         self._anomalies = self.detect_anomalies(self._training_data)
         del self._training_data
         self._fitted = True
-        print("Anomalies:", self._anomalies)
+        print("Number of Anomalies:", len(self._anomalies))
 
     @abc.abstractmethod
     def detect_anomalies(self, training_data):
