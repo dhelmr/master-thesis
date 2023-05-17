@@ -31,7 +31,6 @@ class NgramAnalyser(AnalyserBB):
                 unique += 1
                 total += count
                 counts.append(count)
-                print(ngram, count)
             counts = np.array(counts)
             norm_counts = np.array(counts) / total
             entropy = -(norm_counts * np.log(norm_counts) / np.log(e)).sum()
