@@ -13,6 +13,7 @@ from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from tsa.analysis.analyser import TrainingSetAnalyser
+from tsa.analysis.ngram_analyser import NgramAnalyser
 from tsa.analysis.continuous_anaylser import ContinuousTrainingSetAnalyser
 from tsa.analysis.visualization_analyser import Visualize
 from tsa.unsupervised.scikit import LOF, EllipticEnvelopeOD, IsolationForestOD
@@ -31,7 +32,7 @@ BUILDING_BLOCKS = {cls.__name__: cls for cls in
                    [AE, Stide, Som, SystemCallGraph, IntEmbedding, W2VEmbedding, OneHotEncoding, Ngram, LOF,
                     MixedModelOutlierDetector, MaxScoreThreshold, StreamSum, TStide,
                     EllipticEnvelopeOD, IsolationForestOD,
-                    TrainingSetAnalyser, ContinuousTrainingSetAnalyser, Visualize]}
+                    TrainingSetAnalyser, ContinuousTrainingSetAnalyser, Visualize, NgramAnalyser]}
 BuildingBlockCfg = dict
 
 

@@ -1,9 +1,9 @@
 import abc
+import typing
 
 import numpy as np
 import pandas
 from numpy import e
-from pandas import DataFrame
 
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
@@ -33,14 +33,20 @@ class AnalyserBB(BuildingBlock):
         if self._current_i % self._update_interval == 0:
             cur_stats = self._make_stats()
             if isinstance(cur_stats, dict):
-                cur_stats["syscalls"] = self._current_i
-                self._stats.append(cur_stats)
+                self.__add_stats(cur_stats)
+            if isinstance(cur_stats, list):
+                for s in cur_stats:
+                    self.__add_stats(s)
+
+    def __add_stats(self, stats_dict):
+        stats_dict["syscalls"] = self._current_i
+        self._stats.append(stats_dict)
 
     def depends_on(self) -> list:
         return self._dependency_list
 
     @abc.abstractmethod
-    def _make_stats(self):
+    def _make_stats(self) -> typing.Union[typing.List[dict], dict]:
         raise NotImplementedError()
 
     def get_stats(self):
@@ -71,7 +77,6 @@ class TrainingSetAnalyser(AnalyserBB):
             "entropy": self._histogram.entropy(base=e),
             "simpson_index": self._histogram.simpson_index()
         }
-
 
 
 def entropy(data, base=None):

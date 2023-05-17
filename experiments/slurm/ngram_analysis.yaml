@@ -1,0 +1,23 @@
+mode: analysis
+scenarios:
+ - LID-DS-2019/CVE-2017-7529
+ - LID-DS-2019/CVE-2019-5418
+ - LID-DS-2021/CVE-2020-23839
+ - LID-DS-2021/CVE-2012-2122
+ids:
+  - name: Ngram
+    args:
+      thread_aware: true
+      ngram_length: 20
+  - name: NgramAnalyser
+    args:
+      update_interval: 50000
+attack_mixin:
+  dataloader:
+    validation_ratio: 0.2
+    cont_ratio: 0.2
+  permutation_i: 0
+  num_attacks:
+    - 0
+    - 5
+    - 10

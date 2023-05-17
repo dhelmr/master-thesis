@@ -20,13 +20,19 @@ ids:
   - name: Ngram
     args:
       thread_aware: true
-      ngram_length: 3
+      ngram_length: 5
   - name: LOF
     args:
-      contamination: 0.1
+      contamination: auto
+      only_unique: True
 attack_mixin:
   dataloader:
     validation_ratio: 0.2
     cont_ratio: 0.2
-    permutation_i: 0
-  max_attacks: 5
+  permutation_i:
+    - 0
+    - 1
+  num_attacks:
+    - 2
+    - 10
+    - 30

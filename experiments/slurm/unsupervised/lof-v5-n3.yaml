@@ -24,9 +24,13 @@ ids:
   - name: LOF
     args:
       contamination: 0.05
+      only_unique: true
 attack_mixin:
   dataloader:
     validation_ratio: 0.2
     cont_ratio: 0.2
-    permutation_i: 0
+  permutation_i:
+    - 0
+    - 1
+    - 2
   max_attacks: 5
