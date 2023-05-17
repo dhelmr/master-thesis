@@ -31,12 +31,17 @@ class AnalyserBB(BuildingBlock):
         self._add_input(inp)
         self._current_i += 1
         if self._current_i % self._update_interval == 0:
-            cur_stats = self._make_stats()
-            if isinstance(cur_stats, dict):
-                self.__add_stats(cur_stats)
-            if isinstance(cur_stats, list):
-                for s in cur_stats:
-                    self.__add_stats(s)
+            self.__update_stats()
+
+    def fit(self):
+        self.__update_stats()
+    def __update_stats(self):
+        cur_stats = self._make_stats()
+        if isinstance(cur_stats, dict):
+            self.__add_stats(cur_stats)
+        if isinstance(cur_stats, list):
+            for s in cur_stats:
+                self.__add_stats(s)
 
     def __add_stats(self, stats_dict):
         stats_dict["syscalls"] = self._current_i

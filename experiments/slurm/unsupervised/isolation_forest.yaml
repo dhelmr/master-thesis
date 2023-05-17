@@ -28,7 +28,7 @@ attack_mixin:
   dataloader:
     validation_ratio: 0.2
     cont_ratio: 0.2
-    permutation_i: 100
+  permutation_i: 100
   num_attacks:
     - 2
     - 4

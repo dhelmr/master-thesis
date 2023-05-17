@@ -35,12 +35,14 @@ class NgramAnalyser(AnalyserBB):
             counts = np.array(counts)
             norm_counts = np.array(counts) / total
             entropy = -(norm_counts * np.log(norm_counts) / np.log(e)).sum()
+            simpson_index = np.sum((counts * (counts-1))) / ( total*(total-1))
             stats.append({
                 "ngram_size": depth,
                 "unique": unique,
                 "total": total,
                 "u/t": unique / total,
                 "entropy": entropy,
+                "simpson_index": simpson_index
             })
         return stats
 
