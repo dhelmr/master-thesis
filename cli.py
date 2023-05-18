@@ -21,6 +21,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
     parser.print_help()
-    print("Unknown subcommand: ", args.command)
+    if args.command is not None:
+        print("Unknown subcommand: ", args.command)
     sys.exit(1)
 

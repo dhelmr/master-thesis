@@ -16,16 +16,10 @@ from tsa.dataloader_2019 import ContaminatedDataLoader2019
 from tsa.dataloader_2021 import ContaminatedDataLoader2021
 from tsa.utils import access_cfg
 
-try:
-    LID_DS_BASE_PATH = os.environ['LID_DS_BASE']
-except KeyError as exc:
-    raise ValueError("No LID-DS Base Path given."
-                     "Please specify as argument or set Environment Variable "
-                     "$LID_DS_BASE") from exc
-
 
 @dataclasses.dataclass
 class RunConfig:
+    parameter_cfg_id: str
     lid_ds_version: str
     scenario: str
     num_attacks: int
@@ -37,12 +31,13 @@ class RunConfig:
 
 
 class Experiment:
-    def __init__(self, parameters, mlflow: MlflowClient, name):
+    def __init__(self, parameter_cfg, mlflow: MlflowClient, mlflow_name):
         self._tmp_results_df = None
-        self.parameters = parameters
+        self.parameter_cfg = parameter_cfg
         self.mlflow = mlflow
         self.scenarios = self._get_param("scenarios", exp_type=list)
-        self.name = name
+        self.mlflow_name = mlflow_name
+        self.parameter_cfg_id = self._get_param("id", exp_type=str)
 
     def run_configurations(self) -> List[RunConfig]:
         configs = []
@@ -61,6 +56,7 @@ class Experiment:
 
             for num_attacks, permutation_i in itertools.product(num_attacks_range, permutation_i_values):
                 cfg = RunConfig(
+                    parameter_cfg_id=self.parameter_cfg_id,
                     num_attacks=num_attacks,
                     iteration=iteration,
                     scenario=scenario_name,
@@ -72,23 +68,29 @@ class Experiment:
         return configs
 
     def start(self, start_at=0, dry_run=False, num_runs=None):
-        mlflow.set_experiment(self.name)
+        try:
+            lid_ds_base = os.environ['LID_DS_BASE']
+        except KeyError as exc:
+            raise ValueError("No LID-DS Base Path given."
+                             "Please specify as argument or set Environment Variable "
+                             "$LID_DS_BASE") from exc
+        mlflow.set_experiment(self.mlflow_name)
         dataloader_config = self._get_dataloader_cfg()
         i = -1
         current_run = 0
         for run_cfg in self.run_configurations():
-            print("Execute run", run_cfg.to_dict())
-            dataloader_class = self._get_dataloader_cls(run_cfg.lid_ds_version)
-            scenario_path = f"{LID_DS_BASE_PATH}/{run_cfg.lid_ds_version}/{run_cfg.scenario}"
-
-            dataloader = dataloader_class(scenario_path, num_attacks=run_cfg.num_attacks, direction=Direction.BOTH,
-                                          permutation_i=run_cfg.permutation_i, **dataloader_config)
             i = i + 1
             if i < start_at:
                 continue
+            dataloader_class = self._get_dataloader_cls(run_cfg.lid_ds_version)
+            scenario_path = f"{lid_ds_base}/{run_cfg.lid_ds_version}/{run_cfg.scenario}"
+
+            dataloader = dataloader_class(scenario_path, num_attacks=run_cfg.num_attacks, direction=Direction.BOTH,
+                                          permutation_i=run_cfg.permutation_i, **dataloader_config)
             if dry_run:
                 print(i, "Dry Run: ", dataloader.__dict__)
                 continue
+            print("Execute run", run_cfg.to_dict())
             current_run += 1
             if num_runs is not None and current_run > num_runs:
                 print("Reached total number of runs (%s)" % num_runs)
@@ -96,7 +98,7 @@ class Experiment:
             with mlflow.start_run() as run:
                 mlflow.log_params(convert_mlflow_dict(run_cfg.to_dict()))
                 mlflow.log_params(convert_mlflow_dict(dataloader.cfg_dict(), "dataloader"))
-                mlflow.log_dict(self.parameters, "config.json")
+                mlflow.log_dict(self.parameter_cfg, "config.json")
                 additional_params, results, ids = self.train_test(dataloader, run_cfg)
                 mlflow.log_params(convert_mlflow_dict(additional_params))
                 for metric_key, value in convert_mlflow_dict(results).items():
@@ -147,7 +149,7 @@ class Experiment:
         return {"ids": results, "cm": metrics}
 
     def _get_param(self, *args, **kwargs):
-        return access_cfg(self.parameters, *args, **kwargs)
+        return access_cfg(self.parameter_cfg, *args, **kwargs)
 
 
 def convert_mlflow_dict(nested_dict: dict, prefix=None):

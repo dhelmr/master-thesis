@@ -5,7 +5,7 @@ from time import localtime, strftime
 import mlflow.runs
 from mlflow import MlflowClient
 
-from tsa.cli.run import SubCommand, make_experiment
+from tsa.cli.run import SubCommand, make_experiment_from_path
 from tsa.experiment_checker import ExperimentChecker
 
 
@@ -22,8 +22,8 @@ class CheckSubCommand(SubCommand):
 
     def exec(self, args, parser):
         mlflow_client = MlflowClient() # TODO global singleton
-        experiment = make_experiment(args.config, mlflow_client, args.experiment)
-        checker = ExperimentChecker(experiment)
+        experiment = make_experiment_from_path(args.config, mlflow_client, args.experiment)
+        checker = ExperimentChecker(experiment, no_ids_checks=True)
         if args.remove_stale:
             self._remove_stale(args, checker)
         else:

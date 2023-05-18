@@ -11,26 +11,33 @@ from tsa.experiment import Experiment, RunConfig
 @dataclasses.dataclass()
 class ExperimentStats:
     counts: Dict[RunStatus, Dict[int, int]]
+    run_configs: List[RunConfig]
     skipped: List[Run]
     missing_runs: List[RunConfig]
     missing_runs_but_running: List[RunConfig]
     duplicate_runs: List[Tuple[RunConfig, int]]
 
+    def is_finished(self):
+        return len(self.missing_runs) == 0 and len(self.missing_runs_but_running) == 0
+
 
 class ExperimentChecker:
-    def __init__(self, experiment: Experiment):
+    def __init__(self, experiment: Experiment, no_ids_checks = False):
         self.experiment = experiment
         self.mlflow_client = experiment.mlflow
+        self.no_id_checks = no_ids_checks
 
     def exists_in_mlflow(self) -> bool:
-        exp = self.mlflow_client.get_experiment_by_name(self.experiment.name)
+        exp = self.mlflow_client.get_experiment_by_name(self.experiment.mlflow_name)
         return exp is not None
 
     def iter_mlflow_runs(self):
-        exp = self.mlflow_client.get_experiment_by_name(self.experiment.name)
+        exp = self.mlflow_client.get_experiment_by_name(self.experiment.mlflow_name)
         if exp is None:
-            raise RuntimeError("Experiment with name '%s' not found." % self.experiment.name)
-        return self.mlflow_client.search_runs(experiment_ids=[exp.experiment_id], order_by=["start_time DESC"])
+            raise RuntimeError("Experiment with name '%s' not found." % self.experiment.mlflow_name)
+        for r in self.mlflow_client.search_runs(experiment_ids=[exp.experiment_id], order_by=["start_time DESC"]):
+            if self.no_id_checks or r.data.params["parameter_cfg_id"] == self.experiment.parameter_cfg_id:
+                yield r
 
     def counts_by_run_status(self) -> Tuple[Dict[RunStatus, Dict[int, int]], List[Run]]:
 
@@ -65,10 +72,17 @@ class ExperimentChecker:
         duplicates = [(run, fin_counts[run.iteration]) for run in runs if run.iteration if
                       run.iteration in fin_counts and fin_counts[run.iteration] > 1]
         # TODO add running runs duplicates
-        return ExperimentStats(counts, skipped, missing, missing_but_running, duplicates)
+        return ExperimentStats(counts, runs, skipped, missing, missing_but_running, duplicates)
 
     def check_all(self):
         stats = self.stats()
+
+        if len(stats.counts[RunStatus.RUNNING]) != 0:
+            print("RUNNING runs:")
+            for i, count in stats.counts[RunStatus.RUNNING].items():
+                r = stats.run_configs[i]
+                print(r, f"({count}x)")
+
         if len(stats.duplicate_runs) != 0:
             print("Duplicate runs:")
             for r, count in stats.duplicate_runs:
@@ -95,9 +109,9 @@ class ExperimentChecker:
     def next_free_iteration(self):
         runs = self.experiment.run_configurations()
         counts = {r.iteration: 0 for r in runs}
-        exp = self.mlflow_client.get_experiment_by_name(self.experiment.name)
+        exp = self.mlflow_client.get_experiment_by_name(self.experiment.mlflow_name)
         if exp is None:
-            raise RuntimeError("Experiment with name '%s' not found." % self.experiment.name)
+            raise RuntimeError("Experiment with name '%s' not found." % self.experiment.mlflow_name)
         running_runs = []
         failed_runs = []
         for r in self.mlflow_client.search_runs(experiment_ids=[exp.experiment_id], order_by=["start_time DESC"]):

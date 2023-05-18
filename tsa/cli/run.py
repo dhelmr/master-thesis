@@ -99,7 +99,7 @@ class RunSubCommand(SubCommand):
         if args.experiment is not None and not args.continue_experiment:
             mlflow.set_experiment(args.experiment)
 
-        experiment = make_experiment(args.config, mlflow_client, args.experiment)
+        experiment = make_experiment_from_path(args.config, mlflow_client, args.experiment)
 
         experiment_start_args = {
             "num_runs": args.number_runs,
@@ -107,6 +107,8 @@ class RunSubCommand(SubCommand):
         }
         if args.continue_experiment is not None:
             start_at = get_next_iteration(mlflow_client, experiment, args.continue_experiment)
+            if start_at is None:
+                return
             print("Start at iteration", start_at)
         else:
             start_at = args.start_at
@@ -115,18 +117,19 @@ class RunSubCommand(SubCommand):
 def get_next_iteration(mlflow_client, experiment, mode):
 
     if mode == "finished":
-        run_id = last_successful_run_id(mlflow_client, experiment.name)
+        run_id = last_successful_run_id(mlflow_client, experiment.mlflow_name)
     elif mode == "running":
-        run_id = last_running_run_id(mlflow_client, experiment.name)
+        run_id = last_running_run_id(mlflow_client, experiment.mlflow_name)
         if run_id is None:
             print("No running run found; find last successfully finished run.")
-            run_id = last_successful_run_id(mlflow_client, experiment.name)
+            run_id = last_successful_run_id(mlflow_client, experiment.mlflow_name)
     elif mode == "random":
         checker = ExperimentChecker(experiment)
         if checker.exists_in_mlflow():
             stats = checker.stats()
             if len(stats.missing_runs) == 0:
-                raise ValueError("Experiment has no missing runs")
+                print("Experiment has no missing runs")
+                return None
             missing_runs = stats.missing_runs
         else:
             missing_runs = experiment.run_configurations()
@@ -137,21 +140,26 @@ def get_next_iteration(mlflow_client, experiment, mode):
         raise RuntimeError("continue_experiment has unexpected value: %s" % mode)
     if run_id is not None:
         print("Continue from run %s" % run_id)
-        mlflow.set_experiment(experiment.name)
+        mlflow.set_experiment(experiment.mlflow_name)
         run = mlflow_client.get_run(run_id)
         iteration = int(run.data.params.get("iteration"))
         return iteration + 1
 
-def make_experiment(path, mlflow_client, name):
+def make_experiment_from_path(path, mlflow_client, name):
     with open(path) as f:
-        config = yaml.safe_load(f)
-    exp_mode = access_cfg(config, "mode", default="normal")
+        parameter_config = yaml.safe_load(f)
+    if access_cfg(parameter_config, "id", required=False) is None:
+        parameter_config["id"] = path.split(os.path.sep)[-1]
+    return make_experiment(parameter_config, mlflow_client, name)
+
+def make_experiment(parameter_config, mlflow_client, name):
+    exp_mode = access_cfg(parameter_config, "mode", default="normal")
     if exp_mode == "normal":
-        experiment = Experiment(config, mlflow=mlflow_client, name=name)
+        experiment = Experiment(parameter_config, mlflow=mlflow_client, mlflow_name=name)
     elif exp_mode == "unsupervised":
-        experiment = UnsupervisedExperiment(config, mlflow=mlflow_client, name=name)
+        experiment = UnsupervisedExperiment(parameter_config, mlflow=mlflow_client, mlflow_name=name)
     elif exp_mode == "analysis":
-        experiment = AnalysisExperiment(config, mlflow=mlflow_client, name=name)
+        experiment = AnalysisExperiment(parameter_config, mlflow=mlflow_client, mlflow_name=name)
     else:
         raise ValueError("Unexpected experiment mode: %s" % exp_mode)
     return experiment

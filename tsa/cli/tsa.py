@@ -6,7 +6,7 @@ import mlflow
 import pandas
 from mlflow import MlflowClient
 
-from tsa.cli.run import SubCommand, make_experiment
+from tsa.cli.run import SubCommand, make_experiment, make_experiment_from_path
 from tsa.experiment_checker import ExperimentChecker
 
 
@@ -20,8 +20,8 @@ class TSASubCommand(SubCommand):
         parser.add_argument("-o", "--output", required=True, help="Output file")
     def exec(self, args, parser):
         mlflow_client = MlflowClient() # TODO global singleton
-        experiment = make_experiment(args.config, mlflow_client, args.experiment)
-        checker = ExperimentChecker(experiment)
+        experiment = make_experiment_from_path(args.config, mlflow_client, args.experiment)
+        checker = ExperimentChecker(experiment, no_ids_checks=True)
         dfs = []
         for run in checker.iter_mlflow_runs():
             artifacts = experiment.mlflow.list_artifacts(run.info.run_id)
