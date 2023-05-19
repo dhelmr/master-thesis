@@ -39,7 +39,7 @@ class SearchSubCommand(SubCommand):
         mlflow = MlflowClient()
         next_experiment = search.get_next(mlflow, args.experiment)
         if next_experiment is None:
-            print("All experiments are finished")
+            print("No parameter configurations to continue")
             return
 
         experiment_start_args = {
@@ -71,8 +71,12 @@ class ParameterSearch:
             checker = ExperimentChecker(experiment)
             if not checker.exists_in_mlflow():
                 return experiment
-            if checker.stats().is_finished():
+            stats = checker.stats()
+            if stats.is_finished():
                 print("Experiment for parameter config %s is finished." % experiment.parameter_cfg_id)
+            elif len(stats.missing_runs) == len(stats.missing_runs_but_running):
+                print("All runs of experiment %s are still running, continue to next." % experiment.parameter_cfg_id)
+                continue # TODO change for other modes than grid mode (if next parameter cfg depends on previous ones)
             else:
                 return experiment
 
