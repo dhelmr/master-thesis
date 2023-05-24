@@ -35,9 +35,22 @@ class ExperimentChecker:
         exp = self.mlflow_client.get_experiment_by_name(self.experiment.mlflow_name)
         if exp is None:
             raise RuntimeError("Experiment with name '%s' not found." % self.experiment.mlflow_name)
-        for r in self.mlflow_client.search_runs(experiment_ids=[exp.experiment_id], order_by=["start_time DESC"]):
-            if self.no_id_checks or r.data.params["parameter_cfg_id"] == self.experiment.parameter_cfg_id:
+        filter_str = ""
+        if not self.no_id_checks:
+            filter_str = f"params.parameter_cfg_id = '{safe_filter_value(self.experiment.parameter_cfg_id)}'"
+
+        token = None
+        while True:
+            result = self.mlflow_client.search_runs(experiment_ids=[exp.experiment_id],
+                                                    order_by=["start_time DESC"],
+                                                    filter_string=filter_str,
+                                                    page_token=token)
+            token = result.token
+            for r in result:
                 yield r
+            if token is None:
+                break
+
 
     def counts_by_run_status(self) -> Tuple[Dict[RunStatus, Dict[int, int]], List[Run]]:
 
@@ -139,3 +152,6 @@ class ExperimentChecker:
         if next_i >= len(counts):
             raise ValueError("No free run found.")
         return next_i
+
+def safe_filter_value(value: str) -> str:
+    return value.replace("'","\\'")
