@@ -1,6 +1,6 @@
 import dataclasses
 import itertools
-from typing import List
+from typing import List, Union
 
 import mlflow
 import os
@@ -99,6 +99,7 @@ class Experiment:
                 mlflow.log_params(convert_mlflow_dict(run_cfg.to_dict()))
                 mlflow.log_params(convert_mlflow_dict(dataloader.cfg_dict(), "dataloader"))
                 mlflow.log_dict(self.parameter_cfg, "config.json")
+                self._log_ids_cfg()
                 additional_params, results, ids = self.train_test(dataloader, run_cfg)
                 mlflow.log_params(convert_mlflow_dict(additional_params))
                 for metric_key, value in convert_mlflow_dict(results).items():
@@ -151,10 +152,24 @@ class Experiment:
     def _get_param(self, *args, **kwargs):
         return access_cfg(self.parameter_cfg, *args, **kwargs)
 
+    def _log_ids_cfg(self):
+        ids_cfg = self._get_param("ids", exp_type=list)
+        for item in ids_cfg:
+            name = item["name"]
+            if "args" in item:
+                params = convert_mlflow_dict(item["args"], prefix=name)
+                mlflow.log_params(params)
 
-def convert_mlflow_dict(nested_dict: dict, prefix=None):
+
+def convert_mlflow_dict(entry: Union[dict, list], prefix=None):
     mlflow_dict = {}
-    for key, value in nested_dict.items():
+    if isinstance(entry, dict):
+        key_values = [kv for kv in entry.items()]
+    elif isinstance(entry, list):
+        key_values = [(i, item) for i, item in enumerate(entry)]
+    else:
+        raise ValueError("Unexpected type: %s" % type(entry))
+    for key, value in key_values:
         if prefix is not None:
             key = f"{prefix}.{key}"
         if isinstance(value, dict):
@@ -162,6 +177,7 @@ def convert_mlflow_dict(nested_dict: dict, prefix=None):
                 mlflow_dict[f"{key}.{subkey}"] = subvalue
         else:
             mlflow_dict[key] = str(value)
+
     for key, value in dict(mlflow_dict).items():
         if len(value) > 500:
             print("Skip", key, "because it exceeds mlflow length limit")

@@ -1,0 +1,59 @@
+experiment:
+  mode: unsupervised
+  scenarios:
+   - LID-DS-2021/Bruteforce_CWE-307
+   - LID-DS-2021/CVE-2012-2122
+   - LID-DS-2021/CVE-2014-0160
+   - LID-DS-2021/CWE-89-SQL-injection
+   - LID-DS-2021/CVE-2018-3760
+   - LID-DS-2021/CVE-2019-5418
+  ids:
+    - name: W2VEmbedding
+      args:
+        window_size: 10
+        epochs: 50
+        vector_size: 5
+    - name: TupleBB
+    - name: Ngram
+      args:
+        thread_aware: true
+        ngram_length: 5
+    - name: W2VConcat
+      args:
+        variance: true
+        cosine_sims: true
+    - name: LOF
+      args:
+        contamination: 0.1
+        only_unique: true
+  attack_mixin:
+    dataloader:
+      validation_ratio: 0.2
+      cont_ratio: 0.2
+    permutation_i: 0
+    num_attacks:
+      - 1
+      - 5
+
+mode: grid
+name_prefix: tstide-unsupervised
+search_space:
+  ids.0.args.vector_size:
+    - 2
+    - 5
+    - 8
+  ids.2.args.ngram_length:
+    - 3
+    - 5
+    - 10
+  ids.3.args.variance:
+    - true
+    - false
+  ids.3.args.cosine_sims:
+    - true
+    - false
+  ids.4.args.contamination:
+    - auto
+    - 0.01
+    - 0.1
+    - 0.2
