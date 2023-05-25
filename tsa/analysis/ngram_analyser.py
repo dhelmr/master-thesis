@@ -18,7 +18,8 @@ class NgramAnalyser(AnalyserBB):
             self.len = len(inp)
         elif self.len != len(inp):
             raise ValueError("Unequal ngram size")
-        inp = tuple(reversed(inp))
+        #inp = tuple(reversed(inp))
+        inp = tuple(inp)
         self.tree.add_ngram(inp)
 
     def _make_stats(self):
@@ -27,13 +28,18 @@ class NgramAnalyser(AnalyserBB):
             unique = 0
             total = 0
             counts = []
+            rev_cond_probs = []
             for ngram, count in self.tree.iter_length(depth):
                 unique += 1
                 total += count
                 counts.append(count)
+                reversed_cond_prob = self.tree.get_ngram_count(ngram[:-1])/count
+                rev_cond_probs.append(reversed_cond_prob)
             counts = np.array(counts)
+            rev_cond_probs = np.array(rev_cond_probs)
             norm_counts = np.array(counts) / total
             entropy = -(norm_counts * np.log(norm_counts) / np.log(e)).sum()
+            cond_entropy = (norm_counts * np.log(rev_cond_probs)).sum()
             simpson_index = np.sum((counts * (counts-1))) / ( total*(total-1))
             stats.append({
                 "ngram_size": depth,
@@ -41,6 +47,7 @@ class NgramAnalyser(AnalyserBB):
                 "total": total,
                 "u/t": unique / total,
                 "entropy": entropy,
+                "conditional_entropy": cond_entropy,
                 "simpson_index": simpson_index
             })
         return stats
@@ -64,6 +71,14 @@ class NgramTreeNode:
 
     def get_count(self):
         return self._count
+
+    def get_ngram_count(self, ngram):
+        if len(ngram) == 0:
+            return self.get_count()
+        if ngram[0] not in self._children:
+            return 0
+        child = self._children[ngram[0]]
+        return child.get_ngram_count(ngram[1:])
 
     def iter_length(self, depth):
         for val, child in self._children.items():
