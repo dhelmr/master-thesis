@@ -29,10 +29,10 @@ ids:
   - name: Ngram
     args:
       thread_aware: true
-      ngram_length: 20
+      ngram_length: 50
   - name: NgramAnalyser
     args:
-      update_interval: 25000
+      update_interval: 10000
 attack_mixin:
   dataloader:
     validation_ratio: 0.2
@@ -41,3 +41,4 @@ attack_mixin:
     - 0
   num_attacks:
     - 0
+    - 10
