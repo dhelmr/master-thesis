@@ -37,10 +37,9 @@ ids:
       wait_until_full: False
       window_length: 10000
   - name: MaxScoreThreshold
-attack_mixin:
-  dataloader:
+dataloader:
+  base:
     validation_ratio: 0.2
     cont_ratio: 0.2
   permutation_i: 0
   max_attacks: 3
-train_set_analysis: False

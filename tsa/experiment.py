@@ -14,6 +14,7 @@ from tsa.building_block_builder import IDSPipelineBuilder
 from tsa.confusion_matrix import ConfusionMatrix
 from tsa.dataloader_2019 import ContaminatedDataLoader2019
 from tsa.dataloader_2021 import ContaminatedDataLoader2021
+from tsa.dataloaders.filter_dl import FilterDataloader
 from tsa.utils import access_cfg
 
 
@@ -41,11 +42,11 @@ class Experiment:
 
     def run_configurations(self) -> List[RunConfig]:
         configs = []
-        num_attacks_range = self._get_param("attack_mixin", "num_attacks", required=False)
+        num_attacks_range = self._get_param("dataloader", "num_attacks", required=False)
         if num_attacks_range is None:
-            max_attacks = self._get_param("attack_mixin", "max_attacks", exp_type=int)
+            max_attacks = self._get_param("dataloader", "max_attacks", exp_type=int)
             num_attacks_range = range(max_attacks + 1)
-        permutation_i_values = self._get_param("attack_mixin", "permutation_i", required=True)
+        permutation_i_values = self._get_param("dataloader", "permutation_i", required=True)
         if not isinstance(permutation_i_values, list):
             if not str(permutation_i_values).isdigit():
                 raise ValueError("Invalid value for permutation_i: %s" % permutation_i_values)
@@ -87,6 +88,7 @@ class Experiment:
 
             dataloader = dataloader_class(scenario_path, num_attacks=run_cfg.num_attacks, direction=Direction.BOTH,
                                           permutation_i=run_cfg.permutation_i, **dataloader_config)
+            dataloader = FilterDataloader(dataloader, **self._get_param("dataloader", "filter", default={}))
             if dry_run:
                 print(i, "Dry Run: ", dataloader.__dict__)
                 continue
@@ -119,7 +121,7 @@ class Experiment:
             raise ValueError("%s is not supported." % lid_ds_version)
 
     def _get_dataloader_cfg(self):
-        return self._get_param("attack_mixin", "dataloader", exp_type=dict)
+        return self._get_param("dataloader", "base", exp_type=dict)
 
     def train_test(self, dataloader: BaseDataLoader, run_cfg: RunConfig):
         builder = IDSPipelineBuilder()  # TODO change experiment yaml format; add own key for pipeline
