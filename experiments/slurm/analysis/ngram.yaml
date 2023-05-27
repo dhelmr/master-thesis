@@ -29,10 +29,10 @@ ids:
   - name: Ngram
     args:
       thread_aware: true
-      ngram_length: 50
+      ngram_length: 25
   - name: NgramAnalyser
     args:
-      update_interval: 10000
+      update_interval: 50000
 dataloader:
   base:
     validation_ratio: 0.2
