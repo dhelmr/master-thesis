@@ -1,0 +1,41 @@
+experiment:
+  scenarios:
+   - LID-DS-2021/CVE-2017-12635_6
+   - LID-DS-2021/CVE-2019-5418
+   - LID-DS-2021/CVE-2020-9484
+   - LID-DS-2021/EPS_CWE-434
+   - LID-DS-2021/Juice-Shop
+   - LID-DS-2021/CVE-2020-13942
+  ids:
+    - name: IntEmbedding
+    - name: Ngram
+      args:
+        thread_aware: true
+        ngram_length: 5
+    - name: Stide
+    - name: StreamSum
+      args:
+        thread_aware: False
+        wait_until_full: False
+        window_length: 1000
+    - name: MaxScoreThreshold
+  dataloader:
+    base:
+      validation_ratio: 0.2
+      cont_ratio: 0.2
+    permutation_i: 0
+    num_attacks:
+      - 0
+    filter:
+      max_syscalls: null
+
+mode: grid
+name_prefix: max-syscalls-stide-big
+search_space:
+  dataloader.filter.max_syscalls:
+    - 30000000
+    - 50000000
+    - 70000000
+    - 80000000
+    - 90000000
+    - 100000000
