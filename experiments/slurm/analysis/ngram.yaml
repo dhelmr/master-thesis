@@ -32,7 +32,7 @@ ids:
       ngram_length: 25
   - name: NgramAnalyser
     args:
-      update_interval: 50000
+      update_interval: 250000
 dataloader:
   base:
     validation_ratio: 0.2

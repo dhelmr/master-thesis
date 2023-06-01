@@ -21,9 +21,6 @@ experiment:
       args:
         thread_aware: true
         ngram_length: 5
-    - name: TrainingSetFilter
-      args:
-        max_syscalls: null
     - name: Stide
     - name: StreamSum
       args:
