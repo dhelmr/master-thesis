@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Optional
 
 from dataloader.base_data_loader import BaseDataLoader
@@ -35,7 +36,9 @@ class FilterDataloader(BaseDataLoader):
 
     def cfg_dict(self):
         # TODO implement own superclass for dataloaders
-        return self.dl.cfg_dict()
+        parent_dict = deepcopy(self.dl.cfg_dict())
+        parent_dict["max_syscalls"] = self._max_syscalls
+        return parent_dict
 
     def pass_through(self, syscall) -> bool:
         if not self._in_training:
