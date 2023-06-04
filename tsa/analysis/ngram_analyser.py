@@ -24,7 +24,7 @@ class NgramAnalyser(AnalyserBB):
 
     def _make_stats(self):
         stats = []
-        for depth in range(1, self.len):
+        for depth in range(1, self.len+1):
             unique = 0
             total = 0
             counts = []
@@ -60,11 +60,10 @@ class NgramTreeNode:
 
     def add_ngram(self, ngram):
         self._count += 1
-
-        children_part = ngram[1:]
-        if len(children_part) == 0:
+        if len(ngram) == 0:
             return
 
+        children_part = ngram[1:]
         if ngram[0] not in self._children:
             self._children[ngram[0]] = NgramTreeNode()
         self._children[ngram[0]].add_ngram(children_part)
