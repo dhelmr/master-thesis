@@ -20,6 +20,10 @@ class ExperimentStats:
     def is_finished(self):
         return len(self.missing_runs) == 0 and len(self.missing_runs_but_running) == 0
 
+    def missing_but_not_running(self):
+        running_iterations = set([c.iteration for c in self.missing_runs_but_running])
+        return [c for c in self.missing_runs if c.iteration not in running_iterations]
+
 
 class ExperimentChecker:
     def __init__(self, experiment: Experiment, no_ids_checks = False):

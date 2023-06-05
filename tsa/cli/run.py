@@ -127,10 +127,11 @@ def get_next_iteration(mlflow_client, experiment, mode):
         checker = ExperimentChecker(experiment)
         if checker.exists_in_mlflow():
             stats = checker.stats()
-            if len(stats.missing_runs) == 0:
+            missing_not_running = stats.missing_but_not_running()
+            if len(missing_not_running) == 0:
                 print("Experiment has no missing runs")
                 return None
-            missing_runs = stats.missing_runs
+            missing_runs = missing_not_running
         else:
             missing_runs = experiment.run_configurations()
         r = random.Random(None)
