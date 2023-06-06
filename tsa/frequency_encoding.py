@@ -10,14 +10,15 @@ from tsa.unsupervised.mixed_model import Histogram
 
 
 class FrequencyEncoding(BuildingBlock):
-    def __init__(self, input_bb: BuildingBlock, n_components=5):
+    def __init__(self, input_bb: BuildingBlock, n_components=5, threshold=20):
         super().__init__()
         self._input = input_bb
         self._counts = Histogram()
         self._mds = MDS(n_components=n_components, dissimilarity="precomputed")
         self._max_count = None
         self._embeddings = None
-        self._unseen_ngram_embeddings = []
+        self._unseen_frequency_ngram = None
+        self._threshold = threshold
 
     def train_on(self, syscall: Syscall):
         inp = self._input.get_result(syscall)
@@ -32,10 +33,15 @@ class FrequencyEncoding(BuildingBlock):
         if inp in self._embeddings:
             return inp + self._embeddings[inp]
         else:
-            return inp + random.choice(self._unseen_ngram_embeddings)
+            return inp + self._embeddings[self._unseen_frequency_ngram]
 
     def fit(self):
         self._max_count = self._counts.max_count()
+        unseen_frequency_ngram = (-1,)
+        while unseen_frequency_ngram in self._counts:
+            unseen_frequency_ngram += (-1,)
+        self._counts.add(unseen_frequency_ngram)
+        self._unseen_frequency_ngram = unseen_frequency_ngram
         distance_matrix = []
         for ngram in self._counts.keys():
             row = []
@@ -47,9 +53,9 @@ class FrequencyEncoding(BuildingBlock):
         self._embeddings = {
             ngram: tuple(emb) for ngram, emb in zip(self._counts.keys(), transformed)
         }
-        print("embeddings", self._embeddings)
-        self._unseen_ngram_embeddings = self._determine_unseen_ngram_embeddings()
-        print("unseen embeddings:", self._unseen_ngram_embeddings)
+        #print("embeddings", self._embeddings)
+        # self._unseen_ngram_embeddings = self._determine_unseen_ngram_embeddings()
+        #print("unseen embeddings:", self._unseen_ngram_embeddings)
 
     def _determine_unseen_ngram_embeddings(self):
         lowest_count = min(self._counts.values())
@@ -60,8 +66,11 @@ class FrequencyEncoding(BuildingBlock):
             raise ValueError("max_count is not determined yet. fit() must be called first.")
         if a == b:
             return 0
-        return 2 * math.log(self._max_count) - (
-                    math.log(self._counts.get_count(a)) + math.log(self._counts.get_count(b)))
+        count_a = self._counts.get_count(a)
+        count_b = self._counts.get_count(b)
+        if count_a > self._threshold and count_b > self._threshold:
+            return 0
+        return 2*self._max_count-(count_a+count_b)
 
     def depends_on(self) -> list:
         return [self._input]
