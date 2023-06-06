@@ -53,6 +53,17 @@ class Histogram:
     def keys(self):
         return self._counts.keys()
 
+    def max_count(self):
+        return max(self._counts.values())
+
+    def count_frequencies(self):
+        frequencies = {}
+        for count in self._counts.values():
+            if count not in frequencies:
+                frequencies[count] = 0
+            frequencies[count] += 1
+        return frequencies
+
     def remove_all(self, element):
         if element not in self._counts:
             raise ValueError(f"Not in histogram: {element}")
@@ -88,6 +99,10 @@ class Histogram:
     def simpson_index(self):
         arr = self.counts_as_np_arr()
         return np.sum((arr * (arr-1))) / ( self._size*(self._size-1))
+
+    def values(self):
+        return self._counts.values()
+
 
 class NgramNaiveBayes:
     def __init__(self, pseudo_count=1):
