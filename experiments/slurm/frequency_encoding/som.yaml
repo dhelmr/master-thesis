@@ -47,6 +47,9 @@ search_space:
     - 10
     - 20
     - 50
+    - 75
+    - 100
+    - 200
   ids.2.args.threshold:
     - 1
     - 2
