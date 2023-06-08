@@ -8,7 +8,6 @@ scenarios:
  - LID-DS-2019/PHP_CWE-434
  - LID-DS-2019/SQL_Injection_CWE-89
  - LID-DS-2019/ZipSlip
- - LID-DS-2019/SQL_Injection_CWE-89
  - LID-DS-2021/Bruteforce_CWE-307
  - LID-DS-2021/CVE-2012-2122
  - LID-DS-2021/CVE-2014-0160
@@ -35,11 +34,17 @@ ids:
     args:
       thread_aware: False
       wait_until_full: False
-      window_length: 10000
+      window_length: 1000
   - name: MaxScoreThreshold
 dataloader:
   base:
     validation_ratio: 0.2
     cont_ratio: 0.2
   permutation_i: 0
-  max_attacks: 3
+  num_attacks:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 5
+    - 10
