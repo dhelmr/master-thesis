@@ -1,28 +1,44 @@
 
-# Mai II (16-21)
-
-## experiment management
-
-* dataloader permutation_i as list
-* output IDS block parameters in mlflow params
-* refactor experiment to ParameterCfg
-    - mlflow: parameter_cfg_id
-    - ExperimentChecker: check for parameter_cfg_id+iteration
-* global config => store experiment prefix => make -e param optional (infer from config name)
+# June II (12-23)
 
 ## Advanced Dataloder Features
 
 * load attacks from different scenario + Combine Scenarios 
-* Specify Number of syscalls Loaded 
-* Load more Data until certain Measure (Entropy, ... (?) ) is reached
+
+## Frequency Embedding
+
+* specify distance metric via parameter ("2max", "max(freq;...)", ...)
+
+## Code Maintainance
+
+* problem: permutation_i = 0 == permutation_i = 1 (nur andere Reihenfolge)
+* backup databricks mlflow runs
+* test loaded attacks in dataloader
+
+## Experiment Validity
+
+* check command for "search"
+* remove duplicates
+* download multiple experiments in one csv
+
+## Visualization
+
+* different plot tool? / plot script
+
+--- 
+
+# BACKLOG
 
 ## TSA
-
 
 * LOFAnalyser => make use of local outlier factor values (mean, variance, ...)
 * ClusteringAnalyser => cluster-wise entropy?
 * entropy values from paper
 * model zipf distribution characteristics
+
+## Dataloader
+
+* Load more Data until certain Measure (Entropy, ... (?) ) is reached
 
 ## Experiment Evaluation
 
@@ -39,8 +55,6 @@
 
 ## Code Maintainance / SWE
 
-* problem: permutation_i = 0 == permutation_i = 1 (nur andere Reihenfolge)
-* backup databricks mlflow runs
 * use jupyter in slurm
 * Feature Cache
 
