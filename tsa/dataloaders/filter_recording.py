@@ -1,17 +1,18 @@
 from typing import Callable
 
 from dataloader.base_recording import BaseRecording
-from dataloader.syscall import Syscall
+from tsa.dataloaders.syscall_filter import SyscallFilter
+
 
 class FilteredRecording(BaseRecording):
-    def __init__(self, wrapped_recording: BaseRecording, filter_fn: Callable[[Syscall], bool]):
+    def __init__(self, wrapped_recording: BaseRecording, filter: SyscallFilter):
         super().__init__()
         self.__wrapped_recording = wrapped_recording
-        self.__filter_fn = filter_fn
+        self.__filter = filter
 
     def syscalls(self):
         for syscall in self.__wrapped_recording.syscalls():
-            if self.__filter_fn(syscall):
+            if self.__filter.filter(syscall):
                 yield syscall
 
     def packets(self):
