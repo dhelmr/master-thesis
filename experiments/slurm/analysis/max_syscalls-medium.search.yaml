@@ -31,6 +31,11 @@ mode: grid
 name_prefix: max-syscalls-stide-medium
 search_space:
   dataloader.filter.max_syscalls:
+    - 1000000
+    - 2000000
+    - 5000000
+    - 10000000
+    - 25000000
     - 27500000
     - 30000000
     - 32500000
