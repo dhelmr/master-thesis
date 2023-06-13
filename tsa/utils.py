@@ -11,13 +11,20 @@ def split_list(l, fraction_sublist1: float):
     return l[:split_at], l[split_at:]
 
 
-def random_permutation(items, k, nth_element, random_seed=0):
+def random_permutation(items, k, nth_element, random_seed=0, batch_size=20):
+    if nth_element < 0:
+        raise ValueError("nth_element must be >= 0")
     items = sorted(items)
     random.Random(random_seed).shuffle(items)
+    items = set_list_offset(items, nth_element*batch_size)
     permutations = itertools.permutations(items)
     perm = choose_element(permutations, nth_element)
     return perm[:k]
 
+def set_list_offset(l, new_offset) -> list:
+    a = l[:new_offset]
+    b = l[new_offset:]
+    return b+a
 
 def access_cfg(root_obj, *keys, default=None, required=True, exp_type=None):
     if default is not None:
