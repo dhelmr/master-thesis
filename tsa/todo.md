@@ -21,9 +21,10 @@
 * remove duplicates
 * download multiple experiments in one csv
 
-## Visualization
+## Visualization / Evaluation
 
 * different plot tool? / plot script
+* check experiemnt + calculate quantitative robustness measure(s)
 
 --- 
 
