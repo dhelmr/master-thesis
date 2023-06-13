@@ -16,7 +16,7 @@ def random_permutation(items, k, nth_element, random_seed=0, batch_size=20):
         raise ValueError("nth_element must be >= 0")
     items = sorted(items)
     random.Random(random_seed).shuffle(items)
-    items = set_list_offset(items, nth_element*batch_size)
+    items = set_list_offset(items, nth_element*batch_size % len(items))
     permutations = itertools.permutations(items)
     perm = choose_element(permutations, nth_element)
     return perm[:k]

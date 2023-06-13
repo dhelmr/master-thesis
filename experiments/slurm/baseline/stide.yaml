@@ -40,7 +40,10 @@ dataloader:
   base:
     validation_ratio: 0.2
     cont_ratio: 0.2
-  permutation_i: 0
+  permutation_i:
+    - 0
+    - 1
+    - 2
   num_attacks:
     - 0
     - 1
