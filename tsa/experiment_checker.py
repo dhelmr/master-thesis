@@ -55,31 +55,68 @@ class ExperimentChecker:
             if token is None:
                 break
 
+    def _mlflow_run_to_run_cfg(self, run: Run) -> RunConfig:
+        if "iteration" not in run.data.params:
+            raise ValueError("Could not find key 'iteration' in run config")
+        iteration = int(run.data.params["iteration"])
+        return RunConfig(
+            parameter_cfg_id=run.data.params["parameter_cfg_id"],
+            lid_ds_version=run.data.params["lid_ds_version"],
+            num_attacks=int(run.data.params["num_attacks"]),
+            iteration = iteration,
+            permutation_i = int(run.data.params["permutation_i"]),
+            scenario=run.data.params["scenario"]
+        )
 
-    def counts_by_run_status(self) -> Tuple[Dict[RunStatus, Dict[int, int]], List[Run]]:
+    def counts_by_run_status(self) -> Tuple[Dict[RunStatus, Dict[int, int]], List[Run], List[RunConfig]]:
 
         counts_by_status = {status: {} for status in RunStatus.all_status()}
         skipped = []
+        parsed_runs = []
         for r in self.iter_mlflow_runs():
             status = RunStatus.from_string(r.info.status)
             if status not in counts_by_status:
                 print(counts_by_status)
                 raise ValueError("Unexpected status: %s" % r.info.status)
-            if "iteration" not in r.data.params:
-                print("Skip run %s, because it has no 'iteration' parameter" % r.info.run_id)
+
+            try:
+                run_cfg = self._mlflow_run_to_run_cfg(r)
+            except Exception as e:
+                print("Skip run %s, error is: %s" % (r.info.run_id, e))
                 skipped.append(r)
-            iteration = int(r.data.params["iteration"])
-
+                continue
             counts = counts_by_status[status]
-            if iteration not in counts:
-                counts[iteration] = 0
-            counts[iteration] += 1
+            if run_cfg.iteration not in counts:
+                counts[run_cfg.iteration] = 0
+            counts[run_cfg.iteration] += 1
+            parsed_runs.append(run_cfg)
 
-        return counts_by_status, skipped
+        return counts_by_status, skipped, parsed_runs
 
+    def check_integrity(self, mlflow_run_cfgs: List[RunConfig], expected_run_cfgs: List[RunConfig]):
+        failed_integrity = []
+        not_found = []
+        for mlflow_cfg in mlflow_run_cfgs:
+            found_one = False
+            for expected_run_cfg in expected_run_cfgs:
+                if expected_run_cfg.iteration == mlflow_cfg.iteration:
+                    if expected_run_cfg == mlflow_cfg:
+                        found_one = True
+                    else:
+                        failed_integrity.append(mlflow_cfg)
+            if not found_one:
+                not_found.append(mlflow_cfg)
+        return failed_integrity, not_found
     def stats(self) -> ExperimentStats:
         runs = self.experiment.run_configurations()
-        counts, skipped = self.counts_by_run_status()
+        counts, skipped, parsed_run_cfgs = self.counts_by_run_status()
+
+        failed_integrity, not_found = self.check_integrity(parsed_run_cfgs, runs)
+        if len(failed_integrity) > 0:
+            raise RuntimeError("The following mlflow runs have unexpected parameters (based on their iteration id): %s" %
+                               [r.iteration for r in failed_integrity])
+        if len(not_found) > 0:
+            raise RuntimeError("The following mlflow runs are not expected" % [r.iteration for r in not_found])
 
         fin_counts = counts[RunStatus.FINISHED]
         runn_counts = counts[RunStatus.RUNNING]

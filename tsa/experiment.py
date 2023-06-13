@@ -52,20 +52,18 @@ class Experiment:
                 raise ValueError("Invalid value for permutation_i: %s" % permutation_i_values)
             permutation_i_values = [permutation_i_values]
         iteration = 0
-        for scenario in self.scenarios:
+        for permutation_i, scenario, num_attacks in itertools.product(permutation_i_values,self.scenarios, num_attacks_range):
             lid_ds_version, scenario_name = scenario.split("/")
-
-            for permutation_i, num_attacks in itertools.product(permutation_i_values, num_attacks_range):
-                cfg = RunConfig(
-                    parameter_cfg_id=self.parameter_cfg_id,
-                    num_attacks=num_attacks,
-                    iteration=iteration,
-                    scenario=scenario_name,
-                    lid_ds_version=lid_ds_version,
-                    permutation_i=permutation_i
-                )
-                configs.append(cfg)
-                iteration += 1
+            cfg = RunConfig(
+                parameter_cfg_id=self.parameter_cfg_id,
+                num_attacks=num_attacks,
+                iteration=iteration,
+                scenario=scenario_name,
+                lid_ds_version=lid_ds_version,
+                permutation_i=permutation_i
+            )
+            configs.append(cfg)
+            iteration += 1
         return configs
 
     def start(self, start_at=0, dry_run=False, num_runs=None):
