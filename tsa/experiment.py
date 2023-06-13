@@ -55,7 +55,7 @@ class Experiment:
         for scenario in self.scenarios:
             lid_ds_version, scenario_name = scenario.split("/")
 
-            for num_attacks, permutation_i in itertools.product(num_attacks_range, permutation_i_values):
+            for permutation_i, num_attacks in itertools.product(permutation_i_values, num_attacks_range):
                 cfg = RunConfig(
                     parameter_cfg_id=self.parameter_cfg_id,
                     num_attacks=num_attacks,
