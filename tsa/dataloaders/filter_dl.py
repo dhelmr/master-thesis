@@ -14,7 +14,7 @@ class FilterDataloader(BaseDataLoader):
         self.dl = wrapped_dataloader
         self._max_syscalls = max_syscalls
         self._max_syscalls_training = self._max_syscalls * (1-self._validation_ratio) if self._max_syscalls is not None else None
-        self._max_syscalls_validation = self._max_syscalls - self._max_syscalls_training
+        self._max_syscalls_validation = self._max_syscalls - self._max_syscalls_training if self._max_syscalls is not None else None
         # self._in_training = True
 
     def training_data(self) -> list:
