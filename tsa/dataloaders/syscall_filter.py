@@ -16,8 +16,8 @@ class MaxSyscallFilter(SyscallFilter):
         self._syscall_counter = 0
 
     def filter(self, syscall: Syscall) -> bool:
+        self._syscall_counter += 1
         if self._max_syscalls is None:
             return True
-        self._syscall_counter += 1
         filter = self._syscall_counter <= self._max_syscalls
         return filter
