@@ -75,3 +75,6 @@ class ContaminatedDataLoader2021(DataLoader2021):
             "num_attacks": self._num_attacks,
             "attack_names": list(self._contaminated_recordings)
         }
+
+    def metrics(self):
+        return {}

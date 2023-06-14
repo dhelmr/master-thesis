@@ -117,3 +117,6 @@ class ContaminatedDataLoader2019(BaseDataLoader):
             with open(self.scenario_path + json_path, 'w') as distinct_syscalls:
                 json.dump({'distinct_syscalls': self._distinct_syscalls}, distinct_syscalls)
             return self._distinct_syscalls
+
+    def metrics(self):
+        return {}

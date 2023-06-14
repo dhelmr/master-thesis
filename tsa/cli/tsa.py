@@ -25,6 +25,8 @@ class TSASubCommand(SubCommand):
         dfs = []
         for run in checker.iter_mlflow_runs():
             artifacts = experiment.mlflow.list_artifacts(run.info.run_id)
+            if len(artifacts) == 0:
+                raise RuntimeError("No artifacts: %s" % run.info.run_id)
             for a in artifacts:
                 if str(a.path).endswith(".parquet.gz"):
                     tmpfile = tempfile.mktemp()

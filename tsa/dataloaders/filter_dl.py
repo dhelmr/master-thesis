@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional
+from typing import Optional, List
 
 from dataloader.base_data_loader import BaseDataLoader
 from tsa.dataloaders.filter_recording import FilteredRecording
@@ -15,15 +15,18 @@ class FilterDataloader(BaseDataLoader):
         self._max_syscalls = max_syscalls
         self._max_syscalls_training = self._max_syscalls * (1-self._validation_ratio) if self._max_syscalls is not None else None
         self._max_syscalls_validation = self._max_syscalls - self._max_syscalls_training if self._max_syscalls is not None else None
-        # self._in_training = True
+        self._applied_training_filters = []
+        self._applied_val_filters = []
 
     def training_data(self) -> list:
         filter = MaxSyscallFilter(self._max_syscalls_training)
+        self._applied_training_filters.append(filter)
         return [FilteredRecording(r, filter) for r in self.dl.training_data()]
 
     def validation_data(self) -> list:
         filter = MaxSyscallFilter(self._max_syscalls_validation)
-        return [FilteredRecording(r, filter) for r in self.dl.training_data()]
+        self._applied_val_filters.append(filter)
+        return [FilteredRecording(r, filter) for r in self.dl.validation_data()]
 
     def test_data(self) -> list:
         return self.dl.test_data()
@@ -41,6 +44,22 @@ class FilterDataloader(BaseDataLoader):
         # TODO implement own superclass for dataloaders
         parent_dict = deepcopy(self.dl.cfg_dict())
         parent_dict["max_syscalls"] = self._max_syscalls
+        parent_dict["max_syscalls_training"] = self._max_syscalls_training
+        parent_dict["max_syscalls_validation"] = self._max_syscalls_validation
         return parent_dict
 
+    def metrics(self):
+        parent_dict = deepcopy(self.dl.metrics())
+        parent_dict["training_syscalls"] = self._get_syscall_counter(self._applied_training_filters)
+        parent_dict["val_syscalls"] = self._get_syscall_counter(self._applied_val_filters)
+        return parent_dict
 
+    def _get_syscall_counter(self, filters: List[MaxSyscallFilter]):
+        syscalls = None
+        for filter in filters:
+            if syscalls is None:
+                syscalls = filter._syscall_counter
+                continue
+            if syscalls != filter._syscall_counter:
+                raise RuntimeError("Expected the loaded syscalls to be equal for each filter! %s != %s" % (
+                syscalls, filter._syscall_counter))
