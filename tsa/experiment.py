@@ -102,17 +102,20 @@ class Experiment:
                 self._log_ids_cfg()
                 additional_params, results, ids = self.train_test(dataloader, run_cfg)
                 mlflow.log_params(convert_mlflow_dict(additional_params))
-                mlflow.log_metrics(convert_mlflow_dict(dataloader.metrics(), "dataloader"))
+                self._log_metrics(dataloader.metrics(), "dataloader")
                 dl_artifacts = dataloader.artifact_dict()
                 if dl_artifacts != {}:
                     mlflow.log_dict(dl_artifacts, "dataloader_artifacts.json")
-                for metric_key, value in convert_mlflow_dict(results).items():
-                    try:
-                        value = float(value)
-                    except ValueError:
-                        print("Skip metric", metric_key)
-                        continue
-                    mlflow.log_metric(metric_key, value)
+                self._log_metrics(results)
+
+    def _log_metrics(self, metrics_dict, prefix=None):
+        for metric_key, value in convert_mlflow_dict(metrics_dict, prefix).items():
+            try:
+                value = float(value)
+            except ValueError:
+                print("Skip metric", metric_key)
+                continue
+            mlflow.log_metric(metric_key, value)
 
     def _get_dataloader_cls(self, lid_ds_version):
         if lid_ds_version == "LID-DS-2019":

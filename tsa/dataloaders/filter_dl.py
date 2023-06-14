@@ -19,14 +19,14 @@ class FilterDataloader(TsaBaseDataloader):
         self._applied_val_filters = []
 
     def training_data(self) -> list:
-        filter = MaxSyscallFilter(self._max_syscalls_training)
-        self._applied_training_filters.append(filter)
-        return [FilteredRecording(r, filter) for r in self.dl.training_data()]
+        f = MaxSyscallFilter(self._max_syscalls_training)
+        self._applied_training_filters.append(f)
+        return [FilteredRecording(r, f) for r in self.dl.training_data()]
 
     def validation_data(self) -> list:
-        filter = MaxSyscallFilter(self._max_syscalls_validation)
-        self._applied_val_filters.append(filter)
-        return [FilteredRecording(r, filter) for r in self.dl.validation_data()]
+        f = MaxSyscallFilter(self._max_syscalls_validation)
+        self._applied_val_filters.append(f)
+        return [FilteredRecording(r, f) for r in self.dl.validation_data()]
 
     def test_data(self) -> list:
         return self.dl.test_data()
@@ -43,9 +43,10 @@ class FilterDataloader(TsaBaseDataloader):
     def cfg_dict(self):
         # TODO implement own superclass for dataloaders
         parent_dict = deepcopy(self.dl.cfg_dict())
-        parent_dict["max_syscalls"] = self._max_syscalls
-        parent_dict["max_syscalls_training"] = self._max_syscalls_training
-        parent_dict["max_syscalls_validation"] = self._max_syscalls_validation
+        if self._max_syscalls is not None:
+            parent_dict["max_syscalls"] = self._max_syscalls
+            parent_dict["max_syscalls_training"] = self._max_syscalls_training
+            parent_dict["max_syscalls_validation"] = self._max_syscalls_validation
         return parent_dict
 
     def metrics(self):
@@ -59,10 +60,11 @@ class FilterDataloader(TsaBaseDataloader):
 
     def _get_syscall_counter(self, filters: List[MaxSyscallFilter]):
         syscalls = None
-        for filter in filters:
+        for f in filters:
             if syscalls is None:
-                syscalls = filter._syscall_counter
+                syscalls = f._syscall_counter
                 continue
-            if syscalls != filter._syscall_counter:
+            if syscalls != f._syscall_counter:
                 raise RuntimeError("Expected the loaded syscalls to be equal for each filter! %s != %s" % (
-                syscalls, filter._syscall_counter))
+                syscalls, f._syscall_counter))
+        return syscalls
