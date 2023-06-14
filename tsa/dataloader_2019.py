@@ -8,10 +8,11 @@ from dataloader.direction import Direction
 from dataloader.recording_2019 import Recording2019, RecordingDataParts
 from dataloader.base_data_loader import BaseDataLoader
 from tsa.dataloader_2021 import get_scenario_name
+from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 from tsa.utils import split_list, random_permutation
 
 
-class ContaminatedDataLoader2019(BaseDataLoader):
+class ContaminatedDataLoader2019(TsaBaseDataloader):
 
     def __init__(self, scenario_path: str, num_attacks: int, direction: Direction = Direction.OPEN,
                  validation_ratio: float = 0.2, cont_ratio: float = 0.2, permutation_i=0,
@@ -120,3 +121,8 @@ class ContaminatedDataLoader2019(BaseDataLoader):
 
     def metrics(self):
         return {}
+
+    def artifact_dict(self):
+        return {
+            "attack_names": [r.name for r in self._contaminated_recordings],
+        }

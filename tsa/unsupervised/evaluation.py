@@ -3,6 +3,7 @@ from algorithms.ids import IDS
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.syscall import Syscall
 from tsa.building_block_builder import IDSPipelineBuilder
+from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 from tsa.experiment import Experiment
 from tsa.unsupervised.preprocessing import OutlierDetector
 
@@ -32,8 +33,8 @@ class UnsupervisedEvaluator(BuildingBlock):
         return True
 
 
-class UnsupervisedDataLoader(BaseDataLoader):
-    def __init__(self, wrapped_dataloader: BaseDataLoader):
+class UnsupervisedDataLoader(TsaBaseDataloader):
+    def __init__(self, wrapped_dataloader: TsaBaseDataloader):
         super().__init__(wrapped_dataloader.scenario_path)
         self.dl = wrapped_dataloader
 
@@ -62,6 +63,9 @@ class UnsupervisedDataLoader(BaseDataLoader):
 
     def metrics(self):
         return self.dl.metrics()
+
+    def artifact_dict(self):
+        return self.dl.artifact_dict()
 
 class UnsupervisedExperiment(Experiment):
     def __init__(self, *args, **kwargs):

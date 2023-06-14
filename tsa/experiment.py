@@ -103,6 +103,9 @@ class Experiment:
                 additional_params, results, ids = self.train_test(dataloader, run_cfg)
                 mlflow.log_params(convert_mlflow_dict(additional_params))
                 mlflow.log_metrics(convert_mlflow_dict(dataloader.metrics(), "dataloader"))
+                dl_artifacts = dataloader.artifact_dict()
+                if dl_artifacts != {}:
+                    mlflow.log_dict(dl_artifacts, "dataloader_artifacts.json")
                 for metric_key, value in convert_mlflow_dict(results).items():
                     try:
                         value = float(value)

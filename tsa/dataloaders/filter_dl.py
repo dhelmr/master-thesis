@@ -1,14 +1,14 @@
 from copy import deepcopy
 from typing import Optional, List
 
-from dataloader.base_data_loader import BaseDataLoader
 from tsa.dataloaders.filter_recording import FilteredRecording
 from tsa.dataloaders.syscall_filter import MaxSyscallFilter
+from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 
 
-class FilterDataloader(BaseDataLoader):
+class FilterDataloader(TsaBaseDataloader):
 
-    def __init__(self, wrapped_dataloader: BaseDataLoader, max_syscalls: Optional[int] = None):
+    def __init__(self, wrapped_dataloader: TsaBaseDataloader, max_syscalls: Optional[int] = None):
         super().__init__(wrapped_dataloader.scenario_path)
         self._validation_ratio = wrapped_dataloader._validation_ratio # TODO abstract Dataloader class
         self.dl = wrapped_dataloader
@@ -53,6 +53,9 @@ class FilterDataloader(BaseDataLoader):
         parent_dict["training_syscalls"] = self._get_syscall_counter(self._applied_training_filters)
         parent_dict["val_syscalls"] = self._get_syscall_counter(self._applied_val_filters)
         return parent_dict
+
+    def artifact_dict(self):
+        return self.dl.artifact_dict()
 
     def _get_syscall_counter(self, filters: List[MaxSyscallFilter]):
         syscalls = None

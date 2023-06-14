@@ -3,6 +3,7 @@ from typing import List
 from dataloader.data_loader_2021 import DataLoader2021, RecordingType, TRAINING, TEST
 from dataloader.direction import Direction
 from dataloader.recording_2021 import Recording2021
+from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 from tsa.utils import split_list, random_permutation
 import random
 
@@ -26,7 +27,7 @@ class ContaminatedRecording2021(Recording2021):
         return metadata
 
 
-class ContaminatedDataLoader2021(DataLoader2021):
+class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
     def __init__(self, scenario_path: str, num_attacks: int, direction: Direction = Direction.OPEN,
                  validation_ratio: float = 0.2, cont_ratio: float = 0.2, permutation_i=0,
                  training_size=200, validation_size=50, true_metadata=False):
@@ -72,9 +73,13 @@ class ContaminatedDataLoader2021(DataLoader2021):
             "cont_ratio": self._cont_ratio,
             "permutation_i": self._permutation_i,
             "validation_ratio": self._validation_ratio,
-            "num_attacks": self._num_attacks,
-            "attack_names": list(self._contaminated_recordings)
+            "num_attacks": self._num_attacks
         }
 
     def metrics(self):
         return {}
+
+    def artifact_dict(self):
+        return {
+            "attack_names": list(self._contaminated_recordings),
+        }
