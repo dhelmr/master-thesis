@@ -60,6 +60,8 @@ class UnsupervisedDataLoader(BaseDataLoader):
         # TODO implement own superclass for dataloaders
         return self.dl.cfg_dict()
 
+    def metrics(self):
+        return self.dl.metrics()
 
 class UnsupervisedExperiment(Experiment):
     def __init__(self, *args, **kwargs):
