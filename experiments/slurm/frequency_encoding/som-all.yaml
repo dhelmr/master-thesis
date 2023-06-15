@@ -27,17 +27,17 @@ scenarios:
 ids:
   - name: W2VEmbedding
     args:
-      window_size: 9
+      window_size: 5
       epochs: 50
       vector_size: 11
   - name: Ngram
     args:
       thread_aware: true
-      ngram_length: 9
+      ngram_length: 5
   - name: FrequencyEncoding
     args:
       n_components: 20
-      threshold: 5
+      threshold: 1000000000
   - name: Som
     args:
      epochs: 100
@@ -47,7 +47,10 @@ dataloader:
   base:
     validation_ratio: 0.2
     cont_ratio: 0.2
-  permutation_i: 0
+  permutation_i:
+    - 0
+    - 1
+    - 2
   num_attacks:
     - 0
     - 1
