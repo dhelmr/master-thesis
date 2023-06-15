@@ -11,7 +11,6 @@
 
 ## Code Maintainance
 
-* problem: permutation_i = 0 == permutation_i = 1 (nur andere Reihenfolge)
 * backup databricks mlflow runs
 * test loaded attacks in dataloader
 
