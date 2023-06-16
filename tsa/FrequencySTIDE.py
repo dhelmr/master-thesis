@@ -4,16 +4,19 @@ from tsa.unsupervised.mixed_model import Histogram
 
 
 class FrequencySTIDE(BuildingBlock):
+    """
+    """
 
-    """
-    """
-    def __init__(self, input: BuildingBlock):
+    def __init__(self, input: BuildingBlock, alpha=1):
         super().__init__()
         # parameter
         self._input = input
 
         # internal data
         self._normal_counts = Histogram()
+        self._alpha = alpha
+        if self._alpha <= 0:
+            raise ValueError("alpha must be > 0")
 
         # dependency list
         self._dependency_list = []
@@ -53,4 +56,4 @@ class FrequencySTIDE(BuildingBlock):
     def anomaly_value(self, ngram_frequency: int):
         if self.max_count is None:
             raise RuntimeError("fit was not called yet, max_count is None")
-        return (self.max_count - ngram_frequency) / (self.max_count * (ngram_frequency + 1))
+        return (self.max_count - ngram_frequency * self._alpha) / (self.max_count * (ngram_frequency * self._alpha + 1))
