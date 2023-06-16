@@ -11,15 +11,17 @@ def split_list(l, fraction_sublist1: float):
     return l[:split_at], l[split_at:]
 
 
-def random_permutation(items, k, perm_i, random_seed=0, batch_size=10):
+def random_permutation(items, k, perm_i, random_seed=0):
     if perm_i < 0:
         raise ValueError("nth_element must be >= 0")
     items = sorted(items)
     random.Random(random_seed).shuffle(items)
-    a = 0
-    if (int(len(items)/batch_size)) != 0:
-        a = int(perm_i / int(len(items)/batch_size))
-    list_offset = (perm_i * batch_size + a) % len(items)
+    if perm_i == 0:
+        list_offset = 0
+    else:
+        offsets = list(range(1, len(items)))
+        random.Random(random_seed).shuffle(offsets)
+        list_offset = offsets[perm_i % len(offsets)]
     items = set_list_offset(items, list_offset)
     permutations = itertools.permutations(items)
     perm = choose_element(permutations, perm_i)
