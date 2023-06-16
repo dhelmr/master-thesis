@@ -11,15 +11,70 @@ def split_list(l, fraction_sublist1: float):
     return l[:split_at], l[split_at:]
 
 
-def random_permutation(items, k, nth_element, random_seed=0, batch_size=20):
-    if nth_element < 0:
+def random_permutation(items, k, perm_i, random_seed=0, batch_size=10):
+    if perm_i < 0:
         raise ValueError("nth_element must be >= 0")
     items = sorted(items)
     random.Random(random_seed).shuffle(items)
-    items = set_list_offset(items, nth_element*batch_size % len(items))
+    a = 0
+    if (int(len(items)/batch_size)) != 0:
+        a = int(perm_i / int(len(items)/batch_size))
+    list_offset = (perm_i * batch_size + a) % len(items)
+    items = set_list_offset(items, list_offset)
     permutations = itertools.permutations(items)
-    perm = choose_element(permutations, nth_element)
+    perm = choose_element(permutations, perm_i)
     return perm[:k]
+
+
+#
+# def random_permutation(items, k, perm_i, random_seed=0, batch_size=10):
+#     if perm_i < 0:
+#         raise ValueError("nth_element must be >= 0")
+#     items = sorted(items)
+#     for i in range(int(len(items)/(perm_i+1))+1):
+#         random.Random(random_seed).shuffle(items)
+#     list_offset = get_offset(len(items), batch_size, perm_i % len(items))
+#     items = set_list_offset(items, list_offset)
+#     #permutations = itertools.permutations(items)
+#     #perm = choose_element(permutations, perm_i)
+#     return tuple(items[:k])
+
+# def get_offset(length: int, step_size: int, i: int):
+#     if i >= length:
+#         raise ValueError("i must be < length")
+#     offset = 0
+#     selected_offsets = {0}
+#     while len(selected_offsets) < i:
+#         offset += step_size
+#         if offset >= length:
+#             offset = step_size
+#         while offset in selected_offsets:
+#             offset += 1
+#             if offset > length:
+#                 offset = 0
+#         selected_offsets.add(offset)
+#     return offset
+#
+#
+#     return offset
+
+
+
+# def random_permutation(items, k, perm_i, random_seed=0, batch_size=10):
+#     if k > batch_size:
+#         raise ValueError("k must be <= batch_size")
+#     r = random.Random(random_seed)
+#     items = sorted(items)
+#     free_indexes = [i for i, _ in enumerate(items)]
+#     for i in range(perm_i+1):
+#         selected_subset = []
+#         for j in range(batch_size):
+#             next_i = r.choice(free_indexes)
+#             selected_subset.append(items[next_i])
+#             free_indexes.remove(next_i)
+#             if len(free_indexes) == 0:
+#                 free_indexes = [i for i, _ in enumerate(items)]
+#     return tuple(selected_subset[:k])
 
 def set_list_offset(l, new_offset) -> list:
     a = l[:new_offset]
