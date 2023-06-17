@@ -16,7 +16,7 @@ class ContaminatedDataLoader2019(TsaBaseDataloader):
 
     def __init__(self, scenario_path: str, num_attacks: int, direction: Direction = Direction.OPEN,
                  validation_ratio: float = 0.2, cont_ratio: float = 0.2, permutation_i=0,
-                 training_size=200, validation_size=50, true_metadata=False):
+                 training_size=200, validation_size=50, true_metadata=False, no_test_attacks: bool = False):
         super().__init__(scenario_path)
         self.scenario_path = scenario_path
         self._runs_path = os.path.join(scenario_path, 'runs.csv')
@@ -32,6 +32,7 @@ class ContaminatedDataLoader2019(TsaBaseDataloader):
         self._validation_ratio = validation_ratio
         self._num_attacks = num_attacks
         self._true_metadata = true_metadata
+        self._no_test_attacks = no_test_attacks
         if validation_ratio < 0 or validation_ratio > 1:
             raise ValueError("validation_ratio must be in interval [0,1]")
         self._initialized = False
@@ -77,6 +78,8 @@ class ContaminatedDataLoader2019(TsaBaseDataloader):
         self._normal_recordings = normal_recordings
         training_exploit_lines, test_exploit_lines = split_list(exploit_recording_lines, self._cont_ratio)
         self._exploit_recordings = [recording for (_, recording) in test_exploit_lines]
+        if self._no_test_attacks:
+            self._exploit_recordings = []
 
         # create contaminated recordings that will be added to the training phase
         # TODO handle case num_attacks > len(training_exploit_lines)
@@ -126,3 +129,7 @@ class ContaminatedDataLoader2019(TsaBaseDataloader):
         return {
             "attack_names": [r.name for r in self._contaminated_recordings],
         }
+
+    def get_val_ratio(self):
+        return self._validation_ratio
+

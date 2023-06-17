@@ -1,32 +1,34 @@
-mode: unsupervised
 scenarios:
   - LID-DS-2019/CVE-2017-7529:
-      phase: train
-      args:
-        num_attacks: 2
-        permutation_i: 100
+      no_test_attacks: true
     LID-DS-2019/CVE-2019-5418:
-      phase: train,val,test
-    LID-DS-2019/CVE-2012-2122:
-      phase: train,val,test
-    LID-DS-2021/CVE-2018-3760:
-      phase: test
-dataloader_base_args:
-  validation_ratio: 0.2
-  cont_ratio: 0.2
-
+      no_test_attacks: true
+    LID-DS-2021/CVE-2018-3760: {}
 ids:
-  - name: W2VEmbedding
-    args:
-      window_size: 10
-      epochs: 20
-      vector_size: 5
+  - name: IntEmbedding
   - name: Ngram
     args:
       thread_aware: true
       ngram_length: 5
-  - name: LOF
+  - name: FrequencySTIDE
+  - name: StreamSum
     args:
-      contamination: auto
-      only_unique: True
-    
+      thread_aware: False
+      wait_until_full: False
+      window_length: 1000
+  - name: MaxScoreThreshold
+dataloader:
+  base:
+    validation_ratio: 0.2
+    cont_ratio: 0.2
+  permutation_i:
+    - 0
+    - 1
+    - 2
+  num_attacks:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 5
+    - 10

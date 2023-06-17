@@ -10,3 +10,6 @@ class TsaBaseDataloader(BaseDataLoader):
 
     def artifact_dict(self):
         raise NotImplementedError()
+
+    def get_val_ratio(self):
+        raise NotImplementedError()
