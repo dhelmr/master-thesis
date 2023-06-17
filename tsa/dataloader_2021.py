@@ -30,13 +30,14 @@ class ContaminatedRecording2021(Recording2021):
 class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
     def __init__(self, scenario_path: str, num_attacks: int, direction: Direction = Direction.OPEN,
                  validation_ratio: float = 0.2, cont_ratio: float = 0.2, permutation_i=0,
-                 training_size=200, validation_size=50, true_metadata=False):
+                 training_size=200, validation_size=50, true_metadata=False, no_test_attacks: bool = False):
         super().__init__(scenario_path, direction)
         self._num_attacks = num_attacks
         self._validation_ratio = validation_ratio
         self._cont_ratio = cont_ratio
         self._permutation_i = permutation_i
         self._true_metadata = true_metadata
+        self._no_test_attacks = no_test_attacks
         self._init_contaminated()
 
     def _init_contaminated(self):
@@ -51,7 +52,8 @@ class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
             random_permutation(contaminated_recording_names, self._num_attacks, self._permutation_i))
         self._exclude_recordings = set(
             [r for r in contaminated_recording_names if r not in self._contaminated_recordings])
-        print(self._exclude_recordings, self._contaminated_recordings)
+        if self._no_test_attacks:
+            self._exclude_recordings = set(contaminated_recording_names)
 
     def training_data(self, recording_type: RecordingType = None) -> list:
         training_data = super().training_data()
@@ -83,3 +85,7 @@ class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
         return {
             "attack_names": list(self._contaminated_recordings),
         }
+
+    def get_val_ratio(self):
+        return self._validation_ratio
+

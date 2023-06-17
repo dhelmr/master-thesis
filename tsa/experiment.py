@@ -1,6 +1,7 @@
+import copy
 import dataclasses
 import itertools
-from typing import List, Union
+from typing import List, Union, Dict
 
 import mlflow
 import os
@@ -14,15 +15,22 @@ from tsa.building_block_builder import IDSPipelineBuilder
 from tsa.confusion_matrix import ConfusionMatrix
 from tsa.dataloader_2019 import ContaminatedDataLoader2019
 from tsa.dataloader_2021 import ContaminatedDataLoader2021
+from tsa.dataloaders.combination_dl import CombinationDL
 from tsa.dataloaders.filter_dl import FilterDataloader
 from tsa.utils import access_cfg
 
 
+
+ScenarioName = str
+@dataclasses.dataclass
+class CombinedScenario:
+    scenarios: Dict[ScenarioName, dict]
+
 @dataclasses.dataclass
 class RunConfig:
     parameter_cfg_id: str
-    lid_ds_version: str
-    scenario: str
+    # lid_ds_version: str
+    scenario: Union[CombinedScenario, ScenarioName]
     num_attacks: int
     iteration: int
     permutation_i: int
@@ -53,13 +61,14 @@ class Experiment:
             permutation_i_values = [permutation_i_values]
         iteration = 0
         for permutation_i, scenario, num_attacks in itertools.product(permutation_i_values,self.scenarios, num_attacks_range):
-            lid_ds_version, scenario_name = scenario.split("/")
+#            lid_ds_version, scenario_name = scenario.split("/")
+            if isinstance(scenario, dict):
+                scenario = CombinedScenario(scenarios=scenario)
             cfg = RunConfig(
                 parameter_cfg_id=self.parameter_cfg_id,
                 num_attacks=num_attacks,
                 iteration=iteration,
-                scenario=scenario_name,
-                lid_ds_version=lid_ds_version,
+                scenario=scenario,
                 permutation_i=permutation_i
             )
             configs.append(cfg)
@@ -67,26 +76,14 @@ class Experiment:
         return configs
 
     def start(self, start_at=0, dry_run=False, num_runs=None):
-        try:
-            lid_ds_base = os.environ['LID_DS_BASE']
-        except KeyError as exc:
-            raise ValueError("No LID-DS Base Path given."
-                             "Please specify as argument or set Environment Variable "
-                             "$LID_DS_BASE") from exc
         mlflow.set_experiment(self.mlflow_name)
-        dataloader_config = self._get_dataloader_cfg()
         i = -1
         current_run = 0
         for run_cfg in self.run_configurations():
             i = i + 1
             if i < start_at:
                 continue
-            dataloader_class = self._get_dataloader_cls(run_cfg.lid_ds_version)
-            scenario_path = f"{lid_ds_base}/{run_cfg.lid_ds_version}/{run_cfg.scenario}"
-
-            dataloader = dataloader_class(scenario_path, num_attacks=run_cfg.num_attacks, direction=Direction.BOTH,
-                                          permutation_i=run_cfg.permutation_i, **dataloader_config)
-            dataloader = FilterDataloader(dataloader, **self._get_param("dataloader", "filter", default={}))
+            dataloader = self._get_dataloader_cls(run_cfg)
             if dry_run:
                 print(i, "Dry Run: ", dataloader.__dict__)
                 continue
@@ -117,16 +114,59 @@ class Experiment:
                 continue
             mlflow.log_metric(metric_key, value)
 
-    def _get_dataloader_cls(self, lid_ds_version):
+    def _make_dl_from_scenario(self, scenario: ScenarioName, cfg: Dict):
+        try:
+            lid_ds_base = os.environ['LID_DS_BASE']
+        except KeyError as exc:
+            raise ValueError("No LID-DS Base Path given."
+                             "Please specify as argument or set Environment Variable "
+                             "$LID_DS_BASE") from exc
+        lid_ds_version = scenario.split("/")[0]
         if lid_ds_version == "LID-DS-2019":
-            return ContaminatedDataLoader2019
-        if lid_ds_version == "LID-DS-2021":
-            return ContaminatedDataLoader2021
+            cls = ContaminatedDataLoader2019
+        elif lid_ds_version == "LID-DS-2021":
+            cls = ContaminatedDataLoader2021
         else:
             raise ValueError("%s is not supported." % lid_ds_version)
+        scenario_path = f"{lid_ds_base}/{scenario}"
+        dataloader = cls(scenario_path, **cfg)
+        return dataloader
+
+    def _get_dataloader_cls(self, run_cfg: RunConfig):
+        base_cfg = self._get_dataloader_cfg()
+        dataloader_cfg = {
+            **base_cfg,
+            "permutation_i": run_cfg.permutation_i,
+            "num_attacks": run_cfg.num_attacks
+        }
+        if isinstance(run_cfg.scenario, ScenarioName):
+            dataloader = self._make_dl_from_scenario(run_cfg.scenario, dataloader_cfg)
+        elif isinstance(run_cfg.scenario, CombinedScenario):
+            dls = []
+            for i, scenario_cfg in enumerate(run_cfg.scenario.scenarios.items()):
+                scenario_name, scenario_dl_cfg = scenario_cfg
+                dataloader_cfg = copy.deepcopy(dataloader_cfg)
+                dataloader_cfg = {
+                    **scenario_dl_cfg,
+                    **dataloader_cfg
+                }
+                if i == 0: # first dataloader has mum_attacks from run cfg
+                    part_dataloader = self._make_dl_from_scenario(scenario_name, dataloader_cfg)
+                else:
+                    dataloader_cfg["num_attacks"] = 0
+                    part_dataloader = self._make_dl_from_scenario(scenario_name, dataloader_cfg)
+                dls.append(part_dataloader)
+            dataloader = CombinationDL(dls)
+        else:
+            raise ValueError("Not supported scenario specification: %s" % run_cfg.scenario)
+        dataloader = FilterDataloader(dataloader, **self._get_param("dataloader", "filter", default={}))
+        return dataloader
 
     def _get_dataloader_cfg(self):
-        return self._get_param("dataloader", "base", exp_type=dict)
+        cfg = self._get_param("dataloader", "base", exp_type=dict)
+        if "direction" not in cfg:
+            cfg["direction"] = Direction.BOTH # TODO: make configurable
+        return cfg
 
     def train_test(self, dataloader: BaseDataLoader, run_cfg: RunConfig):
         builder = IDSPipelineBuilder()  # TODO change experiment yaml format; add own key for pipeline
