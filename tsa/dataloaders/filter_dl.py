@@ -13,8 +13,8 @@ class FilterDataloader(TsaBaseDataloader):
         self._validation_ratio = wrapped_dataloader.get_val_ratio() # TODO abstract Dataloader class
         self.dl = wrapped_dataloader
         self._max_syscalls = max_syscalls
-        self._max_syscalls_training = self._max_syscalls * (1-self._validation_ratio) if self._max_syscalls is not None else None
-        self._max_syscalls_validation = self._max_syscalls - self._max_syscalls_training if self._max_syscalls is not None else None
+        self._max_syscalls_training = self._max_syscalls
+        self._max_syscalls_validation = int(self._max_syscalls * self._validation_ratio / (1-self._validation_ratio)) if self._max_syscalls is not None else None
         self._applied_training_filters = []
         self._applied_val_filters = []
 
@@ -44,7 +44,6 @@ class FilterDataloader(TsaBaseDataloader):
         # TODO implement own superclass for dataloaders
         parent_dict = deepcopy(self.dl.cfg_dict())
         if self._max_syscalls is not None:
-            parent_dict["max_syscalls"] = self._max_syscalls
             parent_dict["max_syscalls_training"] = self._max_syscalls_training
             parent_dict["max_syscalls_validation"] = self._max_syscalls_validation
         return parent_dict
