@@ -75,16 +75,18 @@ class FrequencyEncoding(BuildingBlock):
         while unseen_frequency_ngram in self._counts:
             unseen_frequency_ngram += (-1,)
         self._unseen_frequency_ngram = unseen_frequency_ngram
+        def iter_ngrams():
+            return itertools.chain(self._counts.keys(), [unseen_frequency_ngram])
         distance_matrix = []
-        for ngram in itertools.chain(self._counts.keys(), [unseen_frequency_ngram]):
+        for ngram in iter_ngrams():
             row = []
-            for ngram2 in itertools.chain(self._counts.keys(), [unseen_frequency_ngram]):
+            for ngram2 in iter_ngrams():
                 row.append(self._distance(ngram, ngram2))
             distance_matrix.append(row)
         transformed = self._mds.fit_transform(distance_matrix)
         transformed = MinMaxScaler().fit_transform(transformed)
         self._embeddings = {
-            ngram: tuple(emb) for ngram, emb in zip(self._counts.keys(), transformed)
+            ngram: tuple(emb) for ngram, emb in zip(iter_ngrams, transformed)
         }
         #print("embeddings", self._embeddings)
         # self._unseen_ngram_embeddings = self._determine_unseen_ngram_embeddings()
