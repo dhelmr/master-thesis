@@ -1,3 +1,4 @@
+import itertools
 import math
 import random
 
@@ -40,12 +41,12 @@ class FrequencyEncoding(BuildingBlock):
         unseen_frequency_ngram = (-1,)
         while unseen_frequency_ngram in self._counts:
             unseen_frequency_ngram += (-1,)
-        self._counts.add(unseen_frequency_ngram)
+        #self._counts.add(unseen_frequency_ngram)
         self._unseen_frequency_ngram = unseen_frequency_ngram
         distance_matrix = []
-        for ngram in self._counts.keys():
+        for ngram in itertools.chain(self._counts.keys(), [unseen_frequency_ngram]):
             row = []
-            for ngram2 in self._counts.keys():
+            for ngram2 in itertools.chain(self._counts.keys(), [unseen_frequency_ngram]):
                 row.append(self._distance(ngram, ngram2))
             distance_matrix.append(row)
         transformed = self._mds.fit_transform(distance_matrix)
