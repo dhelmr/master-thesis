@@ -86,7 +86,7 @@ class FrequencyEncoding(BuildingBlock):
         transformed = self._mds.fit_transform(distance_matrix)
         transformed = MinMaxScaler().fit_transform(transformed)
         self._embeddings = {
-            ngram: tuple(emb) for ngram, emb in zip(iter_ngrams, transformed)
+            ngram: tuple(emb) for ngram, emb in zip(iter_ngrams(), transformed)
         }
         #print("embeddings", self._embeddings)
         # self._unseen_ngram_embeddings = self._determine_unseen_ngram_embeddings()
