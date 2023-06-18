@@ -49,7 +49,6 @@ class FrequencyEncoding(BuildingBlock):
         self._input = input_bb
         self._counts = Histogram()
         self._mds = MDS(n_components=n_components, dissimilarity="precomputed")
-        self._max_count = None
         self._embeddings = None
         self._unseen_frequency_ngram = None
         self._threshold = threshold
@@ -96,8 +95,6 @@ class FrequencyEncoding(BuildingBlock):
         return [emb for ngram, emb in self._embeddings.items() if self._counts.get_count(ngram) == lowest_count]
 
     def _distance(self, a, b):
-        if self._max_count is None:
-            raise ValueError("max_count is not determined yet. fit() must be called first.")
         if a == b:
             return 0
         count_a = self._counts.get_count(a)
