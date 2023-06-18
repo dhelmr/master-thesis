@@ -20,8 +20,12 @@ class FrequencyAnomalyFunction:
         self._name = name
         if self._name not in ANOMALY_FUNCTIONS:
             raise ValueError("%s is not a valid anomaly function. Choose from: %s" % (name, ANOMALY_FUNCTIONS))
-        if self._name == "exponential" and (alpha <= 0 or alpha >= 1):
-            raise ValueError("alpha is %s but must be in (0,1) for exponential anomaly fn" % alpha)
+        if self._name == "exponential":
+            if alpha <= 0 or alpha >= 1:
+                raise ValueError("alpha is %s but must be in (0,1) for exponential anomaly fn" % alpha)
+        elif alpha <= 0:
+            raise ValueError("alpha must be > 0")
+
         self._alpha = alpha
         self._max_count = None
 
@@ -49,7 +53,6 @@ class FrequencyEncoding(BuildingBlock):
         self._embeddings = None
         self._unseen_frequency_ngram = None
         self._threshold = threshold
-
 
 
     def train_on(self, syscall: Syscall):

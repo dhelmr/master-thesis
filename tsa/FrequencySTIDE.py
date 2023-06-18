@@ -1,5 +1,6 @@
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
+from tsa.frequency_encoding import FrequencyAnomalyFunction
 from tsa.unsupervised.mixed_model import Histogram
 
 
@@ -7,7 +8,7 @@ class FrequencySTIDE(BuildingBlock):
     """
     """
 
-    def __init__(self, input: BuildingBlock, alpha=1):
+    def __init__(self, input: BuildingBlock, alpha=0.5, anomaly_fn = "exponential"):
         super().__init__()
         # parameter
         self._input = input
@@ -15,14 +16,12 @@ class FrequencySTIDE(BuildingBlock):
         # internal data
         self._normal_counts = Histogram()
         self._alpha = alpha
-        if self._alpha <= 0:
-            raise ValueError("alpha must be > 0")
 
         # dependency list
         self._dependency_list = []
         self._dependency_list.append(self._input)
 
-        self.max_count = None
+        self.anomaly_fn = FrequencyAnomalyFunction(anomaly_fn, alpha)
 
     def depends_on(self):
         return self._dependency_list
@@ -37,7 +36,7 @@ class FrequencySTIDE(BuildingBlock):
         self._normal_counts.add(ngram)
 
     def fit(self):
-        self.max_count = self._normal_counts.max_count()
+        self.anomaly_fn.set_max_count(self._normal_counts.max_count())
 
     def _calculate(self, syscall: Syscall):
         """
@@ -51,9 +50,5 @@ class FrequencySTIDE(BuildingBlock):
             ngram_freq = self._normal_counts.get_count(ngram)
         else:
             ngram_freq = 0
-        return self.anomaly_value(ngram_freq)
+        return self.anomaly_fn.anomaly_value(ngram_freq)
 
-    def anomaly_value(self, ngram_frequency: int):
-        if self.max_count is None:
-            raise RuntimeError("fit was not called yet, max_count is None")
-        return (self.max_count - ngram_frequency * self._alpha) / (self.max_count * (ngram_frequency * self._alpha + 1))
