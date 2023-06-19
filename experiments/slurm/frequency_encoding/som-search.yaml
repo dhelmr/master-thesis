@@ -8,10 +8,11 @@ experiment:
    - LID-DS-2019/CVE-2018-3760
    - LID-DS-2021/ZipSlip
   ids:
+    - name: IntEmbedding
     - name: W2VEmbedding
       args:
         window_size: 5
-        epochs: 50
+        epochs: 100
         vector_size: 11
     - name: Ngram
       args:
@@ -24,7 +25,7 @@ experiment:
         anomaly_fn: exponential
     - name: Som
       args:
-       epochs: 100
+       epochs: 50
        sigma: 1.0
     - name: MaxScoreThreshold
   dataloader:
