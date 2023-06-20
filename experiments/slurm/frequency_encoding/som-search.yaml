@@ -43,7 +43,7 @@ experiment:
 mode: grid
 name_prefix: frequency-encoding-som
 search_space:
-  ids.2.args.n_components:
+  ids.3.args.n_components:
     - 2
     - 3
     - 5
@@ -51,10 +51,10 @@ search_space:
     - 10
     - 20
     - 50
-  ids.2.args.anomaly_fn:
+  ids.3.args.anomaly_fn:
     - exponential
     - inverse
-  ids.2.args.alpha:
+  ids.3.args.alpha:
     - 0.5
     - 0.7
     - 0.9
