@@ -25,10 +25,11 @@ scenarios:
  - LID-DS-2021/PHP_CWE-434
  - LID-DS-2021/ZipSlip
 ids:
+  - name: IntEmbedding
   - name: W2VEmbedding
     args:
       window_size: 5
-      epochs: 50
+      epochs: 100
       vector_size: 11
   - name: Ngram
     args:
@@ -36,11 +37,12 @@ ids:
       ngram_length: 5
   - name: FrequencyEncoding
     args:
-      n_components: 20
-      threshold: 5
+      n_components: 3
+      alpha: 2
+      anomaly_fn: homographic
   - name: Som
     args:
-     epochs: 100
+     epochs: 50
      sigma: 1.0
   - name: MaxScoreThreshold
 dataloader:
