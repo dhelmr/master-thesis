@@ -11,13 +11,13 @@ experiment:
     - name: IntEmbedding
     - name: W2VEmbedding
       args:
-        window_size: 5
+        window_size: 9
         epochs: 100
         vector_size: 11
     - name: Ngram
       args:
         thread_aware: true
-        ngram_length: 5
+        ngram_length: 9
     - name: FrequencyEncoding
       args:
         n_components: 2
@@ -25,7 +25,7 @@ experiment:
         anomaly_fn: linear
     - name: Som
       args:
-       epochs: 50
+       epochs: 100
        sigma: 1.0
     - name: MaxScoreThreshold
   dataloader:
@@ -52,13 +52,3 @@ search_space:
     - 5
     - 10
     - 20
-  ids.4.args.epochs:
-    - 100
-    - 200
-  ids.0.args.epochs:
-    - 100
-    - 200
-  ids.2.args.ngram_length:
-    - 5
-    - 7
-    - 9
