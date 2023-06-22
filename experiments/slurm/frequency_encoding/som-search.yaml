@@ -22,7 +22,7 @@ experiment:
       args:
         n_components: 2
         alpha: 0.5
-        anomaly_fn: exponential
+        anomaly_fn: linear
     - name: Som
       args:
        epochs: 50
@@ -36,7 +36,6 @@ experiment:
     num_attacks:
       - 0
       - 1
-      - 2
       - 3
       - 10
 
@@ -44,17 +43,22 @@ mode: grid
 name_prefix: frequency-encoding-som
 search_space:
   ids.3.args.n_components:
-    - 2
+    - 3
+    - 6
+    - 10
+    - 30
+  ids.3.args.alpha:
     - 3
     - 5
-    - 8
     - 10
     - 20
-    - 50
-  ids.3.args.anomaly_fn:
-    - exponential
-    - inverse
-  ids.3.args.alpha:
-    - 0.5
-    - 0.7
-    - 0.9
+  ids.4.args.epochs:
+    - 100
+    - 200
+  ids.0.args.epochs:
+    - 100
+    - 200
+  ids.2.args.ngram_length:
+    - 5
+    - 7
+    - 9
