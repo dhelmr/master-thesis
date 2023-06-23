@@ -1,3 +1,4 @@
+
 scenarios:
  - LID-DS-2019/CVE-2017-7529
  - LID-DS-2019/CVE-2019-5418
@@ -34,6 +35,11 @@ ids:
     args:
       thread_aware: true
       ngram_length: 9
+  - name: FrequencyEncoding
+    args:
+      n_components: 3
+      alpha: 3
+      anomaly_fn: linear
   - name: Som
     args:
      epochs: 100
