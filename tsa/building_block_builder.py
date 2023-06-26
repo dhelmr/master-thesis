@@ -21,7 +21,7 @@ from tsa.dataloaders.training_set_filter import TrainingSetFilter
 from tsa.frequency_encoding import FrequencyEncoding
 from tsa.unsupervised.pca import PCA_BB
 from tsa.unsupervised.scikit import LOF, EllipticEnvelopeOD, IsolationForestOD
-from tsa.unsupervised.tstide import TStide
+from tsa.unsupervised.frequency_od import FrequencyOD
 from tsa.unsupervised.mixed_model import MixedModelOutlierDetector
 from tsa.unsupervised.w2v_concat import W2VConcat, TupleBB
 from tsa.utils import access_cfg, exists_key
@@ -35,7 +35,7 @@ def Ngram(building_block, *args, **kwargs):
 
 BUILDING_BLOCKS = {cls.__name__: cls for cls in
                    [AE, Stide, Som, SystemCallGraph, IntEmbedding, W2VEmbedding, OneHotEncoding, Ngram, LOF,
-                    MixedModelOutlierDetector, MaxScoreThreshold, StreamSum, TStide,
+                    MixedModelOutlierDetector, MaxScoreThreshold, StreamSum, FrequencyOD,
                     EllipticEnvelopeOD, IsolationForestOD,
                     TrainingSetAnalyser, ContinuousTrainingSetAnalyser, Visualize, NgramAnalyser,
                     PCA_BB, W2VConcat, TupleBB, TrainingSetFilter, FrequencyEncoding, FrequencySTIDE]}
