@@ -64,8 +64,12 @@ class CombinationDL(TsaBaseDataloader):
         #parent_dict = deepcopy(self.dl.cfg_dict())
         #parent_dict["max_syscalls"] = self._max_syscalls
         aggregated_cfg = {}
-        for dl in self._dls:
-            aggregated_cfg.update(dl.cfg_dict())
+        scenarios = []
+        for dl in reversed(self._dls):
+            dl_cfg = dl.cfg_dict()
+            aggregated_cfg.update(dl_cfg)
+            scenarios.append(dl_cfg["scenario"])
+        aggregated_cfg["scenario"] = "+".join(scenarios)
         return aggregated_cfg
 
     def artifact_dict(self):
