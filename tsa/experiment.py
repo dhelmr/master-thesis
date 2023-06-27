@@ -36,7 +36,10 @@ class RunConfig:
     permutation_i: int
 
     def to_dict(self):
-        return dataclasses.asdict(self)
+        d = dataclasses.asdict(self)
+        if isinstance(self.scenario, CombinedScenario):
+            d["scenario"] = [s for s, _ in self.scenario.scenarios.items()]
+        return d
 
 
 class Experiment:

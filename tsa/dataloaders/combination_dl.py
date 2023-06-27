@@ -69,7 +69,7 @@ class CombinationDL(TsaBaseDataloader):
             dl_cfg = dl.cfg_dict()
             aggregated_cfg.update(dl_cfg)
             scenarios.append(dl_cfg["scenario"])
-        aggregated_cfg["scenario"] = "+".join(scenarios)
+        aggregated_cfg["scenario"] = "+".join(reversed(scenarios))
         return aggregated_cfg
 
     def artifact_dict(self):
