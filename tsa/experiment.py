@@ -134,18 +134,18 @@ class Experiment:
 
     def _get_dataloader_cls(self, run_cfg: RunConfig):
         base_cfg = self._get_dataloader_cfg()
-        dataloader_cfg = {
+        base_cfg = {
             **base_cfg,
             "permutation_i": run_cfg.permutation_i,
             "num_attacks": run_cfg.num_attacks
         }
         if isinstance(run_cfg.scenario, ScenarioName):
-            dataloader = self._make_dl_from_scenario(run_cfg.scenario, dataloader_cfg)
+            dataloader = self._make_dl_from_scenario(run_cfg.scenario, base_cfg)
         elif isinstance(run_cfg.scenario, CombinedScenario):
             dls = []
             for i, scenario_cfg in enumerate(run_cfg.scenario.scenarios.items()):
                 scenario_name, scenario_dl_cfg = scenario_cfg
-                dataloader_cfg = copy.deepcopy(dataloader_cfg)
+                dataloader_cfg = copy.deepcopy(base_cfg)
                 dataloader_cfg = {
                     **scenario_dl_cfg,
                     **dataloader_cfg

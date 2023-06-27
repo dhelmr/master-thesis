@@ -3,6 +3,8 @@ from typing import List
 from dataloader.data_loader_2021 import DataLoader2021, RecordingType, TRAINING, TEST
 from dataloader.direction import Direction
 from dataloader.recording_2021 import Recording2021
+
+from tsa.dataloaders.combination_dl import yield_successively
 from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 from tsa.utils import split_list, random_permutation
 import random
@@ -29,12 +31,15 @@ class ContaminatedRecording2021(Recording2021):
 
 class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
     def __init__(self, scenario_path: str, num_attacks: int, direction: Direction = Direction.OPEN,
-                 validation_ratio: float = 0.2, cont_ratio: float = 0.2, permutation_i=0,
-                 training_size=200, validation_size=50, true_metadata=False, no_test_attacks: bool = False):
+                 cont_ratio: float = 0.2, permutation_i=0,
+                 training_size=None, validation_size=None, test_size=None,
+                 true_metadata=False, no_test_attacks: bool = False):
         super().__init__(scenario_path, direction)
         self._num_attacks = num_attacks
-        self._validation_ratio = validation_ratio
         self._cont_ratio = cont_ratio
+        self._training_size = training_size
+        self._validation_size = validation_size
+        self._test_size = test_size
         self._permutation_i = permutation_i
         self._true_metadata = true_metadata
         self._no_test_attacks = no_test_attacks
@@ -60,11 +65,22 @@ class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
         test_data = super().test_data()
         contaminated_data = [ContaminatedRecording2021(r, true_metadata=self._true_metadata) for r in test_data if
                              r.name in self._contaminated_recordings]
-        return training_data + contaminated_data
+        return list(yield_successively([training_data, contaminated_data], limit=self._training_size))
 
     def test_data(self, recording_type: RecordingType = None) -> list:
         test_data = super().test_data()
-        return [r for r in test_data if r.name not in self._exclude_recordings]
+        test_recordings = [r for r in test_data if r.name not in self._exclude_recordings]
+        if self._test_size is not None:
+            return test_recordings[:self._test_size]
+        else:
+            return test_recordings
+
+    def validation_data(self, recording_type: RecordingType = None) -> list:
+        val_data = super().validation_data()
+        if self._validation_size is not None:
+            return val_data[:self._validation_size]
+        else:
+            return val_data
 
     def cfg_dict(self):
         return {
@@ -74,7 +90,6 @@ class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
             "direction": self._direction,
             "cont_ratio": self._cont_ratio,
             "permutation_i": self._permutation_i,
-            "validation_ratio": self._validation_ratio,
             "num_attacks": self._num_attacks
         }
 
@@ -85,7 +100,4 @@ class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
         return {
             "attack_names": list(self._contaminated_recordings),
         }
-
-    def get_val_ratio(self):
-        return self._validation_ratio
 

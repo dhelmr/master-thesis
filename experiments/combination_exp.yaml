@@ -1,6 +1,20 @@
 scenarios:
   - LID-DS-2019/CVE-2017-7529:
       no_test_attacks: true
+      training_size: 5
+      test_size: 5
+      validation_size: 1
+    LID-DS-2019/CVE-2019-5418:
+      no_test_attacks: true
+      training_size: 5
+      test_size: 5
+      validation_size: 1
+    LID-DS-2021/CVE-2018-3760:
+      training_size: 10
+      validation_size: 2
+      test_size: 10
+  - LID-DS-2019/CVE-2017-7529:
+      no_test_attacks: true
     LID-DS-2019/CVE-2019-5418:
       no_test_attacks: true
     LID-DS-2021/CVE-2018-3760: {}
@@ -19,7 +33,6 @@ ids:
   - name: MaxScoreThreshold
 dataloader:
   base:
-    validation_ratio: 0.2
     cont_ratio: 0.2
   permutation_i:
     - 0

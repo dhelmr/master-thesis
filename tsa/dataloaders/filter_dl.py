@@ -10,7 +10,7 @@ class FilterDataloader(TsaBaseDataloader):
 
     def __init__(self, wrapped_dataloader: TsaBaseDataloader, max_syscalls: Optional[int] = None):
         super().__init__(wrapped_dataloader.scenario_path)
-        self._validation_ratio = wrapped_dataloader.get_val_ratio() # TODO abstract Dataloader class
+        self._validation_ratio = 0.2 # TODO: load dynamically from base dataloader # wrapped_dataloader.get_val_ratio() # TODO abstract Dataloader class
         self.dl = wrapped_dataloader
         self._max_syscalls = max_syscalls
         self._max_syscalls_training = self._max_syscalls

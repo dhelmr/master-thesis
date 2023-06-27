@@ -4,9 +4,10 @@ from dataloader.base_data_loader import BaseDataLoader
 from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 
 
-def yield_successively(lists):
+def yield_successively(lists, limit=None):
     cur_indexes = [0] * len(lists)
     yielded_one = True
+    count = 0
     while yielded_one:
         yielded_one = False
         for i, l in enumerate(lists):
@@ -15,6 +16,9 @@ def yield_successively(lists):
             yield l[cur_indexes[i]]
             cur_indexes[i] += 1
             yielded_one = True
+            count += 1
+            if limit is not None and count >= limit:
+                return
 
 
 class CombinationDL(TsaBaseDataloader):
@@ -26,7 +30,9 @@ class CombinationDL(TsaBaseDataloader):
         return list(yield_successively(recordings))
 
     def training_data(self) -> list:
-        return self._combine([dl.training_data() for dl in self._dls])
+        training_data = [dl.training_data() for dl in self._dls]
+        print([dl._training_size for dl in self._dls])
+        return self._combine(training_data)
 
     def validation_data(self) -> list:
         return self._combine([dl.validation_data() for dl in self._dls])
@@ -62,13 +68,18 @@ class CombinationDL(TsaBaseDataloader):
             aggregated_cfg.update(dl.cfg_dict())
         return aggregated_cfg
 
-    def get_val_ratio(self):
-        val_ratio = None
-        for dl in self._dls:
-            if val_ratio is None:
-                val_ratio = dl.get_val_ratio()
-            elif val_ratio != dl.get_val_ratio():
-                raise RuntimeError("Validation error must be equal for all dataloaders")
-        if val_ratio is None:
-            raise RuntimeError("No dataloaders found")
-        return val_ratio
+    def artifact_dict(self):
+        artifacts = {}
+        for i, dl in enumerate(self._dls):
+            dl_artifacts = dl.artifact_dict()
+            for key, val in dl_artifacts.items():
+                artifacts["%s.%s" % (i, key)] = val
+        return artifacts
+
+    def metrics(self):
+        metrics = {}
+        for i, dl in enumerate(self._dls):
+            dl_metrics = dl.metrics()
+            for key, val in dl_metrics.items():
+                metrics["%s.%s" % (i, key)] = val
+        return metrics

@@ -1,5 +1,6 @@
-from dataloader.base_data_loader import BaseDataLoader
+import dataclasses
 
+from dataloader.base_data_loader import BaseDataLoader
 
 class TsaBaseDataloader(BaseDataLoader):
     def cfg_dict(self):
@@ -9,7 +10,4 @@ class TsaBaseDataloader(BaseDataLoader):
         raise NotImplementedError()
 
     def artifact_dict(self):
-        raise NotImplementedError()
-
-    def get_val_ratio(self):
         raise NotImplementedError()

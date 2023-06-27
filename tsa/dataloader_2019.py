@@ -8,15 +8,19 @@ from dataloader.direction import Direction
 from dataloader.recording_2019 import Recording2019, RecordingDataParts
 from dataloader.base_data_loader import BaseDataLoader
 from tsa.dataloader_2021 import get_scenario_name
+from tsa.dataloaders.combination_dl import yield_successively
 from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 from tsa.utils import split_list, random_permutation
 
+TRAIN_OFFSET = 200
+VAL_OFFSET = 50
+DEFAULT_VAL_RATIO = 0.2
 
 class ContaminatedDataLoader2019(TsaBaseDataloader):
 
     def __init__(self, scenario_path: str, num_attacks: int, direction: Direction = Direction.OPEN,
-                 validation_ratio: float = 0.2, cont_ratio: float = 0.2, permutation_i=0,
-                 training_size=200, validation_size=50, true_metadata=False, no_test_attacks: bool = False):
+                 cont_ratio: float = 0.2, permutation_i=0,
+                 training_size=200, validation_size=50, test_size=None, true_metadata=False, no_test_attacks: bool = False):
         super().__init__(scenario_path)
         self.scenario_path = scenario_path
         self._runs_path = os.path.join(scenario_path, 'runs.csv')
@@ -26,28 +30,36 @@ class ContaminatedDataLoader2019(TsaBaseDataloader):
         self._distinct_syscalls = None
         self._training_size = training_size
         self._validation_size = validation_size
+        self._test_size = test_size
         self._direction = direction
         self._cont_ratio = cont_ratio
         self._permutation_i = permutation_i
-        self._validation_ratio = validation_ratio
         self._num_attacks = num_attacks
         self._true_metadata = true_metadata
         self._no_test_attacks = no_test_attacks
-        if validation_ratio < 0 or validation_ratio > 1:
-            raise ValueError("validation_ratio must be in interval [0,1]")
         self._initialized = False
 
     def training_data(self) -> list:
         self._init_once()
-        return self._normal_recordings[:self._training_size] + self._contaminated_recordings
+        return list(yield_successively([
+            self._normal_recordings[:TRAIN_OFFSET],
+            self._contaminated_recordings
+        ], limit=self._training_size))
+
+
 
     def validation_data(self) -> list:
         self._init_once()
-        return self._normal_recordings[self._training_size:self._training_size + self._validation_size]
+        val_data=self._normal_recordings[TRAIN_OFFSET:TRAIN_OFFSET + VAL_OFFSET]
+        if self._validation_size is None:
+            return val_data
+        else:
+            return val_data[:self._validation_size]
 
     def test_data(self) -> list:
         self._init_once()
-        return self._normal_recordings[self._training_size + self._validation_size:] + self._exploit_recordings
+        normal_test_data = self._normal_recordings[TRAIN_OFFSET + VAL_OFFSET:]
+        return list(yield_successively([normal_test_data, self._exploit_recordings], limit=self._test_size))
 
     def cfg_dict(self):
         return {
@@ -57,7 +69,6 @@ class ContaminatedDataLoader2019(TsaBaseDataloader):
             "direction": self._direction,
             "cont_ratio": self._cont_ratio,
             "permutation_i": self._permutation_i,
-            "validation_ratio": self._validation_ratio,
             "num_attacks": self._num_attacks
         }
 
@@ -131,5 +142,6 @@ class ContaminatedDataLoader2019(TsaBaseDataloader):
         }
 
     def get_val_ratio(self):
-        return self._validation_ratio
-
+        if self._training_size is None or self._validation_size is None:
+            return DEFAULT_VAL_RATIO
+        return self._validation_size / (self._validation_size + self._training_size)
