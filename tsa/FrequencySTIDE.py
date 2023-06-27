@@ -36,7 +36,7 @@ class FrequencySTIDE(BuildingBlock):
         self._normal_counts.add(ngram)
 
     def fit(self):
-        self.anomaly_fn.set_max_count(self._normal_counts.max_count())
+        pass
 
     def _calculate(self, syscall: Syscall):
         """
