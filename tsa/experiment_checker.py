@@ -3,7 +3,9 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, Tuple, List
 
+import mlflow
 from mlflow.entities import RunStatus, Run
+from pandas import DataFrame
 
 from tsa.experiment import Experiment, RunConfig
 
@@ -199,6 +201,21 @@ class ExperimentChecker:
         if next_i >= len(counts):
             raise ValueError("No free run found.")
         return next_i
+
+    def get_runs_df(self, no_finished_check=False) -> DataFrame:
+        stats = self.stats()
+        if len(stats.skipped) != 0:
+            raise RuntimeError("Skipped some runs: %s " % stats.skipped)
+        if len(stats.duplicate_runs) != 0:
+            raise RuntimeError("Found duplicate runs: %s" % stats.duplicate_runs)
+        if not stats.is_finished():
+            if no_finished_check:
+                print("WARNING: experiment is not finished!")
+            else:
+                raise RuntimeError("Experiment is not finished.")
+        exp = mlflow.get_experiment_by_name(self.experiment.mlflow_name)
+        runs = mlflow.search_runs(experiment_ids=[exp.experiment_id])
+        return runs
 
 
 def safe_filter_value(value: str) -> str:

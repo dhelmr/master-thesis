@@ -20,12 +20,7 @@ class CheckSubCommand(SubCommand):
         parser.add_argument("--stale-hours", help="defines after how many hours RUNNING runs defined as 'stale'", type=int, default=49)
 
     def exec(self, args, parser):
-        mlflow_client = MlflowClient() # TODO global singleton
-        if args.config is None:
-            experiment = make_experiment_from_mlflow(mlflow_client, args.experiment)
-        else:
-            experiment = make_experiment_from_path(args.config, mlflow_client, args.experiment)
-        checker = ExperimentChecker(experiment, no_ids_checks=True)
+        checker = load_exp_from_parser(args.config, args.experiment)
         if args.remove_stale:
             self._remove_stale(args, checker)
         else:
@@ -50,3 +45,12 @@ def yes_no(msg: str, choices = ["y", "n"]):
     while inp not in choices:
         inp = input("%s [%s]" % (msg, ", ".join(choices)))
     return inp
+
+def load_exp_from_parser(config, experiment_name):
+    mlflow_client = MlflowClient()  # TODO global singleton
+    if config is None:
+        experiment = make_experiment_from_mlflow(mlflow_client, experiment_name)
+    else:
+        experiment = make_experiment_from_path(config, mlflow_client, experiment_name)
+    checker = ExperimentChecker(experiment, no_ids_checks=True)
+    return checker

@@ -2,11 +2,12 @@ import argparse
 import sys
 
 from tsa.cli.check import CheckSubCommand
+from tsa.cli.eval import EvalSubCommand
 from tsa.cli.run import RunSubCommand
 from tsa.cli.search import SearchSubCommand
 from tsa.cli.tsa import TSASubCommand
 
-commands = [RunSubCommand(), CheckSubCommand(), TSASubCommand(), SearchSubCommand()]
+commands = [RunSubCommand(), CheckSubCommand(), TSASubCommand(), SearchSubCommand(), EvalSubCommand()]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
