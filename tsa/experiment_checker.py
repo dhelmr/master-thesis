@@ -202,7 +202,7 @@ class ExperimentChecker:
             raise ValueError("No free run found.")
         return next_i
 
-    def get_runs_df(self, no_finished_check=False) -> DataFrame:
+    def get_runs_df(self, no_finished_check=False) -> Tuple[DataFrame, bool]:
         stats = self.stats()
         if len(stats.skipped) != 0:
             raise RuntimeError("Skipped some runs: %s " % stats.skipped)
@@ -215,7 +215,7 @@ class ExperimentChecker:
                 raise RuntimeError("Experiment is not finished.")
         exp = mlflow.get_experiment_by_name(self.experiment.mlflow_name)
         runs = mlflow.search_runs(experiment_ids=[exp.experiment_id])
-        return runs
+        return runs, stats.is_finished()
 
 
 def safe_filter_value(value: str) -> str:
