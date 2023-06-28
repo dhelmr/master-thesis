@@ -8,6 +8,14 @@ from pandas import DataFrame
 from tsa.cli.check import load_exp_from_parser
 from tsa.cli.run import SubCommand
 
+NUM_ATTACK_WEIGHTS = { # TODO!
+    0: 0,
+    1: 1,
+    2: 0.5,
+    3: 0.25,
+    5: 0.125,
+    10: 0.125
+}
 
 class EvalSubCommand(SubCommand):
     def __init__(self):
@@ -26,8 +34,10 @@ class EvalSubCommand(SubCommand):
             exp_name = converter.infer_exp_name(cfg_path)
             checker = load_exp_from_parser(cfg_path, exp_name)
             checkers.append(checker)
+        robustness_values = {}
         dfs = []
         for checker in checkers:
+            name = converter.get_rel_exp_name(checker.experiment.mlflow_name)
             print(checker.experiment.mlflow_name)
             runs = checker.get_runs_df(no_finished_check=args.allow_unfinished)
             runs["params.num_attacks"] = pd.to_numeric(runs["params.num_attacks"])
@@ -40,8 +50,9 @@ class EvalSubCommand(SubCommand):
                                               "experiment_name",
                                               "metrics.ids.recall"]
                                        ).groupby("params.num_attacks").mean(numeric_only=False).reset_index()
+            robustness_values[name] = self._calc_robustness_score(aggregated)
             aggregated.sort_values(by=["params.num_attacks"], inplace=True)
-            aggregated["experiment_name"] = converter.get_rel_exp_name(checker.experiment.mlflow_name)
+            aggregated["experiment_name"] = name
             dfs.append(aggregated)
             # print(group_by)
             # print("===========================\n")
@@ -54,6 +65,16 @@ class EvalSubCommand(SubCommand):
                       line_dash_sequence=["dot"],
                       markers=True)
         fig.show()
+        print(robustness_values)
+
+    def _calc_robustness_score(self, df: DataFrame):
+        f1_sum = 0
+        weight_sum = 0
+        for num_attacks, weight in NUM_ATTACK_WEIGHTS.items():
+            f1_sum += df.query("`params.num_attacks` == %s" % num_attacks)["metrics.ids.f1_cfa"].iloc[0] * weight
+            weight_sum += weight
+        return f1_sum/weight_sum
+
 
 
 class ExperimentNameConversion:
