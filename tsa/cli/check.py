@@ -5,7 +5,7 @@ from time import localtime, strftime
 import mlflow.runs
 from mlflow import MlflowClient
 
-from tsa.cli.run import SubCommand, make_experiment_from_path
+from tsa.cli.run import SubCommand, make_experiment_from_path, make_experiment_from_mlflow
 from tsa.experiment_checker import ExperimentChecker
 
 
@@ -15,14 +15,16 @@ class CheckSubCommand(SubCommand):
         super().__init__("check", "check experiment for completeness and integrity")
     def make_subparser(self, parser: ArgumentParser):
         parser.add_argument("--experiment", "-e", required=False, help="Sets the mlflow experiment ID", type=str)
-        parser.add_argument("-c", "--config", required=True, help="Experiment config yaml file.")
-
+        parser.add_argument("-c", "--config", required=False, help="Experiment config yaml file. If not set, the config is loaded from the first mlflow run.")
         parser.add_argument("--remove-stale", help="remove stale runs (RUNNING but older than x hours)", action="store_true")
         parser.add_argument("--stale-hours", help="defines after how many hours RUNNING runs defined as 'stale'", type=int, default=49)
 
     def exec(self, args, parser):
         mlflow_client = MlflowClient() # TODO global singleton
-        experiment = make_experiment_from_path(args.config, mlflow_client, args.experiment)
+        if args.config is None:
+            experiment = make_experiment_from_mlflow(mlflow_client, args.experiment)
+        else:
+            experiment = make_experiment_from_path(args.config, mlflow_client, args.experiment)
         checker = ExperimentChecker(experiment, no_ids_checks=True)
         if args.remove_stale:
             self._remove_stale(args, checker)

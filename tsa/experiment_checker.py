@@ -26,7 +26,7 @@ class ExperimentStats:
 
 
 class ExperimentChecker:
-    def __init__(self, experiment: Experiment, no_ids_checks = False):
+    def __init__(self, experiment: Experiment, no_ids_checks=False):
         self.experiment = experiment
         self.mlflow_client = experiment.mlflow
         self.no_id_checks = no_ids_checks
@@ -59,13 +59,16 @@ class ExperimentChecker:
         if "iteration" not in run.data.params:
             raise ValueError("Could not find key 'iteration' in run config")
         iteration = int(run.data.params["iteration"])
+        if "lid_ds_version" in run.data.params:
+            scenario = run.data.params["lid_ds_version"] + "/" + run.data.params["scenario"]
+        else:
+            scenario = run.data.params["scenario"]
         return RunConfig(
             parameter_cfg_id=run.data.params["parameter_cfg_id"],
-            lid_ds_version=run.data.params["lid_ds_version"],
             num_attacks=int(run.data.params["num_attacks"]),
-            iteration = iteration,
-            permutation_i = int(run.data.params["permutation_i"]),
-            scenario=run.data.params["scenario"]
+            iteration=iteration,
+            permutation_i=int(run.data.params["permutation_i"]),
+            scenario=scenario
         )
 
     def counts_by_run_status(self) -> Tuple[Dict[RunStatus, Dict[int, int]], List[Run], List[RunConfig]]:
@@ -103,18 +106,21 @@ class ExperimentChecker:
                     if expected_run_cfg == mlflow_cfg:
                         found_one = True
                     else:
+                        print(expected_run_cfg, mlflow_cfg)
                         failed_integrity.append(mlflow_cfg)
             if not found_one:
                 not_found.append(mlflow_cfg)
         return failed_integrity, not_found
+
     def stats(self) -> ExperimentStats:
         runs = self.experiment.run_configurations()
         counts, skipped, parsed_run_cfgs = self.counts_by_run_status()
 
         failed_integrity, not_found = self.check_integrity(parsed_run_cfgs, runs)
         if len(failed_integrity) > 0:
-            raise RuntimeError("The following mlflow runs have unexpected parameters (based on their iteration id): %s" %
-                               [r.iteration for r in failed_integrity])
+            raise RuntimeError(
+                "The following mlflow runs have unexpected parameters (based on their iteration id): %s" %
+                [r.iteration for r in failed_integrity])
         if len(not_found) > 0:
             raise RuntimeError("The following mlflow runs are not expected" % [r.iteration for r in not_found])
 
@@ -151,7 +157,7 @@ class ExperimentChecker:
                     print(r)
 
     def get_stale_runs(self, older_than: timedelta):
-        now = time.time()*1000
+        now = time.time() * 1000
         stale_runs = []
         for r in self.iter_mlflow_runs():
             status = RunStatus.from_string(r.info.status)
@@ -194,5 +200,6 @@ class ExperimentChecker:
             raise ValueError("No free run found.")
         return next_i
 
+
 def safe_filter_value(value: str) -> str:
-    return value.replace("'","\\'")
+    return value.replace("'", "\\'")

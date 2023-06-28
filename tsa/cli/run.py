@@ -153,6 +153,19 @@ def make_experiment_from_path(path, mlflow_client, name):
         parameter_config["id"] = path.split(os.path.sep)[-1]
     return make_experiment(parameter_config, mlflow_client, name)
 
+def get_exp_config_from_mlflow(mlflow_client: MlflowClient, exp_id):
+    runs = mlflow_client.search_runs(experiment_ids=[exp_id])
+    for r in runs:
+        return mlflow.artifacts.load_dict(r.info.artifact_uri + "/config.json")
+    raise RuntimeError("No run found for experiment id %s" % exp_id)
+def make_experiment_from_mlflow(mlflow_client: MlflowClient, mlflow_exp_name):
+    exp = mlflow_client.get_experiment_by_name(mlflow_exp_name)
+    config = get_exp_config_from_mlflow(mlflow_client, exp.experiment_id)
+    return make_experiment(config, mlflow_client, mlflow_exp_name)
+
+
+
+
 def make_experiment(parameter_config, mlflow_client, name):
     exp_mode = access_cfg(parameter_config, "mode", default="normal")
     if exp_mode == "normal":
