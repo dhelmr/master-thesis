@@ -38,11 +38,11 @@ ids:
   - name: FrequencyEncoding
     args:
       n_components: 30
-      alpha: 0.7
-      anomaly_fn: exponential
+      alpha: 2
+      anomaly_fn: homographic
   - name: Som
     args:
-     epochs: 50
+     epochs: 100
      sigma: 1.0
   - name: MaxScoreThreshold
 dataloader:
