@@ -30,7 +30,6 @@ experiment:
     - name: MaxScoreThreshold
   dataloader:
     base:
-      validation_ratio: 0.2
       cont_ratio: 0.2
     permutation_i: 0
     num_attacks:
