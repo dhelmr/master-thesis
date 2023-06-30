@@ -40,7 +40,7 @@ class FrequencyAnomalyFunction:
             return math.pow(self._alpha, ngram_frequency)
 
 class FrequencyEncoding(BuildingBlock):
-    def __init__(self, input_bb: BuildingBlock, n_components=5, threshold=None, anomaly_fn="inverse", alpha=0.5):
+    def __init__(self, input_bb: BuildingBlock, n_components=5, threshold=None, anomaly_fn="linear", alpha=0.5, unseen_frequency=0):
         super().__init__()
         self._anomaly_fn = FrequencyAnomalyFunction(anomaly_fn, alpha)
         self._input = input_bb
@@ -49,6 +49,7 @@ class FrequencyEncoding(BuildingBlock):
         self._embeddings = None
         self._unseen_frequency_ngram = None
         self._threshold = threshold
+        self._unseen_frequency = unseen_frequency
 
 
     def train_on(self, syscall: Syscall):
@@ -71,8 +72,13 @@ class FrequencyEncoding(BuildingBlock):
         while unseen_frequency_ngram in self._counts:
             unseen_frequency_ngram += (-1,)
         self._unseen_frequency_ngram = unseen_frequency_ngram
+        if self._unseen_frequency > 0:
+            self._counts.add(unseen_frequency_ngram, self._unseen_frequency)
         def iter_ngrams():
-            return itertools.chain(self._counts.keys(), [unseen_frequency_ngram])
+            if self._unseen_frequency > 0:
+                return self._counts.keys()
+            else:
+                return itertools.chain(self._counts.keys(), [unseen_frequency_ngram])
         distance_matrix = []
         for ngram in iter_ngrams():
             row = []
