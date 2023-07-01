@@ -158,6 +158,13 @@ class ExperimentChecker:
                 else:
                     print(r)
 
+        finished_count = len(stats.run_configs)-len(stats.missing_runs)
+        finished_perc = finished_count/len(stats.run_configs) * 100
+        print("Progress: %s/%s finished (%s perc.); %s/%s running (out of missing runs) (%s perc.)" %
+              (finished_count, len(stats.run_configs), finished_perc,
+               len(stats.missing_runs_but_running),len(stats.missing_runs),
+               len(stats.missing_runs_but_running)/len(stats.missing_runs)*100))
+
     def get_stale_runs(self, older_than: timedelta):
         now = time.time() * 1000
         stale_runs = []
