@@ -8,7 +8,7 @@ from mlflow.entities import RunStatus
 
 from tsa.cli.run import SubCommand, make_experiment_from_path, make_experiment_from_mlflow
 from tsa.cli.search import ParameterSearch
-from tsa.experiment_checker import ExperimentChecker
+from tsa.experiment_checker import ExperimentChecker, ExperimentStats
 from tsa.mlflow.experiment_name_conversion import ExperimentNameConversion
 
 
@@ -38,6 +38,7 @@ class CheckSubCommand(SubCommand):
                             action="store_true")
         parser.add_argument("--stale-hours", help="defines after how many hours RUNNING runs defined as 'stale'",
                             type=int, default=49)
+        parser.add_argument("--remove-duplicate", action="store_true", default=False)
         parser.add_argument("--verbose", action="store_true", help="Verbose output", default=False)
 
     def exec(self, args, parser):
@@ -62,6 +63,9 @@ class CheckSubCommand(SubCommand):
             print("===> parameter_cfg_id: %s" % checker.experiment.parameter_cfg_id)
             if args.remove_stale:
                 self._remove_stale(args, checker)
+            elif args.remove_duplicate:
+                stats = checker.stats()
+                self._remove_duplicate(stats, checker)
             else:
                 stats = checker.stats()
                 ok, status = self.print_stats(stats, verbose=args.verbose)
@@ -90,9 +94,15 @@ class CheckSubCommand(SubCommand):
             start_time_seconds = int(s.info.start_time / 1000)
             start_time = strftime('%Y-%m-%d %H:%M:%S', localtime(start_time_seconds))
             print(s.info.run_id, start_time)
-        if yes_no("Remove these %s runs?" % len(stale)) == "y":
+        if choice("Remove these %s runs?" % len(stale)) == "y":
             for s in stale:
                 checker.experiment.mlflow.delete_run(s.info.run_id)
+
+    def _print_duplicate_runs(self, stats):
+        print("Duplicate runs:")
+        index = 0
+        for r, count in stats.duplicate_runs:
+            print(f"[{index}] {r}: {count}x")
 
     def print_stats(self, stats, verbose=False):
         ok = True
@@ -108,9 +118,7 @@ class CheckSubCommand(SubCommand):
             status += "%s running runs; " % len(stats.counts[RunStatus.RUNNING])
 
         if len(stats.duplicate_runs) != 0:
-            print("Duplicate runs:")
-            for r, count in stats.duplicate_runs:
-                print(f"{r}: {count}x")
+            self._print_duplicate_runs(stats)
             ok = False
             status += "%s duplicate runs; " % len(stats.duplicate_runs)
 
@@ -132,7 +140,31 @@ class CheckSubCommand(SubCommand):
                ))
         return ok, status
 
-def yes_no(msg: str, choices=["y", "n"]):
+    def _remove_duplicate(self, stats: ExperimentStats, checker):
+        if len(stats.duplicate_runs) == 0:
+            return
+        for run_cfg, count in stats.duplicate_runs:
+            found_runs = []
+            for r in checker.iter_mlflow_runs():
+                if int(r.data.params["iteration"]) != int(run_cfg.iteration):
+                    continue
+                found_runs.append(r)
+            for i, r in enumerate(found_runs):
+                print("[%s] %s - %s - %s" % (i, r.info.run_name, r.info.status, r.info.start_time))
+            keep = choice("Found %s mlflow runs for run cfg %s. Enter which run to keep. (k for keep all)" % (
+            len(found_runs), run_cfg),
+                          choices=[str(index) for index in range(len(found_runs))] + ["k"])
+            if keep == "k":
+                continue
+            else:
+                for i, r in enumerate(found_runs):
+                    if i == int(keep):
+                        continue
+                    print("Delete", r.info.run_name)
+                    checker.experiment.mlflow.delete_run(r.info.run_id)
+
+
+def choice(msg: str, choices=["y", "n"]):
     inp = None
     while inp not in choices:
         inp = input("%s [%s]" % (msg, ", ".join(choices)))
@@ -148,9 +180,10 @@ def load_exp_from_parser(config, experiment_name):
     checker = ExperimentChecker(experiment, no_ids_checks=True)
     return checker
 
+
 def format_perc(fraction, of):
     if of == 0:
         return "%s/%s" % (fraction, of)
     return "%s/%s (%s perc.)" % (
-        fraction, of, fraction/of*100
+        fraction, of, fraction / of * 100
     )
