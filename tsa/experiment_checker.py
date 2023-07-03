@@ -27,6 +27,7 @@ class ExperimentStats:
         return [c for c in self.missing_runs if c.iteration not in running_iterations]
 
 
+
 class ExperimentChecker:
     def __init__(self, experiment: Experiment, no_ids_checks=False):
         self.experiment = experiment
@@ -136,35 +137,6 @@ class ExperimentChecker:
         # TODO add running runs duplicates
         return ExperimentStats(counts, runs, skipped, missing, missing_but_running, duplicates)
 
-    def check_all(self):
-        stats = self.stats()
-
-        if len(stats.counts[RunStatus.RUNNING]) != 0:
-            print("RUNNING runs:")
-            for i, count in stats.counts[RunStatus.RUNNING].items():
-                r = stats.run_configs[i]
-                print(r, f"({count}x)")
-
-        if len(stats.duplicate_runs) != 0:
-            print("Duplicate runs:")
-            for r, count in stats.duplicate_runs:
-                print(f"{r}: {count}x")
-
-        if len(stats.missing_runs) != 0:
-            print("Missing Runs:")
-            for r in stats.missing_runs:
-                if r in stats.missing_runs_but_running:
-                    print(r, "(RUNNING)")
-                else:
-                    print(r)
-
-        finished_count = len(stats.run_configs)-len(stats.missing_runs)
-        finished_perc = finished_count/len(stats.run_configs) * 100
-        print("Progress: %s/%s finished (%s perc.); %s/%s running (out of missing runs) (%s perc.)" %
-              (finished_count, len(stats.run_configs), finished_perc,
-               len(stats.missing_runs_but_running),len(stats.missing_runs),
-               len(stats.missing_runs_but_running)/len(stats.missing_runs)*100))
-
     def get_stale_runs(self, older_than: timedelta):
         now = time.time() * 1000
         stale_runs = []
@@ -227,3 +199,4 @@ class ExperimentChecker:
 
 def safe_filter_value(value: str) -> str:
     return value.replace("'", "\\'")
+

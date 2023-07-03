@@ -65,10 +65,14 @@ class ParameterSearch:
         else:
             raise ValueError("Unknown search mode: %s" % mode)
 
-    def get_next(self, mlflow_client, mlflow_exp_name) -> Optional[Experiment]:
+    def iterate_exp_checkers(self, mlflow_client, mlflow_exp_name):
         for parameters in self.iter_parameter_cfgs():
             experiment = make_experiment(parameters, mlflow_client, mlflow_exp_name)
             checker = ExperimentChecker(experiment)
+            yield checker
+    def get_next(self, mlflow_client, mlflow_exp_name) -> Optional[Experiment]:
+        for checker in self.iterate_exp_checkers(mlflow_client, mlflow_exp_name):
+            experiment = checker.experiment
             if not checker.exists_in_mlflow():
                 return experiment
             stats = checker.stats()
