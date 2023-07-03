@@ -11,7 +11,7 @@ from tsa.unsupervised.mixed_model import Histogram
 
 
 ANOMALY_FUNCTIONS = [
-    "linear", "homographic", "exponential"
+    "linear", "homographic", "exponential", "max-scaled"
 ]
 
 class FrequencyAnomalyFunction:
@@ -27,6 +27,7 @@ class FrequencyAnomalyFunction:
             raise ValueError("alpha must be > 0")
 
         self._alpha = alpha
+        self._max_count = None
 
     def anomaly_value(self, ngram_frequency):
         if self._name == "linear":
@@ -34,10 +35,17 @@ class FrequencyAnomalyFunction:
             if val < 0:
                 return 0
             return val
+        elif self._name == "max-scaled":
+            if self._max_count is None:
+                raise RuntimeError("max_count must be set first.")
+            return 1 - (ngram_frequency/self._max_count)
         elif self._name == "homographic":
             return self._alpha / (ngram_frequency + self._alpha)
         elif self._name == "exponential":
             return math.pow(self._alpha, ngram_frequency)
+
+    def set_max_count(self, max_count):
+        self._max_count = max_count
 
 class FrequencyEncoding(BuildingBlock):
     def __init__(self, input_bb: BuildingBlock, n_components=5, threshold=None, anomaly_fn="linear", alpha=0.5, unseen_frequency=0):
@@ -68,6 +76,7 @@ class FrequencyEncoding(BuildingBlock):
             return inp + self._embeddings[self._unseen_frequency_ngram]
 
     def fit(self):
+        self._anomaly_fn.set_max_count(self._counts.max_count())
         unseen_frequency_ngram = (-1,)
         while unseen_frequency_ngram in self._counts:
             unseen_frequency_ngram += (-1,)

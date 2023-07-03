@@ -19,6 +19,7 @@ from tsa.analysis.continuous_anaylser import ContinuousTrainingSetAnalyser
 from tsa.analysis.visualization_analyser import Visualize
 from tsa.dataloaders.training_set_filter import TrainingSetFilter
 from tsa.frequency_encoding import FrequencyEncoding
+from tsa.ngram_frequency_append import NgramFrequencyAppender
 from tsa.unsupervised.pca import PCA_BB
 from tsa.unsupervised.scikit import LOF, EllipticEnvelopeOD, IsolationForestOD
 from tsa.unsupervised.frequency_od import FrequencyOD
@@ -38,7 +39,8 @@ BUILDING_BLOCKS = {cls.__name__: cls for cls in
                     MixedModelOutlierDetector, MaxScoreThreshold, StreamSum, FrequencyOD,
                     EllipticEnvelopeOD, IsolationForestOD,
                     TrainingSetAnalyser, ContinuousTrainingSetAnalyser, Visualize, NgramAnalyser,
-                    PCA_BB, W2VConcat, TupleBB, TrainingSetFilter, FrequencyEncoding, FrequencySTIDE]}
+                    PCA_BB, W2VConcat, TupleBB, TrainingSetFilter, FrequencyEncoding, FrequencySTIDE,
+                    NgramFrequencyAppender]}
 BuildingBlockCfg = dict
 
 
