@@ -19,7 +19,6 @@ class NgramFrequencyAppender(BuildingBlock):
         self._dependency_list = []
         self._dependency_list.append(self._input)
 
-        self._max_count = None
         self._anomaly_function = FrequencyAnomalyFunction(anomaly_fn, alpha)
 
     def depends_on(self):
@@ -37,8 +36,6 @@ class NgramFrequencyAppender(BuildingBlock):
     def fit(self):
         self._anomaly_function.set_max_count(self._normal_counts.max_count())
     def _calculate(self, syscall):
-        if self._max_count is None:
-            raise RuntimeError("fit must be called first.")
         inp = self._input.get_result(syscall)
         if inp is None:
             return
