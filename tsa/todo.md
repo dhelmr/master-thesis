@@ -1,29 +1,24 @@
 
-# June II (12-23)
+# July I (03-12)
 
-## Advanced Dataloder Features
+## Various
 
-* load attacks from different scenario + Combine Scenarios 
-
-## Frequency Embedding
-
-* specify distance metric via parameter ("2max", "max(freq;...)", ...)
+* W2V Cache for SOM Experiments
+* T-Stide: relative frequency
 
 ## Code Maintainance
 
 * backup databricks mlflow runs
 * test loaded attacks in dataloader
 
-## Experiment Validity
+## Experiment Building
 
-* check command for "search"
-* remove duplicates
-* download multiple experiments in one csv
+* Decision Engine as Outlier Detector 
+* Multiply/ADD FrequencySTIDE to SOM Score
 
 ## Visualization / Evaluation
 
-* different plot tool? / plot script
-* check experiemnt + calculate quantitative robustness measure(s)
+* calculate quantitative robustness measure(s) with different attack probabilitiy profiles
 
 --- 
 
