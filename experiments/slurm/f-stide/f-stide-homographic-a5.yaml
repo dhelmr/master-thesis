@@ -31,8 +31,8 @@ ids:
       ngram_length: 5
   - name: FrequencySTIDE
     args:
-      alpha: 1
-      anomaly_fn: inverse
+      alpha: 5
+      anomaly_fn: homographic
   - name: StreamSum
     args:
       thread_aware: False
