@@ -11,7 +11,7 @@ class PermutationITest(unittest.TestCase):
             for i in [0,10,20,30,40,50,100,120]:
                 perm_a = random_permutation(items_a, k, i)
                 perm_b = random_permutation(items_b, k, i)
-                self.assertEquals(perm_a, perm_b)
+                self.assertEqual(perm_a, perm_b)
 
     def test_monotony(self):
         items = list(range(300))
@@ -19,7 +19,7 @@ class PermutationITest(unittest.TestCase):
             last = ()
             for k in range(1, 20):
                 perm = random_permutation(items, k, i)
-                self.assertEquals(last, perm[:k-1])
+                self.assertEqual(last, perm[:k-1])
                 last = perm
 
     def test_small_list(self):
@@ -38,7 +38,7 @@ class PermutationITest(unittest.TestCase):
             for k in range(20):
                 for i in range(10):
                     perm = random_permutation(items, k, i, random_seed=seed)
-                    self.assertEquals(len(perm), len(set(perm)))
+                    self.assertEqual(len(perm), len(set(perm)))
 
     def test_empty_intersect(self):
         for l in [5,20,50]:

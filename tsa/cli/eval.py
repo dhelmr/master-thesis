@@ -11,10 +11,10 @@ from tsa.mlflow.experiment_name_conversion import ExperimentNameConversion, Mlfl
 NUM_ATTACK_WEIGHTS = {  # TODO!
     0: 0,
     1: 1,
-    2: 0.5,
-    3: 0.25,
-    5: 0.125,
-    10: 0.125
+    2: 1,
+    3: 1,
+    5: 1,
+    10: 1
 }
 
 
@@ -56,7 +56,7 @@ class EvalSubCommand(SubCommand):
                                                        "experiment_name",
                                                        "metrics.ids.recall"]
                                                 ).groupby("params.num_attacks").mean(numeric_only=False).reset_index()
-            robustness_values[name] = self._calc_robustness_score(aggregated)
+            robustness_values[name] = self._calc_robustness_scores(aggregated)
             aggregated.sort_values(by=["params.num_attacks"], inplace=True)
             aggregated["experiment_name"] = name
             dfs.append(aggregated)
@@ -71,10 +71,11 @@ class EvalSubCommand(SubCommand):
                       line_dash_sequence=["dot"],
                       markers=True)
         fig.show()
-        print(robustness_values)
+        robustness_scores_df = pd.DataFrame(robustness_values)
+        print(robustness_scores_df)
 
     def _get_results(self, checker, exp_name, cache, allow_unfinished):
-        if cache is  None:
+        if cache is None:
             runs, _ = checker.get_runs_df(no_finished_check=allow_unfinished)
             return runs
 
@@ -87,12 +88,51 @@ class EvalSubCommand(SubCommand):
             runs = from_cache.df
             print("from cache", from_cache.timestamp)
         return runs
-    def _calc_robustness_score(self, df: DataFrame):
-        f1_sum = 0
+
+    def _calc_robustness_scores(self, df: DataFrame, num_attack_col="params.num_attacks"):
+        if num_attack_col not in df.columns:
+            raise ValueError("%s is not a column in the dataframe" % num_attack_col)
+
+        num_attack_values = pd.unique(df["params.num_attacks"])
+        metrics = [c for c in df.columns if c != num_attack_col]
+        metrics_sums = {m: 0 for m in metrics}
         weight_sum = 0
-        for num_attacks, weight in NUM_ATTACK_WEIGHTS.items():
-            f1_sum += df.query("`params.num_attacks` == %s" % num_attacks)["metrics.ids.f1_cfa"].iloc[0] * weight
-            weight_sum += weight
-        return f1_sum / weight_sum
+        if 0 not in num_attack_values:
+            raise ValueError("0 must be in num_attack_values")
+        for num_attacks in num_attack_values:
+            if num_attacks == 0:
+                continue
+            for m in metrics:
+                metrics_sums[m] += df.query(f"`{num_attack_col}` == {num_attacks}")[m].iloc[0]
+            weight_sum += 1
 
+        metrics_means = {m: metrics_sums[m] / weight_sum for m in metrics}
 
+        clean_data_metrics = {m: df.query(f"`{num_attack_col}` == 0")[m].iloc[0] for m in metrics}
+        relative_robustness_score = {m: metrics_means[m] / clean_data_metrics[m] for m in metrics}
+        auc_metrics_w0 = {m: self._calc_auc_metrics(df, num_attack_col, m) for m in metrics}
+        auc_metrics_geq1 = {m: self._calc_auc_metrics(df.query(f"`{num_attack_col}` != 0"), num_attack_col, m) for m in
+                            metrics}
+
+        # write the scores into a single dict
+        scores = {}
+        for prefix, scores_dict in [("mean", metrics_means), ("relative", relative_robustness_score),
+                                    ("auc_w0", auc_metrics_w0), ("auc_geq1", auc_metrics_geq1)]:
+            for key, metric_value in scores_dict.items():
+                scores[f"{prefix}.{key}"] = metric_value
+        return scores
+
+    def _calc_auc_metrics(self, df, x_col_name, metric_name):
+        X = sorted(pd.unique(df[x_col_name]))
+        Y = [df.query(f"`{x_col_name}` == {x}")[metric_name].iloc[0] for x in X]
+        return calc_area_under_curve(X, Y)
+
+def calc_area_under_curve(X, Y):
+    if len(X) != len(Y):
+        raise ValueError("uneven length of X and Y: %s != %s" % (len(X), len(Y)))
+    sum = 0
+    for k in range(len(X) - 1):
+        if X[k] > X[k+1]:
+            raise ValueError("X is not sorted! X[%s] = %s > X[%s] = %s" % (k, X[k], k+1, X[k+1]))
+        sum += (Y[k] + Y[k + 1]) / 2 * (X[k + 1] - X[k])
+    return sum / (X[-1] - X[0])
