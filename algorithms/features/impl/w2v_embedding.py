@@ -71,6 +71,7 @@ class W2VEmbedding(BuildingBlock):
                              epochs=self._epochs,
                              window=self._window_size,
                              min_count=1)
+
             self.w2vmodel = model
 
     def _calculate(self, syscall: Syscall):

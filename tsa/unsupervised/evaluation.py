@@ -71,9 +71,8 @@ class UnsupervisedExperiment(Experiment):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def train_test(self, dataloader, run_config):
+    def train_test(self, dataloader, run_config, builder):
         ids_cfg = self._get_param("ids", exp_type=list)
-        builder = IDSPipelineBuilder()  # TODO change experiment yaml format; add own key for pipeline
         last_bb = builder.build_all(ids_cfg)
         if not isinstance(last_bb, OutlierDetector):
             raise ValueError("Expect the resulting block of the experiment to be an outlier detector.")

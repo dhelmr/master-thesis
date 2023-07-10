@@ -25,11 +25,12 @@ scenarios:
  - LID-DS-2021/ZipSlip
 ids:
   - name: IntEmbedding
-  - name: W2VEmbedding
+  - name: CacheableW2V
     args:
       window_size: 9
       epochs: 100
       vector_size: 11
+    cache_key: true
   - name: Ngram
     args:
       thread_aware: true

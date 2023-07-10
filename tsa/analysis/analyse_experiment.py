@@ -30,9 +30,8 @@ class AnalysisExperiment(Experiment):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def train_test(self, dataloader, run_cfg):
+    def train_test(self, dataloader, run_cfg, builder):
         ids_cfg = self._get_param("ids", exp_type=list)
-        builder = IDSPipelineBuilder()
         last_bb = builder.build_all(ids_cfg)
 
         decider = DummyDecider(last_bb)

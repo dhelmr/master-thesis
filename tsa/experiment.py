@@ -98,9 +98,11 @@ class Experiment:
             with mlflow.start_run() as run:
                 mlflow.log_params(convert_mlflow_dict(run_cfg.to_dict()))
                 mlflow.log_params(convert_mlflow_dict(dataloader.cfg_dict(), "dataloader"))
+                print(self.parameter_cfg)
                 mlflow.log_dict(self.parameter_cfg, "config.json")
                 self._log_ids_cfg()
-                additional_params, results, ids = self.train_test(dataloader, run_cfg)
+                builder = IDSPipelineBuilder(cache_context=str(dataloader.cfg_dict()))
+                additional_params, results, ids = self.train_test(dataloader, run_cfg, builder)
                 mlflow.log_params(convert_mlflow_dict(additional_params))
                 self._log_metrics(dataloader.metrics(), "dataloader")
                 dl_artifacts = dataloader.artifact_dict()
@@ -171,8 +173,7 @@ class Experiment:
             cfg["direction"] = Direction.BOTH # TODO: make configurable
         return cfg
 
-    def train_test(self, dataloader: BaseDataLoader, run_cfg: RunConfig):
-        builder = IDSPipelineBuilder()  # TODO change experiment yaml format; add own key for pipeline
+    def train_test(self, dataloader: BaseDataLoader, run_cfg: RunConfig, builder):
         building_block_configs = self._get_param("ids", exp_type=list)
         decider = builder.build_all(building_block_configs)
 
@@ -200,7 +201,7 @@ class Experiment:
         return {"ids": results, "cm": metrics}
 
     def _get_param(self, *args, **kwargs):
-        return access_cfg(self.parameter_cfg, *args, **kwargs)
+        return copy.deepcopy(access_cfg(self.parameter_cfg, *args, **kwargs))
 
     def _log_ids_cfg(self):
         ids_cfg = self._get_param("ids", exp_type=list)
