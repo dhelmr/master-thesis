@@ -1,28 +1,43 @@
-
+Robustness studies and training set analysis for HIDS
 # July I (03-12)
+
+
+
+
+
+---
+
+# JULY II (12-21) 
 
 ## Various
 
-* W2V Cache for SOM Experiments
 * T-Stide: relative frequency
 
-## Code Maintainance
-
-* backup databricks mlflow runs
-* test loaded attacks in dataloader
 
 ## Experiment Building
 
 * Decision Engine as Outlier Detector 
 * Multiply/ADD FrequencySTIDE to SOM Score
 
-## Visualization / Evaluation
+## Code Maintainance
 
-* calculate quantitative robustness measure(s) with different attack probabilitiy profiles
+* backup databricks mlflow runs
+* test loaded attacks in dataloader
+
+## Similar Normal Behaviour (2019)
+
+* CVE-2014-0160 + CWE-307 (Hearbleed, Brute Force Login) => Apache with vulnerable OpenSSL version; Selenium
+* CWE-89 + CWE-434 (SQL Injection, PHP File Upload)
+* CVE-2014-3120 + CVE-2015-1427 (Arbitrary Code Execution)
+* CVE-2016-6515 + CVE-2015-5602 (Local Privilege Escalation)
+* Zip Slip + SWE-434 (Zip Slip, PS)
+
 
 --- 
 
 # BACKLOG
+
+* f-stide alpha anhand von training set eigenschaften bestimmen
 
 ## TSA
 
@@ -38,6 +53,10 @@
 ## Experiment Evaluation
 
 * plot total number of false alarms
+
+# important
+`
+* TSA auf kompletten Scenario (t+v+t) ausführen => erreichen unique n-grams plateau?
 
 ---
 
