@@ -13,8 +13,8 @@ class ConfusionMatrix:
     fn: int
 
     @staticmethod
-    def from_predictions(pred_y, ground_truth_y):
-        tn, fp, fn, tp = confusion_matrix(ground_truth_y, pred_y).ravel()
+    def from_predictions(pred_y, ground_truth_y, labels=None):
+        tn, fp, fn, tp = confusion_matrix(ground_truth_y, pred_y, labels=labels).ravel()
         return ConfusionMatrix(tn=tn, fp=fp, fn=fn, tp=tp)
 
     def calc_unweighted_measurements(cm) -> dict:
@@ -59,5 +59,7 @@ def safe_divide(q1, q2) -> float:
     try:
         value = q1 / q2
     except ZeroDivisionError:
+        value = float("NaN")
+    except RuntimeWarning:
         value = float("NaN")
     return value

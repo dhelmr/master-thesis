@@ -9,7 +9,7 @@ syscall_df = pd.read_csv(sys.argv[2])
 
 
 def get_performance(syscall_num: int, scenario: str, num_attacks: int):
-    selected = syscall_df.loc[(syscall_df["params.dataloader.max_syscalls"] == int(syscall_num)) &
+    selected = syscall_df.loc[(syscall_df["params.dataloader.max_syscalls_training"] == int(syscall_num)) &
                           (syscall_df["params.dataloader.scenario"] == scenario) &
                           (syscall_df["params.dataloader.num_attacks"] == int(num_attacks))]["metrics.ids.f1_cfa"]
     if len(selected) >= 1:
@@ -35,6 +35,7 @@ for _, r in tqdm(ngram_analyis_df.iterrows(), total=len(ngram_analyis_df)):
         "u/t": r["u/t"],
         "unique": r["unique"],
         "num_attacks": r["num_attacks"],
+        "ngram_length": r["ngram_size"],
         "f1_cfa": f1
     })
 
