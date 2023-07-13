@@ -45,4 +45,5 @@ class CacheableW2V(W2VEmbedding):
         if os.path.exists(model_path):
             print("w2v model is already serialized at %s, skip" % model_path)
             return
+        print("Write w2v model to %s" % model_path)
         self.w2vmodel.save(model_path)
