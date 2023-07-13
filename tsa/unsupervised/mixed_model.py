@@ -103,6 +103,33 @@ class Histogram:
     def values(self):
         return self._counts.values()
 
+    def zip(self, hist2: "Histogram"):
+        keys_in_hist2 = set(hist2.keys())
+        for key in self.keys():
+            if key in keys_in_hist2:
+                keys_in_hist2.remove(key)
+            yield key, self.get_count(key), hist2.get_count(key)
+        for key in keys_in_hist2:
+            yield key, self.get_count(key), hist2.get_count(key)
+    def bhattacharyya_coef(self, hist2):
+        hist1 = self
+        total1 = len(hist1)
+        total2 = len(hist2)
+        sum = 0
+        for key, count1, count2 in self.zip(hist2):
+            sum += math.sqrt(count1/total1 * count2/total2)
+        # handle numeric inaccuracies (bc must be in [0,1])
+        if sum > 1:
+            return 1
+        if sum < 0:
+            return 0
+        return sum
+
+    def hellinger_distance(self, hist2: "Histogram"):
+        bhattacharyya_coef = self.bhattacharyya_coef(hist2)
+
+        return math.sqrt(1-bhattacharyya_coef)
+
 
 class NgramNaiveBayes:
     def __init__(self, pseudo_count=1):

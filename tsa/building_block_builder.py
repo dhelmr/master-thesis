@@ -26,6 +26,7 @@ from tsa.unsupervised.pca import PCA_BB
 from tsa.unsupervised.scikit import LOF, EllipticEnvelopeOD, IsolationForestOD
 from tsa.unsupervised.frequency_od import FrequencyOD
 from tsa.unsupervised.mixed_model import MixedModelOutlierDetector
+from tsa.unsupervised.thread_clustering import ThreadClusteringOD
 from tsa.unsupervised.w2v_concat import W2VConcat, TupleBB
 from tsa.utils import access_cfg, exists_key
 
@@ -42,7 +43,7 @@ BUILDING_BLOCKS = {cls.__name__: cls for cls in
                     EllipticEnvelopeOD, IsolationForestOD,
                     TrainingSetAnalyser, ContinuousTrainingSetAnalyser, Visualize, NgramAnalyser,
                     PCA_BB, W2VConcat, TupleBB, TrainingSetFilter, FrequencyEncoding, FrequencySTIDE,
-                    NgramFrequencyAppender]}
+                    NgramFrequencyAppender, ThreadClusteringOD]}
 BuildingBlockCfg = dict
 
 

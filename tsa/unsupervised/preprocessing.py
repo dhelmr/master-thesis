@@ -44,7 +44,10 @@ class OutlierDetector(BuildingBlock):
         ngram = self._train_input.get_result(syscall)
         if ngram is None:
             return
-        self._training_data.append((self._train_index, ngram))
+        self._add_training_data(self._train_index, ngram, syscall)
+
+    def _add_training_data(self, index, ngram, syscall):
+        self._training_data.append((index, ngram))
 
     def fit(self):
         self._anomaly_indexes = self.detect_anomalies(self._training_data)
@@ -58,6 +61,8 @@ class OutlierDetector(BuildingBlock):
 
     def depends_on(self) -> list:
         return self._dependency_list
+
+
 
 
 
