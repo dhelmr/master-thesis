@@ -44,11 +44,19 @@ class ThreadClusteringOD(OutlierDetector):
         print("number of threads in training set: ", len(counts_by_thread))
         print("Calculate distance matrix...")
         distance_matrix = []
+        calculated_distances = {} # used to ensure symetry of the distance matrix
         for hist1 in counts_by_thread.values():
             row = []
             for hist2 in counts_by_thread.values():
-                row.append(hist1.hellinger_distance(hist2))
+                if (hist2, hist1) in calculated_distances:
+                    # the distance between this pair has already been calculated
+                    dist = calculated_distances[(hist2, hist1)]
+                else:
+                    dist = hist1.hellinger_distance(hist2)
+                    calculated_distances[(hist1, hist2)] = dist
+                row.append(dist)
             distance_matrix.append(row)
+        del calculated_distances
 
         preds = self._do_outlier_detection(distance_matrix)
         anomalous_threads = set()
