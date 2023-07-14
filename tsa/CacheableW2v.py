@@ -46,4 +46,5 @@ class CacheableW2V(W2VEmbedding):
             print("w2v model is already serialized at %s, skip" % model_path)
             return
         print("Write w2v model to %s" % model_path)
-        self.w2vmodel.save(model_path)
+        with open(model_path, "wb") as f:
+            self.w2vmodel.save(f)
