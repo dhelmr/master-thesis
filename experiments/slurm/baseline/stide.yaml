@@ -36,9 +36,9 @@ ids:
       wait_until_full: False
       window_length: 1000
   - name: MaxScoreThreshold
+cache: true
 dataloader:
   base:
-    validation_ratio: 0.2
     cont_ratio: 0.2
   permutation_i:
     - 0

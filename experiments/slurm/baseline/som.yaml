@@ -40,6 +40,7 @@ ids:
      epochs: 100
      sigma: 1.0
   - name: MaxScoreThreshold
+cache: true
 dataloader:
   base:
     cont_ratio: 0.2
