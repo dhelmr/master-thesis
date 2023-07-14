@@ -32,6 +32,7 @@ ids:
   - name: ThreadClusteringOD
     args:
       n_components: 20
+      od_method: LocalOutlierFactor
   - name: Stide
   - name: StreamSum
     args:
