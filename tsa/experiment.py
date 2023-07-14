@@ -1,6 +1,8 @@
 import copy
 import dataclasses
+import hashlib
 import itertools
+import pickle
 from typing import List, Union, Dict
 
 import mlflow
@@ -177,10 +179,17 @@ class Experiment:
         building_block_configs = self._get_param("ids", exp_type=list)
         decider = builder.build_all(building_block_configs)
 
-        ids = IDS(data_loader=dataloader,
-                  resulting_building_block=decider,
-                  create_alarms=True,
-                  plot_switch=False)
+        use_cache = self._get_param("cache", default=False, exp_type=bool)
+        ids = None
+        if use_cache:
+            ids = self._load_from_cache(dataloader, run_cfg)
+        if ids is None:
+            ids = IDS(data_loader=dataloader,
+                      resulting_building_block=decider,
+                      create_alarms=True,
+                      plot_switch=False)
+        if use_cache:
+            self._serialize_ids(ids, dataloader, run_cfg)
 
         print("at evaluation:")
 
@@ -210,6 +219,34 @@ class Experiment:
             if "args" in item:
                 params = convert_mlflow_dict(item["args"], prefix=name)
                 mlflow.log_params(params)
+
+
+    def _serialization_path(self, dataloader, run_cfg):
+        if "IDS_CACHE_PATH" not in os.environ:
+            raise KeyError("$IDS_CACHE_PATH must be set if caching of ids is used")
+        base_path = os.environ["IDS_CACHE_PATH"]
+        cfg = self.parameter_cfg
+        context = str(cfg) + "||" + str(dataloader.cfg_dict()) + "||" + str(run_cfg.to_dict())
+        context_hash = hashlib.md5(context.encode()).hexdigest()
+        return os.path.join(base_path, context_hash+".ids.pickle")
+
+    def _serialize_ids(self, ids: IDS, dataloader, run_cfg):
+        path = self._serialization_path(dataloader, run_cfg)
+        if os.path.exists(path):
+            print("IDS Serialization already exists, skip.", path)
+            return
+        print("Write ids to", path)
+        with open(path, "wb") as f:
+            pickle.dump(ids, f)
+
+    def _load_from_cache(self, dataloader, run_cfg):
+        path = self._serialization_path(dataloader, run_cfg)
+        if not os.path.exists(path):
+            print("IDS Serialization does not exist, skip.", path)
+            return None
+        print("Load IDS from", path)
+        with open(path, "rb") as f:
+            return pickle.load(f)
 
 
 def convert_mlflow_dict(entry: Union[dict, list], prefix=None):
