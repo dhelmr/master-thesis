@@ -19,6 +19,7 @@ from tsa.dataloader_2019 import ContaminatedDataLoader2019
 from tsa.dataloader_2021 import ContaminatedDataLoader2021
 from tsa.dataloaders.combination_dl import CombinationDL
 from tsa.dataloaders.filter_dl import FilterDataloader
+from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 from tsa.utils import access_cfg
 
 
@@ -105,6 +106,8 @@ class Experiment:
                 self._log_ids_cfg()
                 builder = IDSPipelineBuilder(cache_context=str(dataloader.cfg_dict()))
                 additional_params, results, ids = self.train_test(dataloader, run_cfg, builder)
+                # update dataloader reference because the ids might have been loaded from cache
+                dataloader: TsaBaseDataloader = ids._data_loader
                 mlflow.log_params(convert_mlflow_dict(additional_params))
                 self._log_metrics(dataloader.metrics(), "dataloader")
                 dl_artifacts = dataloader.artifact_dict()
