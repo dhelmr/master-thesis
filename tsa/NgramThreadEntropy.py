@@ -102,7 +102,7 @@ class NgramThreadEntropy(BuildingBlock):
             product = 1
             for f in features:
                 product = product * f
-            return product
+            return math.pow(product, 1/len(features))
 
     def _calculate(self, syscall: Syscall):
         """
