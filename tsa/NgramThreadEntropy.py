@@ -9,7 +9,7 @@ from tsa.unsupervised.mixed_model import Histogram
 
 Ngram = tuple
 
-COMBINE_VALUES = ["mean", "harmonic-mean", "multiply"]
+COMBINE_VALUES = ["arithmetic", "harmonic", "geometric"]
 
 FEATURE_NGRAM_FREQ = "ngram_frequency"
 FEATURE_THREAD = "thread_frequency"
@@ -91,14 +91,14 @@ class NgramThreadEntropy(BuildingBlock):
         if FEATURE_NORMALIZED_ENTR in self._features:
             features.append(normalized_entropy)
 
-        if self._combine == "mean":
+        if self._combine == "arithmetic":
             return mean(features)
         if self._combine == "harmonic":
             denom = 0
             for f in features:
                 denom += 1 / f
             return len(features) / denom
-        if self._combine == "product":
+        if self._combine == "geometric":
             product = 1
             for f in features:
                 product = product * f
