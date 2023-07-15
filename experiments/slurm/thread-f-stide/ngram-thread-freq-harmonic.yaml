@@ -35,7 +35,7 @@ ids:
       alpha: 5
       thread_anomaly_fn: homographic
       thread_anomaly_fn_alpha: 5
-      combine: mean
+      combine: harmonic
       features:
         - ngram_frequency
         - thread_frequency

@@ -1,5 +1,6 @@
 import math
-from typing import Dict
+from statistics import mean
+from typing import Dict, List
 
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
@@ -7,6 +8,12 @@ from tsa.frequency_encoding import FrequencyAnomalyFunction
 from tsa.unsupervised.mixed_model import Histogram
 
 Ngram = tuple
+
+COMBINE_VALUES = ["mean", "harmonic-mean", "multiply"]
+
+FEATURE_NGRAM_FREQ = "ngram_frequency"
+FEATURE_THREAD = "thread_frequency"
+FEATURE_NORMALIZED_ENTR = "normalized_entropy"
 
 
 class NgramThreadEntropy(BuildingBlock):
@@ -17,9 +24,14 @@ class NgramThreadEntropy(BuildingBlock):
                  alpha=2,
                  anomaly_fn="homographic",
                  thread_anomaly_fn="max-scaled",
-                 thread_anomaly_fn_alpha=2):
+                 thread_anomaly_fn_alpha=2,
+                 combine="mean",
+                 features=None):
         super().__init__()
         # parameter
+        if features is None:
+            features = [FEATURE_NGRAM_FREQ, FEATURE_THREAD, FEATURE_NORMALIZED_ENTR]
+        self._features = features
         self._input = input
 
         # internal data
@@ -35,6 +47,10 @@ class NgramThreadEntropy(BuildingBlock):
 
         self.freq_anomaly_fn = FrequencyAnomalyFunction(anomaly_fn, alpha)
         self.thread_anomaly_fn = FrequencyAnomalyFunction(thread_anomaly_fn, thread_anomaly_fn_alpha)
+
+        self._combine = combine
+        if combine not in COMBINE_VALUES:
+            raise ValueError("no valid value for combine: %s" % combine)
 
     def depends_on(self):
         return self._dependency_list
@@ -67,7 +83,26 @@ class NgramThreadEntropy(BuildingBlock):
             self._anomaly_values[ngram] = anomaly_value
 
     def _combine_scores(self, freq_score, thread_freq_score, normalized_entropy):
-        return (freq_score+thread_freq_score+normalized_entropy) / 3
+        features = []
+        if FEATURE_NGRAM_FREQ in self._features:
+            features.append(freq_score)
+        if FEATURE_THREAD in self._features:
+            features.append(thread_freq_score)
+        if FEATURE_NORMALIZED_ENTR in self._features:
+            features.append(normalized_entropy)
+
+        if self._combine == "mean":
+            return mean(features)
+        if self._combine == "harmonic":
+            denom = 0
+            for f in features:
+                denom += 1 / f
+            return len(features) / denom
+        if self._combine == "product":
+            product = 1
+            for f in features:
+                product = product * f
+            return product
 
     def _calculate(self, syscall: Syscall):
         """
