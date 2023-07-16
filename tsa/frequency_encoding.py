@@ -11,7 +11,7 @@ from tsa.unsupervised.mixed_model import Histogram
 
 
 ANOMALY_FUNCTIONS = [
-    "linear", "homographic", "exponential", "max-scaled"
+    "linear", "homographic", "exponential", "max-scaled", "cos"
 ]
 
 class FrequencyAnomalyFunction:
@@ -43,6 +43,10 @@ class FrequencyAnomalyFunction:
             return self._alpha / (ngram_frequency + self._alpha)
         elif self._name == "exponential":
             return math.pow(self._alpha, ngram_frequency)
+        elif self._name == "cos":
+            if ngram_frequency > self._alpha:
+                return 0
+            return math.cos(math.pi / (2*self._alpha) * ngram_frequency)
 
     def set_max_count(self, max_count):
         self._max_count = max_count
