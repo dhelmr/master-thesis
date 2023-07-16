@@ -25,7 +25,7 @@ class NgramThreadEntropy(BuildingBlock):
                  anomaly_fn="homographic",
                  thread_anomaly_fn="max-scaled",
                  thread_anomaly_fn_alpha=2,
-                 combine="mean",
+                 combine="arithmetic",
                  features=None):
         super().__init__()
         # parameter
