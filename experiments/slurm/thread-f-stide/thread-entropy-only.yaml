@@ -31,7 +31,7 @@ ids:
       ngram_length: 5
   - name: NgramThreadEntropy
     args:
-      entropy_alpha: 3
+      entropy_alpha: 1
       features:
         - normalized_entropy
   - name: StreamSum
