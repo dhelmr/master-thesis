@@ -25,6 +25,7 @@ class NgramThreadEntropy(BuildingBlock):
                  anomaly_fn="homographic",
                  thread_anomaly_fn="max-scaled",
                  thread_anomaly_fn_alpha=2,
+                 entropy_alpha=3,
                  combine="arithmetic",
                  features=None):
         super().__init__()
@@ -47,6 +48,8 @@ class NgramThreadEntropy(BuildingBlock):
 
         self.freq_anomaly_fn = FrequencyAnomalyFunction(anomaly_fn, alpha)
         self.thread_anomaly_fn = FrequencyAnomalyFunction(thread_anomaly_fn, thread_anomaly_fn_alpha)
+
+        self._entropy_alpha = entropy_alpha
 
         self._combine = combine
         if combine not in COMBINE_VALUES:
@@ -75,11 +78,12 @@ class NgramThreadEntropy(BuildingBlock):
         max_entropy = math.log(len(self._observed_thread_ids))
         for ngram, thread_dist in self._thread_distributions.items():
             normalized_entropy = thread_dist.entropy() / max_entropy
+            entropy_anomaly_value = pow(1-normalized_entropy, self._entropy_alpha)
             ngram_freq = self._ngram_frequencies.get_count(ngram)
             n_threads = len(thread_dist.keys())
             anomaly_value = self._combine_scores(freq_score=self.freq_anomaly_fn.anomaly_value(ngram_freq),
                                                  thread_freq_score=self.thread_anomaly_fn.anomaly_value(n_threads),
-                                                 normalized_entropy=normalized_entropy)
+                                                 normalized_entropy=entropy_anomaly_value)
             self._anomaly_values[ngram] = anomaly_value
 
     def _combine_scores(self, freq_score, thread_freq_score, normalized_entropy):
