@@ -27,6 +27,7 @@ class NgramThreadEntropy(BuildingBlock):
                  thread_anomaly_fn_alpha=2,
                  entropy_alpha=3,
                  combine="arithmetic",
+                 entropy_scale=1,
                  features=None):
         super().__init__()
         # parameter
@@ -50,6 +51,7 @@ class NgramThreadEntropy(BuildingBlock):
         self.thread_anomaly_fn = FrequencyAnomalyFunction(thread_anomaly_fn, thread_anomaly_fn_alpha)
 
         self._entropy_alpha = entropy_alpha
+        self._entropy_scale = entropy_scale
 
         self._combine = combine
         if combine not in COMBINE_VALUES:
@@ -78,7 +80,7 @@ class NgramThreadEntropy(BuildingBlock):
         max_entropy = math.log(len(self._observed_thread_ids))
         for ngram, thread_dist in self._thread_distributions.items():
             normalized_entropy = thread_dist.entropy() / max_entropy
-            entropy_anomaly_value = pow(1-normalized_entropy, self._entropy_alpha)
+            entropy_anomaly_value = pow(1-normalized_entropy, self._entropy_alpha)/self._entropy_scale
             ngram_freq = self._ngram_frequencies.get_count(ngram)
             n_threads = len(thread_dist.keys())
             anomaly_value = self._combine_scores(freq_score=self.freq_anomaly_fn.anomaly_value(ngram_freq),
