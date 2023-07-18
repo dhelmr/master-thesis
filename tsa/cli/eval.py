@@ -27,6 +27,8 @@ class EvalSubCommand(SubCommand):
                             help="Experiment config yaml file. If not set, the config is loaded from the first mlflow run.")
         parser.add_argument("--allow-unfinished", required=False, default=False, action="store_true")
         parser.add_argument("--cache", default=None, help="If set, use a local directory to cache mlflow results.")
+        parser.add_argument("--query", "-q", default=None, help="Filter result dataframes using a pandas query")
+        parser.add_argument("--plot-y", default="metrics.ids.f1_cfa")
 
     def exec(self, args, parser):
         pd.options.plotting.backend = "plotly"
@@ -47,6 +49,8 @@ class EvalSubCommand(SubCommand):
             print(checker.experiment.mlflow_name)
             runs = self._get_results(checker, name, cache, args.allow_unfinished)
             runs["params.num_attacks"] = pd.to_numeric(runs["params.num_attacks"])
+            if args.query is not None:
+                runs = runs.query(args.query, engine="python")
             aggregated: DataFrame = runs.filter(items=["params.num_attacks",
                                                        "metrics.ids.f1_cfa",
                                                        "metrics.ids.precision_with_cfa",
@@ -65,7 +69,7 @@ class EvalSubCommand(SubCommand):
         merged = pd.concat(dfs)
         fig = px.line(merged,
                       x="params.num_attacks",
-                      y="metrics.ids.f1_cfa",
+                      y=args.plot_y,
                       color="experiment_name",
                       line_dash="experiment_name",
                       line_dash_sequence=["dot"],
