@@ -20,7 +20,7 @@ class ContaminatedDataLoader2019(TsaBaseDataloader):
 
     def __init__(self, scenario_path: str, num_attacks: int, direction: Direction = Direction.OPEN,
                  cont_ratio: float = 0.2, permutation_i=0,
-                 training_size=200, validation_size=50, test_size=None, true_metadata=False, no_test_attacks: bool = False):
+                 training_size=None, validation_size=None, test_size=None, true_metadata=False, no_test_attacks: bool = False):
         super().__init__(scenario_path)
         self.scenario_path = scenario_path
         self._runs_path = os.path.join(scenario_path, 'runs.csv')
