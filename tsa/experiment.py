@@ -3,6 +3,7 @@ import dataclasses
 import hashlib
 import itertools
 import pickle
+import pprint
 from typing import List, Union, Dict
 
 import mlflow
@@ -106,6 +107,7 @@ class Experiment:
                 self._log_ids_cfg()
                 builder = IDSPipelineBuilder(cache_context=str(dataloader.cfg_dict()))
                 additional_params, results, ids = self.train_test(dataloader, run_cfg, builder)
+                pprint.pprint(results)
                 # update dataloader reference because the ids might have been loaded from cache
                 dataloader: TsaBaseDataloader = ids._data_loader
                 mlflow.log_params(convert_mlflow_dict(additional_params))

@@ -1,3 +1,5 @@
+from typing import Iterable, Dict
+
 from matplotlib import pyplot as plt
 from sklearn.covariance import EllipticEnvelope
 from sklearn.ensemble import IsolationForest
@@ -11,6 +13,23 @@ from tsa.unsupervised.preprocessing import OutlierDetector
 OD_METHODS = {
     cls.__name__: cls for cls in [LocalOutlierFactor, IsolationForest, EllipticEnvelope]
 }
+
+def make_distance_matrix(d: Dict[object, Histogram]):
+    distance_matrix = []
+    calculated_distances = {}  # used to ensure symetry of the distance matrix
+    for hist1 in d.values():
+        row = []
+        for hist2 in d.values():
+            if (hist2, hist1) in calculated_distances:
+                # the distance between this pair has already been calculated
+                dist = calculated_distances[(hist2, hist1)]
+            else:
+                dist = hist1.hellinger_distance(hist2)
+                calculated_distances[(hist1, hist2)] = dist
+            row.append(dist)
+        distance_matrix.append(row)
+    del calculated_distances
+    return distance_matrix
 class ThreadClusteringOD(OutlierDetector):
 
     def __init__(self, building_block, train_features=None, n_components=2, skip_mds: bool = False,
@@ -43,20 +62,7 @@ class ThreadClusteringOD(OutlierDetector):
 
         print("number of threads in training set: ", len(counts_by_thread))
         print("Calculate distance matrix...")
-        distance_matrix = []
-        calculated_distances = {} # used to ensure symetry of the distance matrix
-        for hist1 in counts_by_thread.values():
-            row = []
-            for hist2 in counts_by_thread.values():
-                if (hist2, hist1) in calculated_distances:
-                    # the distance between this pair has already been calculated
-                    dist = calculated_distances[(hist2, hist1)]
-                else:
-                    dist = hist1.hellinger_distance(hist2)
-                    calculated_distances[(hist1, hist2)] = dist
-                row.append(dist)
-            distance_matrix.append(row)
-        del calculated_distances
+        distance_matrix = make_thread_distance_matrix(counts_by_thread)
 
         preds = self._do_outlier_detection(distance_matrix)
         anomalous_threads = set()
