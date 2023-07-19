@@ -28,7 +28,7 @@ ids:
   - name: CacheableW2V
     args:
       window_size: 9
-      epochs: 100
+      epochs: 200
       vector_size: 11
     cache_key: true
   - name: Ngram
