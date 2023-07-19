@@ -106,7 +106,9 @@ class Experiment:
                 mlflow.log_dict(self.parameter_cfg, "config.json")
                 self._log_ids_cfg()
                 dataloader_context = copy.deepcopy(dataloader.cfg_dict())
-                del dataloader_context["iteration"] # delete iteration because the loaded data does not depend on it
+                if dataloader_context["num_attacks"] == 0:
+                    # the cache context should be the same for all runs with num_attacks=0, because permutation_i has no effect
+                    del dataloader_context["permutation_i"]
                 builder = IDSPipelineBuilder(cache_context=str(dataloader_context))
                 additional_params, results, ids = self.train_test(dataloader, run_cfg, builder)
                 pprint.pprint(results)
