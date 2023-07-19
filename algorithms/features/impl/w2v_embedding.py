@@ -24,6 +24,7 @@ class W2VEmbedding(BuildingBlock):
                  epochs: int,
                  distinct: bool = True,
                  thread_aware=True,
+                 workers=3,
                  unknown_input_value: float = 0.0):
         super().__init__()
         self._vector_size = vector_size
@@ -32,6 +33,7 @@ class W2VEmbedding(BuildingBlock):
         self.w2vmodel = None
         self._sentences = []        
         self._window_size = window_size
+        self._workers = workers
         
         self._input_bb = word
 
@@ -70,6 +72,7 @@ class W2VEmbedding(BuildingBlock):
                              vector_size=self._vector_size,
                              epochs=self._epochs,
                              window=self._window_size,
+                             workers=self._workers,
                              min_count=1)
 
             self.w2vmodel = model

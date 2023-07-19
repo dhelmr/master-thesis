@@ -14,8 +14,8 @@ from tsa.unsupervised.mixed_model import Histogram
 
 class CacheableW2V(W2VEmbedding):
 
-    def __init__(self, input: BuildingBlock, cache_key: str = None, *args, **kwargs):
-        super().__init__(input, *args, **kwargs)
+    def __init__(self, input: BuildingBlock, cache_key: str = None, workers=1, *args, **kwargs):
+        super().__init__(input, *args, workers=workers, **kwargs)
         self._cache_key = cache_key
         if self._cache_key is not None:
             self.w2vmodel = self._load_model_from_cache(cache_key)
