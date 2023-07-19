@@ -24,6 +24,7 @@ from tsa.dataloaders.training_set_filter import TrainingSetFilter
 from tsa.frequency_encoding import FrequencyEncoding
 from tsa.ngram_frequency_append import NgramFrequencyAppender
 from tsa.score_mult import ScoreMultiplication
+from tsa.ngram_thread_pca import NgramThreadEmbeddingBB
 from tsa.unsupervised.pca import PCA_BB
 from tsa.unsupervised.scikit import LOF, EllipticEnvelopeOD, IsolationForestOD
 from tsa.unsupervised.frequency_od import FrequencyOD
@@ -45,7 +46,7 @@ BUILDING_BLOCKS = {cls.__name__: cls for cls in
                     EllipticEnvelopeOD, IsolationForestOD,
                     TrainingSetAnalyser, ContinuousTrainingSetAnalyser, Visualize, NgramAnalyser,
                     PCA_BB, W2VConcat, TupleBB, TrainingSetFilter, FrequencyEncoding, FrequencySTIDE,
-                    NgramFrequencyAppender, ThreadClusteringOD, NgramThreadEntropy, ScoreMultiplication]}
+                    NgramFrequencyAppender, ThreadClusteringOD, NgramThreadEntropy, ScoreMultiplication,NgramThreadEmbeddingBB]}
 BuildingBlockCfg = dict
 
 
