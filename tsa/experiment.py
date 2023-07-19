@@ -105,7 +105,9 @@ class Experiment:
                 print(self.parameter_cfg)
                 mlflow.log_dict(self.parameter_cfg, "config.json")
                 self._log_ids_cfg()
-                builder = IDSPipelineBuilder(cache_context=str(dataloader.cfg_dict()))
+                dataloader_context = copy.deepcopy(dataloader.cfg_dict())
+                del dataloader_context["iteration"] # delete iteration because the loaded data does not depend on it
+                builder = IDSPipelineBuilder(cache_context=str(dataloader_context))
                 additional_params, results, ids = self.train_test(dataloader, run_cfg, builder)
                 pprint.pprint(results)
                 # update dataloader reference because the ids might have been loaded from cache
