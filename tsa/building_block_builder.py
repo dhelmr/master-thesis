@@ -23,6 +23,7 @@ from tsa.analysis.visualization_analyser import Visualize
 from tsa.dataloaders.training_set_filter import TrainingSetFilter
 from tsa.frequency_encoding import FrequencyEncoding
 from tsa.ngram_frequency_append import NgramFrequencyAppender
+from tsa.score_mult import ScoreMultiplication
 from tsa.unsupervised.pca import PCA_BB
 from tsa.unsupervised.scikit import LOF, EllipticEnvelopeOD, IsolationForestOD
 from tsa.unsupervised.frequency_od import FrequencyOD
@@ -44,7 +45,7 @@ BUILDING_BLOCKS = {cls.__name__: cls for cls in
                     EllipticEnvelopeOD, IsolationForestOD,
                     TrainingSetAnalyser, ContinuousTrainingSetAnalyser, Visualize, NgramAnalyser,
                     PCA_BB, W2VConcat, TupleBB, TrainingSetFilter, FrequencyEncoding, FrequencySTIDE,
-                    NgramFrequencyAppender, ThreadClusteringOD, NgramThreadEntropy]}
+                    NgramFrequencyAppender, ThreadClusteringOD, NgramThreadEntropy, ScoreMultiplication]}
 BuildingBlockCfg = dict
 
 
@@ -73,10 +74,28 @@ class IDSPipelineBuilder:
             raise RuntimeError("Error building block %s with args %s.\nNested Error is: %s" % (name, cfg, e)) from e
         return bb
 
+    def _build_split_block(self, cfg: BuildingBlockCfg, last_block: BuildingBlock, cache_key):
+        parallel_blocks = []
+        for _, config_list in cfg["split"].items():
+            bb = self._build_bb_pipeline(config_list, cache_key, last_block)
+            parallel_blocks.append(bb)
+        return parallel_blocks
+
     def build_all(self, configs: List[BuildingBlockCfg]):
-        last_block = SyscallName()
-        cache_key = self._cache_context
+        first_block = SyscallName()
+        last_block = self._build_bb_pipeline(configs,
+                                             cache_key=self._cache_context,
+                                             from_block=first_block)
+        return last_block
+
+
+    def _build_bb_pipeline(self, configs: List[BuildingBlockCfg], cache_key: str, from_block: BuildingBlock):
+        last_block = from_block
         for i, cfg in enumerate(configs):
             cache_key += "||" + str(cfg)
-            last_block = self._build_block(cfg, last_block, cache_key)
+            print(cfg)
+            if exists_key(cfg, "split"):
+                last_block = self._build_split_block(cfg, last_block, cache_key)
+            else:
+                last_block = self._build_block(cfg, last_block, cache_key)
         return last_block

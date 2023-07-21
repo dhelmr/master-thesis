@@ -223,12 +223,21 @@ class Experiment:
 
     def _log_ids_cfg(self):
         ids_cfg = self._get_param("ids", exp_type=list)
-        for item in ids_cfg:
-            name = item["name"]
-            if "args" in item:
-                params = convert_mlflow_dict(item["args"], prefix=name)
-                mlflow.log_params(params)
+        for bb_cfg in ids_cfg:
+            self._log_bb(bb_cfg)
 
+    def _log_bb(self, bb_cfg):
+        if "split" in bb_cfg:
+            for _, cfgs in bb_cfg["split"].items():
+                for cfg in cfgs:
+                    self._log_bb(cfg)
+        else:
+            name = bb_cfg["name"]
+            if "mlflow_name" in bb_cfg:
+                name = bb_cfg["mlflow_name"]
+            if "args" in bb_cfg:
+                params = convert_mlflow_dict(bb_cfg["args"], prefix=name)
+                mlflow.log_params(params)
 
     def _serialization_path(self, dataloader, run_cfg):
         if "IDS_CACHE_PATH" not in os.environ:
