@@ -19,6 +19,12 @@ class CacheableW2V(W2VEmbedding):
         self._cache_key = cache_key
         if self._cache_key is not None:
             self.w2vmodel = self._load_model_from_cache(cache_key)
+        if self.w2vmodel is not None:
+            # simplify class if the w2vmodel is already trained
+            # remove ngram_bb from dependency list because it is only needed for training
+            self._dependency_list = [self._input_bb]
+            # overwrite train_on with default, so that it won't be called during the IDS training (see data_preprocessor.py)
+            self.train_on = BuildingBlock().train_on
 
     def fit(self):
         super().fit()
