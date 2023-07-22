@@ -1,0 +1,63 @@
+scenarios:
+ - LID-DS-2019/CVE-2017-7529
+ - LID-DS-2019/CVE-2019-5418
+ - LID-DS-2019/CVE-2012-2122
+ - LID-DS-2019/CVE-2014-0160
+ - LID-DS-2019/CVE-2018-3760
+ - LID-DS-2019/EPS_CWE-434
+ - LID-DS-2019/PHP_CWE-434
+ - LID-DS-2019/SQL_Injection_CWE-89
+ - LID-DS-2019/ZipSlip
+ - LID-DS-2021/Bruteforce_CWE-307
+ - LID-DS-2021/CVE-2012-2122
+ - LID-DS-2021/CVE-2014-0160
+ - LID-DS-2021/CVE-2017-12635_6
+ - LID-DS-2021/CVE-2017-7529
+ - LID-DS-2021/CVE-2018-3760
+ - LID-DS-2021/CVE-2019-5418
+ - LID-DS-2021/CVE-2020-13942
+ - LID-DS-2021/CVE-2020-23839
+ - LID-DS-2021/CVE-2020-9484
+ - LID-DS-2021/CWE-89-SQL-injection
+ - LID-DS-2021/EPS_CWE-434
+ - LID-DS-2021/Juice-Shop
+ - LID-DS-2021/PHP_CWE-434
+ - LID-DS-2021/ZipSlip
+ids:
+  - name: IntEmbedding
+  - name: CacheableW2V
+    args:
+      window_size: 9
+      epochs: 200
+      vector_size: 11
+    cache_key: true
+  - name: Ngram
+    args:
+      thread_aware: true
+      ngram_length: 9
+  - name: NgramFrequencyAppender
+    args:
+      anomaly_fn: max-scaled
+      features:
+        - ngram_frequency
+        - thread_frequency
+  - name: Som
+    args:
+     epochs: 100
+     sigma: 1.0
+  - name: MaxScoreThreshold
+cache: true
+dataloader:
+  base:
+    cont_ratio: 0.2
+  permutation_i:
+    - 0
+    - 1
+    - 2
+  num_attacks:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 5
+    - 10
