@@ -53,10 +53,11 @@ class NgramFrequencyAppender(BuildingBlock):
         inp = self._input.get_result(syscall)
         if inp is None:
             return
+        concatenated = inp
         if "ngram_frequency" in self._features:
             count = self._normal_counts.get_count(inp)
             score = self._anomaly_function.anomaly_value(count)
-            inp = inp + (score, )
+            concatenated = concatenated + (score,)
         if "thread_frequency" in self._features:
             if inp in self._thread_counts:
                 dist = self._thread_counts[inp]
@@ -64,5 +65,5 @@ class NgramFrequencyAppender(BuildingBlock):
             else:
                 count = 0
             score = self._anomaly_function.anomaly_value(count)
-            inp = inp + (score,)
-        return inp
+            concatenated = concatenated + (score,)
+        return concatenated
