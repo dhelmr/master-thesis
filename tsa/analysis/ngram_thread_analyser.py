@@ -43,15 +43,10 @@ class NgramThreadAnalyser(AnalyserBB):
         return [stats]
 
     def _add_distribution_stats(self, stats, prefix: str, dists, n_classes):
-
-        for base in [2, e, 10]:
-            entropies = []
-            for _, dist in dists.items():
-                entropies.append(dist.normalized_entropy(n_classes=n_classes, base=base))
-            if base == e:
-                self._update_deviation_stats(stats, prefix="%s_norm_entropy_b-e" % prefix, items=entropies)
-            else:
-                self._update_deviation_stats(stats, prefix="%s_norm_entropy_b-%s" % (prefix, base), items=entropies)
+        entropies = []
+        for _, dist in dists.items():
+            entropies.append(dist.normalized_entropy(n_classes=n_classes))
+            self._update_deviation_stats(stats, prefix="%s_norm_entropy" % prefix, items=entropies)
 
         simpson_indexes = []
         for ngram, dist in dists.items():
