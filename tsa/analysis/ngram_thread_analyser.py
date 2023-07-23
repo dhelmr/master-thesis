@@ -80,8 +80,12 @@ class NgramThreadAnalyser(AnalyserBB):
             "var": np.var(matrix),
             "std": np.std(matrix)
         }
-        for norm_ord in ["fro", "nuc", 1, -1, 2, -2]:
-            matrix_stats["(%s)-norm" % norm_ord] = np.linalg.norm(matrix, ord=norm_ord)
+        nuc_norm = np.linalg.norm(matrix, ord="nuc")
+        matrix_stats["(nuc)-norm"] = nuc_norm
+        for norm_ord in ["fro", 1, -1, 2, -2]:
+            norm = np.linalg.norm(matrix, ord=norm_ord)
+            matrix_stats["(%s)-norm" % norm_ord] = norm
+            matrix_stats["(%s)-norm/nuc-norm" % norm_ord] = norm/nuc_norm
         matrix_stats = {"%s-%s" % (prefix, key): v for key, v in matrix_stats.items()}
         stats.update(matrix_stats)
         self._add_eigenval_stats(stats, prefix, matrix)
