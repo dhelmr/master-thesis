@@ -1,6 +1,6 @@
 from algorithms.building_block import BuildingBlock
 from tsa.frequency_encoding import FrequencyAnomalyFunction
-from tsa.unsupervised.mixed_model import Histogram
+from tsa.histogram import Histogram
 
 
 class NgramFrequencyAppender(BuildingBlock):

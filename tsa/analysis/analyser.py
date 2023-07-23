@@ -8,7 +8,7 @@ from numpy import e
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
-from tsa.unsupervised.mixed_model import Histogram
+from tsa.histogram import Histogram
 
 
 class AnalyserBB(BuildingBlock):

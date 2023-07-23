@@ -7,7 +7,7 @@ from sklearn.manifold import MDS
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.preprocessing import MinMaxScaler
 
-from tsa.unsupervised.mixed_model import Histogram
+from tsa.histogram import Histogram
 from tsa.unsupervised.preprocessing import OutlierDetector
 
 OD_METHODS = {

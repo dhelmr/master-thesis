@@ -5,7 +5,7 @@ from typing import Dict, List
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 from tsa.frequency_encoding import FrequencyAnomalyFunction
-from tsa.unsupervised.mixed_model import Histogram
+from tsa.histogram import Histogram
 
 Ngram = tuple
 

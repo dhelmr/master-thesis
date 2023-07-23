@@ -9,7 +9,7 @@ from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 from tsa.frequency_encoding import FrequencyAnomalyFunction
 from tsa.ngram_thread_pca import NgramThreadMatrix
-from tsa.unsupervised.mixed_model import Histogram
+from tsa.histogram import Histogram
 from tsa.unsupervised.thread_clustering import make_distance_matrix
 
 Ngram = tuple

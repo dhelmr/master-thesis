@@ -7,11 +7,12 @@ from sklearn.preprocessing import MinMaxScaler
 from algorithms.building_block import BuildingBlock
 from tsa.NgramThreadEntropy import Ngram
 from tsa.frequency_encoding import FrequencyAnomalyFunction
-from tsa.unsupervised.mixed_model import Histogram
+from tsa.histogram import Histogram
 from tsa.unsupervised.thread_clustering import plot, make_distance_matrix
 
 
 class NgramThreadMatrix:
+    # TODO: needs tests
     def __init__(self):
         self._thread_distributions: Dict[Ngram, Histogram] = {}
         self._ngram_distributions: Dict[str, Histogram] = {}

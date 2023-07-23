@@ -29,10 +29,10 @@ ids:
   - name: Ngram
     args:
       thread_aware: true
-      ngram_length: 5
+      ngram_length: 3
   - name: NgramThreadAnalyser
     args:
-      update_interval: 250000
+      update_interval: 500000
 dataloader:
   base:
     cont_ratio: 0.2

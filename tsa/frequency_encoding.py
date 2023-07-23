@@ -7,8 +7,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
-from tsa.unsupervised.mixed_model import Histogram
-
+from tsa.histogram import Histogram
 
 ANOMALY_FUNCTIONS = [
     "linear", "homographic", "exponential", "max-scaled", "cos"
