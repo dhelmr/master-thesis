@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Dict
+from typing import Dict, List
 
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import MinMaxScaler
@@ -8,29 +8,48 @@ from algorithms.building_block import BuildingBlock
 from tsa.NgramThreadEntropy import Ngram
 from tsa.frequency_encoding import FrequencyAnomalyFunction
 from tsa.unsupervised.mixed_model import Histogram
-from tsa.unsupervised.thread_clustering import plot
+from tsa.unsupervised.thread_clustering import plot, make_distance_matrix
 
 
 class NgramThreadMatrix:
     def __init__(self):
         self._thread_distributions: Dict[Ngram, Histogram] = {}
-        self._observed_thread_ids = set()
+        self._ngram_distributions: Dict[str, Histogram] = {}
+        self.total_ngrams = 0
 
     def add(self, ngram, thread_id):
+        self.total_ngrams += 1
         if ngram not in self._thread_distributions:
             self._thread_distributions[ngram] = Histogram()
         self._thread_distributions[ngram].add(thread_id)
-        self._observed_thread_ids.add(thread_id)
+        if thread_id not in self._ngram_distributions:
+            self._ngram_distributions[thread_id] = Histogram()
+        self._ngram_distributions[thread_id].add(ngram)
 
     def ngram_thread_matrix(self):
         matrix = []
         row_labels = []
-        column_labels = list(sorted(self._observed_thread_ids))
+        column_labels = self.threads()
         for ngram, thread_dist in self._thread_distributions.items():
             row = [thread_dist.get_count(thread_id) for thread_id in column_labels]
             matrix.append(row)
             row_labels.append(ngram)
         return matrix, row_labels, column_labels
+
+    def distributions_by_ngram(self) -> Dict[object, Histogram]:
+        return self._thread_distributions
+
+    def distributions_by_threads(self) -> Dict[str, Histogram]:
+        return self._ngram_distributions
+
+    def ngram_distances(self):
+        return make_distance_matrix(self._thread_distributions)
+
+    def thread_distances(self):
+        return make_distance_matrix(self._ngram_distributions)
+    def threads(self) -> List[str]:
+        observed_threads = self._ngram_distributions.keys()
+        return list(observed_threads)
 
 class NgramThreadEmbeddings:
 

@@ -15,10 +15,12 @@ from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from tsa.CacheableW2v import CacheableW2V
 from tsa.FrequencySTIDE import FrequencySTIDE
+from tsa.NgramThreadDistance import NgramThreadDistance
 from tsa.NgramThreadEntropy import NgramThreadEntropy
 from tsa.analysis.analyser import TrainingSetAnalyser
 from tsa.analysis.ngram_analyser import NgramAnalyser
 from tsa.analysis.continuous_anaylser import ContinuousTrainingSetAnalyser
+from tsa.analysis.ngram_thread_analyser import NgramThreadAnalyser
 from tsa.analysis.visualization_analyser import Visualize
 from tsa.dataloaders.training_set_filter import TrainingSetFilter
 from tsa.frequency_encoding import FrequencyEncoding
@@ -46,7 +48,8 @@ BUILDING_BLOCKS = {cls.__name__: cls for cls in
                     EllipticEnvelopeOD, IsolationForestOD,
                     TrainingSetAnalyser, ContinuousTrainingSetAnalyser, Visualize, NgramAnalyser,
                     PCA_BB, W2VConcat, TupleBB, TrainingSetFilter, FrequencyEncoding, FrequencySTIDE,
-                    NgramFrequencyAppender, ThreadClusteringOD, NgramThreadEntropy, ScoreMultiplication,NgramThreadEmbeddingBB]}
+                    NgramFrequencyAppender, ThreadClusteringOD, NgramThreadEntropy, ScoreMultiplication, NgramThreadEmbeddingBB,
+                    NgramThreadAnalyser, NgramThreadDistance]}
 BuildingBlockCfg = dict
 
 

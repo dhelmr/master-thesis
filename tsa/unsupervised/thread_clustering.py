@@ -62,7 +62,7 @@ class ThreadClusteringOD(OutlierDetector):
 
         print("number of threads in training set: ", len(counts_by_thread))
         print("Calculate distance matrix...")
-        distance_matrix = make_thread_distance_matrix(counts_by_thread)
+        distance_matrix = make_distance_matrix(counts_by_thread)
 
         preds = self._do_outlier_detection(distance_matrix)
         anomalous_threads = set()

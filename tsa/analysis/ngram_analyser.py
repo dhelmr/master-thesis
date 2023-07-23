@@ -10,7 +10,7 @@ class NgramAnalyser(AnalyserBB):
         self.tree = NgramTreeNode()
         self.len = -1
 
-    def _add_input(self, inp):
+    def _add_input(self, syscall, inp):
         if inp is None:
             # TODO
             return

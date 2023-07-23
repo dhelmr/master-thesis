@@ -8,7 +8,7 @@ class ContinuousTrainingSetAnalyser(AnalyserBB):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._data = []
-    def _add_input(self, inp):
+    def _add_input(self, syscall, inp):
         if inp is None:
             return #TODO
         self._data.append(inp)

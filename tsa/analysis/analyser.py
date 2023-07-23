@@ -24,11 +24,11 @@ class AnalyserBB(BuildingBlock):
         return self._input.get_result(syscall)
 
     @abc.abstractmethod
-    def _add_input(self, inp):
+    def _add_input(self, syscall, inp):
         raise NotImplementedError()
     def train_on(self, syscall: Syscall):
         inp = self._input.get_result(syscall)
-        self._add_input(inp)
+        self._add_input(syscall, inp)
         self._current_i += 1
         if self._current_i % self._update_interval == 0:
             self.__update_stats()

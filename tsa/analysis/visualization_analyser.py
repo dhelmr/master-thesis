@@ -11,7 +11,7 @@ class Visualize(AnalyserBB):
         super().__init__(*args, **kwargs)
         self._data = []
         self._fig_index = 0
-    def _add_input(self, inp):
+    def _add_input(self, syscall, inp):
         if inp is None:
             return # TODO?
         self._data.append(inp)

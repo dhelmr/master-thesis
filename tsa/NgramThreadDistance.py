@@ -2,21 +2,19 @@ import math
 from statistics import mean
 from typing import Dict, List
 
+import numpy
+from sklearn.preprocessing import normalize, minmax_scale
+
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 from tsa.frequency_encoding import FrequencyAnomalyFunction
+from tsa.ngram_thread_pca import NgramThreadMatrix
 from tsa.unsupervised.mixed_model import Histogram
-from tsa.unsupervised.thread_clustering import make_thread_distance_matrix
+from tsa.unsupervised.thread_clustering import make_distance_matrix
 
 Ngram = tuple
 
 DISTANCE_VALUES = ["hellinger"]
-
-FEATURE_NGRAM_FREQ = "ngram_frequency"
-FEATURE_THREAD = "thread_frequency"
-FEATURE_NORMALIZED_ENTR = "normalized_entropy"
-
-
 
 class NgramThreadDistance(BuildingBlock):
     """
@@ -28,9 +26,7 @@ class NgramThreadDistance(BuildingBlock):
         self._input = input
 
         # internal data
-        self._thread_distributions: Dict[Ngram, Histogram] = {}
-        self._ngram_frequencies = Histogram()
-        self._observed_thread_ids = set()
+        self._matrix = NgramThreadMatrix()
 
         self._anomaly_values: Dict[Ngram, float] = {}
 
@@ -48,47 +44,29 @@ class NgramThreadDistance(BuildingBlock):
         ngram = self._input.get_result(syscall)
         if ngram is None:
             return
-        if ngram not in self._thread_distributions:
-            self._thread_distributions[ngram] = Histogram()
-        thread_id = syscall.thread_id()
-        self._observed_thread_ids.add(thread_id)
-        self._thread_distributions[ngram].add(thread_id)
-        self._ngram_frequencies.add(ngram)
+        self._matrix.add(ngram, syscall.thread_id())
 
     def fit(self):
-        distance_matrix = make_thread_distance_matrix(self._thread_distributions)
-        for ngram, thread_dist in self._thread_distributions.items():
-            normalized_entropy = thread_dist.entropy() / max_entropy
-            entropy_anomaly_value = pow(1-normalized_entropy, self._entropy_alpha)/self._entropy_scale
-            ngram_freq = self._ngram_frequencies.get_count(ngram)
-            n_threads = len(thread_dist.keys())
-            anomaly_value = self._combine_scores(freq_score=self.freq_anomaly_fn.anomaly_value(ngram_freq),
-                                                 thread_freq_score=self.thread_anomaly_fn.anomaly_value(n_threads),
-                                                 normalized_entropy=entropy_anomaly_value)
-            self._anomaly_values[ngram] = anomaly_value
+        thread_distances = self._matrix.thread_distances()
+        thread_anomaly_scores = self.thread_anomaly_scores(thread_distances)
+        thread_anomaly_scores = minmax_scale(thread_anomaly_scores.reshape(-1,1), axis=0)
+        thread_anomaly_scores = thread_anomaly_scores * 0.8
+        matrix, ngrams, threads = self._matrix.ngram_thread_matrix()
+        for ngram_i, row in enumerate(matrix):
+            anomaly_score = 0
+            total = 0
+            for i, cell in enumerate(row):
+                anomaly_score += cell*thread_anomaly_scores[i]
+                total += cell
+            anomaly_score = anomaly_score / total
+            ngram = ngrams[ngram_i]
+            self._anomaly_values[ngram] = anomaly_score
+            print(ngram, anomaly_score)
 
-    def _combine_scores(self, freq_score, thread_freq_score, normalized_entropy):
-        features = []
-        if FEATURE_NGRAM_FREQ in self._features:
-            features.append(freq_score)
-        if FEATURE_THREAD in self._features:
-            features.append(thread_freq_score)
-        if FEATURE_NORMALIZED_ENTR in self._features:
-            features.append(normalized_entropy)
-
-        if self._combine == "arithmetic":
-            return mean(features)
-        if self._combine == "harmonic":
-            denom = 0
-            for f in features:
-                denom += 1 / f
-            return len(features) / denom
-        if self._combine == "geometric":
-            product = 1
-            for f in features:
-                product = product * f
-            return math.pow(product, 1/len(features))
-
+    def thread_anomaly_scores(self, thread_distances):
+        mean_distance = numpy.mean(thread_distances, axis=1)
+        print(mean_distance)
+        return mean_distance
     def _calculate(self, syscall: Syscall):
         """
         calculates ratio of unknown ngrams in sliding window of current recording
