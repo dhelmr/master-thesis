@@ -32,7 +32,7 @@ ids:
       ngram_length: 5
   - name: NgramThreadAnalyser
     args:
-      update_interval: 25000
+      update_interval: 250000
 dataloader:
   base:
     cont_ratio: 0.2
