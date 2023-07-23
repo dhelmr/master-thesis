@@ -23,12 +23,12 @@ class NgramThreadAnalyser(AnalyserBB):
         unique_ngrams = len(self.ngram_thread_matrix.distributions_by_ngram().keys())
         total = self.ngram_thread_matrix.total_ngrams
         n_threads = len(self.ngram_thread_matrix.distributions_by_threads().keys())
-        stats ={
+        stats = {
             "unique_ngrams": unique_ngrams,
             "total": total,
             "n_threads": n_threads,
-            "unique_ngrams/total": unique_ngrams/total,
-            "unique_ngrams/n_threads": unique_ngrams/n_threads
+            "unique_ngrams/total": unique_ngrams / total,
+            "unique_ngrams/n_threads": unique_ngrams / n_threads
         }
         self._add_distribution_stats(stats, "ngram_dists",
                                      self.ngram_thread_matrix.distributions_by_ngram(),
@@ -49,12 +49,15 @@ class NgramThreadAnalyser(AnalyserBB):
             for _, dist in dists.items():
                 entropies.append(dist.normalized_entropy(n_classes=n_classes, base=base))
             if base == e:
-                self._update_deviation_stats(stats, prefix= "%s_norm_entropy_b-e" % prefix, items=entropies)
+                self._update_deviation_stats(stats, prefix="%s_norm_entropy_b-e" % prefix, items=entropies)
             else:
-                self._update_deviation_stats(stats, prefix="%s_norm_entropy_b-%s" % (prefix,base), items=entropies)
+                self._update_deviation_stats(stats, prefix="%s_norm_entropy_b-%s" % (prefix, base), items=entropies)
 
         simpson_indexes = []
-        for _, dist in dists.items():
+        for ngram, dist in dists.items():
+            if len(dist.keys()) <= 1:
+                # print("skip simpson index, because less or equal 1 classes", ngram)
+                continue
             simpson_indexes.append(dist.simpson_index())
         self._update_deviation_stats(stats, prefix="%s-simpson-index" % prefix, items=simpson_indexes)
 
@@ -70,6 +73,7 @@ class NgramThreadAnalyser(AnalyserBB):
             "%s_max" % prefix: np.max(items),
             "%s_median" % prefix: np.median(items),
         })
+
     def _add_matrix_stats(self, stats, prefix, matrix):
         matrix_stats = {
             "mean": np.mean(matrix),
@@ -88,7 +92,7 @@ class NgramThreadAnalyser(AnalyserBB):
         eigenvals = np.linalg.eigvals(cov)
         sorted_vals = [np.real(v) for v in list(sorted(eigenvals, reverse=True))]
         for i, eigenval in enumerate(sorted_vals[:5]):
-            stats["%s_eigenval_%s" % (prefix, i) ] = eigenval
+            stats["%s_eigenval_%s" % (prefix, i)] = eigenval
         stats["%s_n_eigenvalues" % prefix] = len(sorted_vals)
         stats["%s_eigenval_mean_5" % prefix] = np.mean(sorted_vals[:5])
         stats["%s_eigenval_mean_10" % prefix] = np.mean(sorted_vals[:10])

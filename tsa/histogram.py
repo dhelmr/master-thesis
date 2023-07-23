@@ -1,7 +1,7 @@
 import math
 
 import numpy as np
-from numpy import e
+from numpy import e, nan
 
 
 class Histogram:
@@ -98,10 +98,13 @@ class Histogram:
         n_classes = len(self.keys()) if n_classes is None else n_classes
         entropy = self.entropy(base)
         max_entr = math.log(n_classes, base)
-        return entropy/max_entr
+        return entropy / max_entr
+
     def simpson_index(self):
         arr = self.counts_as_np_arr()
-        return np.sum((arr * (arr-1))) / ( self._size*(self._size-1))
+        if self._size == 1:
+            return nan # TODO!!
+        return np.sum((arr * (arr - 1))) / (self._size * (self._size - 1))
 
     def values(self):
         return self._counts.values()
@@ -114,13 +117,14 @@ class Histogram:
             yield key, self.get_count(key), hist2.get_count(key)
         for key in keys_in_hist2:
             yield key, self.get_count(key), hist2.get_count(key)
+
     def bhattacharyya_coef(self, hist2):
         hist1 = self
         total1 = len(hist1)
         total2 = len(hist2)
         sum = 0
         for key, count1, count2 in self.zip(hist2):
-            sum += math.sqrt(count1/total1 * count2/total2)
+            sum += math.sqrt(count1 / total1 * count2 / total2)
         # handle numeric inaccuracies (bc must be in [0,1])
         if sum > 1:
             return 1
@@ -131,4 +135,4 @@ class Histogram:
     def hellinger_distance(self, hist2: "Histogram"):
         bhattacharyya_coef = self.bhattacharyya_coef(hist2)
 
-        return math.sqrt(1-bhattacharyya_coef)
+        return math.sqrt(1 - bhattacharyya_coef)
