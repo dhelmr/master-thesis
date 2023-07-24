@@ -14,7 +14,23 @@ OD_METHODS = {
     cls.__name__: cls for cls in [LocalOutlierFactor, IsolationForest, EllipticEnvelope]
 }
 
-def make_distance_matrix(d: Dict[object, Histogram]):
+def hist_distance(hist1, hist2, distance_name):
+    if distance_name == "jaccard-cosine":
+        cos_sim = hist1.cosine_similarity(hist2)
+        jaccard_sim = hist1.jaccard(hist2)
+        return (1-cos_sim)*(1-jaccard_sim)
+    if distance_name == "cosine":
+        return 1-hist1.cosine_similarity(hist2)
+    if distance_name == "jaccard":
+        return 1-hist1.jaccard(hist2)
+    elif distance_name == "hellinger":
+        return hist1.hellinger_distance(hist2)
+    elif distance_name == "jaccard-hellinger":
+        jaccard = hist1.jaccard(hist2)
+        return (1-jaccard)*hist1.hellinger_distance(hist2)
+    else:
+        raise ValueError("Unknown distance: %s" % distance_name)
+def make_distance_matrix(d: Dict[object, Histogram], distance = "hellinger"):
     distance_matrix = []
     calculated_distances = {}  # used to ensure symetry of the distance matrix
     for hist1 in d.values():
@@ -24,7 +40,7 @@ def make_distance_matrix(d: Dict[object, Histogram]):
                 # the distance between this pair has already been calculated
                 dist = calculated_distances[(hist2, hist1)]
             else:
-                dist = hist1.hellinger_distance(hist2)
+                dist = hist_distance(hist1, hist2, distance)
                 calculated_distances[(hist1, hist2)] = dist
             row.append(dist)
         distance_matrix.append(row)
@@ -32,8 +48,8 @@ def make_distance_matrix(d: Dict[object, Histogram]):
     return distance_matrix
 class ThreadClusteringOD(OutlierDetector):
 
-    def __init__(self, building_block, train_features=None, n_components=2, skip_mds: bool = False,
-                 od_method: str = "IsolationForest", od_kwargs=None):
+    def __init__(self, building_block, train_features=None, n_components=2, distance="jaccard-cosine",
+                 skip_mds: bool = False, od_method: str = "IsolationForest", od_kwargs=None):
         super().__init__(building_block, train_features)
         if od_kwargs is None:
             od_kwargs = {}
@@ -48,6 +64,7 @@ class ThreadClusteringOD(OutlierDetector):
         else:
             self._need_mds = True
         self._od = OD_METHODS[od_method](**od_kwargs)
+        self._distance = distance
 
 
     def _add_training_data(self, index, ngram, syscall):
@@ -62,7 +79,7 @@ class ThreadClusteringOD(OutlierDetector):
 
         print("number of threads in training set: ", len(counts_by_thread))
         print("Calculate distance matrix...")
-        distance_matrix = make_distance_matrix(counts_by_thread)
+        distance_matrix = make_distance_matrix(counts_by_thread, self._distance)
 
         preds = self._do_outlier_detection(distance_matrix)
         anomalous_threads = set()

@@ -118,6 +118,28 @@ class Histogram:
         for key in keys_in_hist2:
             yield key, self.get_count(key), hist2.get_count(key)
 
+    def jaccard(self, hist2: "Histogram"):
+        and_sum = 0
+        or_sum = 0
+        for _, c1, c2 in self.zip(hist2):
+            or_sum += 1
+            if c1 > 0 and c2 > 0:
+                and_sum += 1
+        return and_sum/or_sum
+    def cosine_similarity(self, hist2: "Histogram"):
+        dot_product = self.dot_product(hist2)
+        return dot_product / (self.l2norm() * hist2.l2norm())
+    def dot_product(self, hist2: "Histogram"):
+        sum = 0
+        for _, c1, c2 in self.zip(hist2):
+            sum += c1*c2
+        return sum
+
+    def l2norm(self):
+        sum = 0
+        for c in self._counts.values():
+            sum += c*c
+        return math.sqrt(sum)
     def bhattacharyya_coef(self, hist2):
         hist1 = self
         total1 = len(hist1)
