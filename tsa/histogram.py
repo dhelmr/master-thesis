@@ -125,7 +125,7 @@ class Histogram:
         total2 = len(hist2)
         for _, c1, c2 in self.zip(hist2):
             mixture_prob = 0.5*(c1/total1+c2/total2)
-            mixture_entropy -= mixture_prob * math.log(mixture_prob, base=base)
+            mixture_entropy -= mixture_prob * math.log(mixture_prob, base)
         return mixture_entropy - 0.5*(self.entropy(base=base)+hist2.entropy(base=base))
 
     def jaccard(self, hist2: "Histogram"):
