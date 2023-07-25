@@ -18,16 +18,16 @@ OD_METHODS = {
 def hist_distance(hist1, hist2, distance_name):
     if distance_name == "jaccard-cosine":
         cos_sim = hist1.cosine_similarity(hist2)
-        jaccard_sim = hist1.jaccard(hist2)
+        jaccard_sim = hist1.binary_jaccard(hist2)
         return (1-cos_sim)*(1-jaccard_sim)
     if distance_name == "cosine":
         return 1-hist1.cosine_similarity(hist2)
     if distance_name == "jaccard":
-        return 1-hist1.jaccard(hist2)
+        return 1-hist1.binary_jaccard(hist2)
     elif distance_name == "hellinger":
         return hist1.hellinger_distance(hist2)
     elif distance_name == "jaccard-hellinger":
-        jaccard = hist1.jaccard(hist2)
+        jaccard = hist1.binary_jaccard(hist2)
         return (1-jaccard)*hist1.hellinger_distance(hist2)
     elif distance_name == "jsd":
         # jensen shannon distance is the square root of jensen shannon divergence

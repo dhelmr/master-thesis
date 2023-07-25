@@ -131,7 +131,7 @@ class Histogram:
             return 0
         return jsd
 
-    def jaccard(self, hist2: "Histogram"):
+    def binary_jaccard(self, hist2: "Histogram"):
         and_sum = 0
         or_sum = 0
         for _, c1, c2 in self.zip(hist2):
