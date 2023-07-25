@@ -4,6 +4,11 @@ experiment:
    - LID-DS-2021/PHP_CWE-434
    - LID-DS-2021/ZipSlip
    - LID-DS-2021/CWE-89-SQL-injection
+   - LID-DS-2019/CVE-2017-7529
+   - LID-DS-2019/CVE-2019-5418
+   - LID-DS-2019/CVE-2018-3760
+   - LID-DS-2019/PHP_CWE-434
+   - LID-DS-2019/SQL_Injection_CWE-89
   ids:
     - name: IntEmbedding
     - name: Ngram
