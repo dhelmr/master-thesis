@@ -1,3 +1,4 @@
+import math
 from typing import Iterable, Dict
 
 from matplotlib import pyplot as plt
@@ -28,6 +29,9 @@ def hist_distance(hist1, hist2, distance_name):
     elif distance_name == "jaccard-hellinger":
         jaccard = hist1.jaccard(hist2)
         return (1-jaccard)*hist1.hellinger_distance(hist2)
+    elif distance_name == "jsd":
+        # jensen shannon distance is the square root of jensen shannon divergence
+        return math.sqrt(hist1.jensen_shannon_divergence(hist2))
     else:
         raise ValueError("Unknown distance: %s" % distance_name)
 def make_distance_matrix(d: Dict[object, Histogram], distance = "hellinger"):

@@ -118,6 +118,16 @@ class Histogram:
         for key in keys_in_hist2:
             yield key, self.get_count(key), hist2.get_count(key)
 
+    def jensen_shannon_divergence(self, hist2: "Histogram", base=2):
+        # see https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence
+        mixture_entropy = 0
+        total1 = len(self)
+        total2 = len(hist2)
+        for _, c1, c2 in self.zip(hist2):
+            mixture_prob = 0.5*(c1/total1+c2/total2)
+            mixture_entropy -= mixture_prob * math.log(mixture_prob, base=base)
+        return mixture_entropy - 0.5*(self.entropy(base=base)+hist2.entropy(base=base))
+
     def jaccard(self, hist2: "Histogram"):
         and_sum = 0
         or_sum = 0
