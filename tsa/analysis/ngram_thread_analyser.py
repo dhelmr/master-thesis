@@ -48,7 +48,8 @@ class NgramThreadAnalyser(AnalyserBB):
             self._add_pdist_stats(stats, "ngram_dists", matrix)
             self._add_pdist_stats(stats, "thread_dists", np.transpose(matrix))
         if self.pca:
-            self._add_pca_stats(stats, "ngramXthreads_pca", matrix)
+            self._add_pca_stats(stats, "nXt_pca", matrix)
+            self._add_pca_stats(stats, "tXn_pca",  np.transpose(matrix))
         return [stats]
 
     def _add_distribution_stats(self, stats, prefix: str, dists, n_classes):
