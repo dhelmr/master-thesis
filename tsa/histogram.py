@@ -126,7 +126,10 @@ class Histogram:
         for _, c1, c2 in self.zip(hist2):
             mixture_prob = 0.5*(c1/total1+c2/total2)
             mixture_entropy += mixture_prob * math.log(mixture_prob, base)
-        return - mixture_entropy - 0.5*(self.entropy(base=base)+hist2.entropy(base=base))
+        jsd = - mixture_entropy - 0.5*(self.entropy(base=base)+hist2.entropy(base=base))
+        if jsd < 0: # handle numerical inaccuracies; jsd should always be >= 0
+            return 0
+        return jsd
 
     def jaccard(self, hist2: "Histogram"):
         and_sum = 0
