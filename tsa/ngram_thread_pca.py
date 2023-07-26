@@ -1,3 +1,4 @@
+import math
 from copy import deepcopy
 from typing import Dict, List
 
@@ -51,6 +52,27 @@ class NgramThreadMatrix:
     def threads(self) -> List[str]:
         observed_threads = self._ngram_distributions.keys()
         return list(observed_threads)
+
+    def ngrams(self) -> List[Ngram]:
+        return list(self._thread_distributions.keys())
+
+    def idf(self, ngram):
+        n_threads = len(self._ngram_distributions.keys())
+        return math.log(n_threads/len(self._thread_distributions[ngram])+1)
+
+    def tf(self, ngram, thread_id):
+        return self._ngram_distributions[thread_id].get_count(ngram)
+
+    def tf_idf_matrix(self):
+        matrix = []
+        row_labels = []
+        column_labels = self.threads()
+        for ngram in self.ngrams():
+            idf = self.idf(ngram)
+            row = [idf * self.tf(ngram, thread_id) for thread_id in column_labels]
+            matrix.append(row)
+            row_labels.append(ngram)
+        return matrix, row_labels, column_labels
 
 class NgramThreadEmbeddings:
 
