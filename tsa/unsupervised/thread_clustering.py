@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 from matplotlib import pyplot as plt
+from numpy.linalg import linalg
 from sklearn.covariance import EllipticEnvelope
 from sklearn.ensemble import IsolationForest
 from sklearn.manifold import MDS
@@ -35,7 +36,8 @@ DISTANCE_FN = {
 class ThreadClusteringOD(OutlierDetector):
 
     def __init__(self, building_block, train_features=None, n_components=2, distance="jaccard-cosine", tf_idf=False,
-                 skip_mds: bool = False, od_method: str = "IsolationForest", od_kwargs=None):
+                 skip_mds: bool = False, thread_based = True, normalize_rows=False, normalize_ord=1,
+                 od_method: str = "IsolationForest", od_kwargs=None):
         super().__init__(building_block, train_features)
         if od_kwargs is None:
             od_kwargs = {}
@@ -56,6 +58,9 @@ class ThreadClusteringOD(OutlierDetector):
             # TODO: check if distance is valid scipy distance fn
             self._distance = distance
         self._tf_idf = tf_idf
+        self._thread_based = thread_based
+        self._normalize_rows = normalize_rows
+        self._normalize_ord = normalize_ord
 
     def _add_training_data(self, index, ngram, syscall):
         self._training_data.append((index, ngram, syscall.thread_id()))
@@ -79,21 +84,29 @@ class ThreadClusteringOD(OutlierDetector):
             matrix, ngrams, threads = matrix_builder.tf_idf_matrix()
         else:
             matrix, ngrams, threads = matrix_builder.ngram_thread_matrix()
-        matrix = np.transpose(matrix) # convert ngram-thread matrix to thread-ngram matrix
+        if self._thread_based:
+            matrix = np.transpose(matrix) # convert ngram-thread matrix to thread-ngram matrix
+        if self._normalize_rows:
+            norm = linalg.norm(matrix, axis=1, ord=self._normalize_ord).reshape(-1,1)
+            matrix = matrix / norm
         print("Calculate distance matrix...")
-        print(matrix)
-        # TOD support jaccard-weighted distances
         distance_matrix = squareform(pdist(matrix, metric=self._distance))
 
         preds = self._do_outlier_detection(distance_matrix)
-        anomalous_threads = set()
-        for i, thread_id in enumerate(threads):
-            if preds[i] < 0:
-                anomalous_threads.add(thread_id)
+        anomalous_entities = set()
+        if self._thread_based:
+            for i, thread_id in enumerate(threads):
+                if preds[i] < 0:
+                    anomalous_entities.add(thread_id)
+        else:
+            for i, ngram in enumerate(ngrams):
+                if preds[i] < 0:
+                    anomalous_entities.add(ngram)
 
         anomalies = set()
         for i, ngram, thread_id in training_data:
-            if thread_id in anomalous_threads:
+            if (self._thread_based and thread_id in anomalous_entities)\
+                    or (not self._thread_based and ngram in anomalous_entities):
                 anomalies.add(i)
         return anomalies
 
