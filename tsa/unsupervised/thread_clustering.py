@@ -1,6 +1,6 @@
 import math
-from typing import Iterable, Dict
 
+import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.covariance import EllipticEnvelope
 from sklearn.ensemble import IsolationForest
@@ -8,51 +8,33 @@ from sklearn.manifold import MDS
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.preprocessing import MinMaxScaler
 
-from tsa.histogram import Histogram
+from scipy.spatial.distance import pdist, cosine, squareform
+from tsa.ngram_thread_matrix import NgramThreadMatrix
 from tsa.unsupervised.preprocessing import OutlierDetector
 
 OD_METHODS = {
     cls.__name__: cls for cls in [LocalOutlierFactor, IsolationForest, EllipticEnvelope]
 }
 
-def hist_distance(hist1, hist2, distance_name):
-    if distance_name == "jaccard-cosine":
-        cos_sim = hist1.cosine_similarity(hist2)
-        jaccard_sim = hist1.binary_jaccard(hist2)
-        return (1-cos_sim)*(1-jaccard_sim)
-    if distance_name == "cosine":
-        return 1-hist1.cosine_similarity(hist2)
-    if distance_name == "jaccard":
-        return 1-hist1.binary_jaccard(hist2)
-    elif distance_name == "hellinger":
-        return hist1.hellinger_distance(hist2)
-    elif distance_name == "jaccard-hellinger":
-        jaccard = hist1.binary_jaccard(hist2)
-        return (1-jaccard)*hist1.hellinger_distance(hist2)
-    elif distance_name == "jsd":
-        # jensen shannon distance is the square root of jensen shannon divergence
-        return math.sqrt(hist1.jensen_shannon_divergence(hist2))
-    else:
-        raise ValueError("Unknown distance: %s" % distance_name)
-def make_distance_matrix(d: Dict[object, Histogram], distance = "hellinger"):
-    distance_matrix = []
-    calculated_distances = {}  # used to ensure symetry of the distance matrix
-    for hist1 in d.values():
-        row = []
-        for hist2 in d.values():
-            if (hist2, hist1) in calculated_distances:
-                # the distance between this pair has already been calculated
-                dist = calculated_distances[(hist2, hist1)]
-            else:
-                dist = hist_distance(hist1, hist2, distance)
-                calculated_distances[(hist1, hist2)] = dist
-            row.append(dist)
-        distance_matrix.append(row)
-    del calculated_distances
-    return distance_matrix
+def binary_jaccard_distance(u,v):
+    sum_and = 0
+    sum_or = 0
+    for i in range(len(u)):
+        if u[i] > 0 and v[i] > 0:
+            sum_and += 1
+        if u[i] > 0 or v[i] > 0:
+            sum_or += 1
+    return (1-sum_and/sum_or) if sum_or != 0 else 0
+
+DISTANCE_FN = {
+    "jaccard-cosine": lambda u,v: binary_jaccard_distance(u,v)*cosine(u,v),
+    "binary-jaccard": binary_jaccard_distance
+    # TODO hellinger, ...
+}
+
 class ThreadClusteringOD(OutlierDetector):
 
-    def __init__(self, building_block, train_features=None, n_components=2, distance="jaccard-cosine",
+    def __init__(self, building_block, train_features=None, n_components=2, distance="jaccard-cosine", tf_idf=False,
                  skip_mds: bool = False, od_method: str = "IsolationForest", od_kwargs=None):
         super().__init__(building_block, train_features)
         if od_kwargs is None:
@@ -68,26 +50,44 @@ class ThreadClusteringOD(OutlierDetector):
         else:
             self._need_mds = True
         self._od = OD_METHODS[od_method](**od_kwargs)
-        self._distance = distance
-
+        if distance in DISTANCE_FN:
+            self._distance = DISTANCE_FN[distance]
+        else:
+            # TODO: check if distance is valid scipy distance fn
+            self._distance = distance
+        self._tf_idf = tf_idf
 
     def _add_training_data(self, index, ngram, syscall):
         self._training_data.append((index, ngram, syscall.thread_id()))
 
     def detect_anomalies(self, training_data):
-        counts_by_thread = dict()
+        #counts_by_thread = dict()
+        #
+        #    if thread_id not in counts_by_thread:
+        #        counts_by_thread[thread_id] = Histogram()
+        #    counts_by_thread[thread_id].add(ngram)
+        matrix_builder = NgramThreadMatrix()
         for i, ngram, thread_id in training_data:
-            if thread_id not in counts_by_thread:
-                counts_by_thread[thread_id] = Histogram()
-            counts_by_thread[thread_id].add(ngram)
+            matrix_builder.add(ngram, thread_id)
 
-        print("number of threads in training set: ", len(counts_by_thread))
+
+        print("number of threads in training set: ", len(matrix_builder.threads()))
+        print("number of ngrams in training set: ", len(matrix_builder.ngrams()))
+                # distance_matrix = make_distance_matrix(counts_by_thread, self._distance)
+        if self._tf_idf:
+            print("Calculate tf_idf matrix")
+            matrix, ngrams, threads = matrix_builder.tf_idf_matrix()
+        else:
+            matrix, ngrams, threads = matrix_builder.ngram_thread_matrix()
+        matrix = np.transpose(matrix) # convert ngram-thread matrix to thread-ngram matrix
         print("Calculate distance matrix...")
-        distance_matrix = make_distance_matrix(counts_by_thread, self._distance)
+        print(matrix)
+        # TOD support jaccard-weighted distances
+        distance_matrix = squareform(pdist(matrix, metric=self._distance))
 
         preds = self._do_outlier_detection(distance_matrix)
         anomalous_threads = set()
-        for i, thread_id in enumerate(counts_by_thread.keys()):
+        for i, thread_id in enumerate(threads):
             if preds[i] < 0:
                 anomalous_threads.add(thread_id)
 

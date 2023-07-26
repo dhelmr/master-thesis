@@ -4,7 +4,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import MinMaxScaler
 
 from tsa.analysis.analyser import AnalyserBB
-from tsa.ngram_thread_pca import NgramThreadMatrix
+from tsa.ngram_thread_matrix import NgramThreadMatrix
 
 
 class NgramThreadAnalyser(AnalyserBB):
