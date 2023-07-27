@@ -47,9 +47,13 @@ class ClusterVisualize(AnalyserBB):
 
         stats = []
         self.make_matrix_plots(nXt, stats, "nXt")
-        self.make_matrix_plots(self.reduce_dim(nXt, 10), stats, "nXt-pca10")
+
         self.make_matrix_plots(tfidf_nXt, stats, "nXt-tfidf")
-        self.make_matrix_plots(self.reduce_dim(nXt, 10), stats, "nXt-tfidf-pca10")
+        try:
+            self.make_matrix_plots(self.reduce_dim(nXt, 10), stats, "nXt-tfidf-pca10")
+            self.make_matrix_plots(self.reduce_dim(nXt, 10), stats, "nXt-pca10")
+        except ValueError as e:
+            print("Cannot plot PCA", e)
         self.make_matrix_plots(tXn, stats, "tXn")
         self.make_matrix_plots(tfidf_tXn, stats, "tXn-tfidf")
         self._stat_index += 1
