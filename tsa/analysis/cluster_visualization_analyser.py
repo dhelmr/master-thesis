@@ -49,11 +49,8 @@ class ClusterVisualize(AnalyserBB):
         self.make_matrix_plots(nXt, stats, "nXt")
 
         self.make_matrix_plots(tfidf_nXt, stats, "nXt-tfidf")
-        try:
-            self.make_matrix_plots(self.reduce_dim(nXt, 10), stats, "nXt-tfidf-pca10")
-            self.make_matrix_plots(self.reduce_dim(nXt, 10), stats, "nXt-pca10")
-        except ValueError as e:
-            print("Cannot plot PCA", e)
+        self.make_matrix_plots(self.reduce_dim(nXt, 10), stats, "nXt-tfidf-pca10")
+        self.make_matrix_plots(self.reduce_dim(nXt, 10), stats, "nXt-pca10")
         self.make_matrix_plots(tXn, stats, "tXn")
         self.make_matrix_plots(tfidf_tXn, stats, "tXn-tfidf")
         self._stat_index += 1
@@ -65,16 +62,20 @@ class ClusterVisualize(AnalyserBB):
             self._plot_and_stats(self.normalize(matrix), stats, f"{name}-norm", dist)
 
     def _plot_and_stats(self, matrix, stats, name, distance):
-        coords = self.build_clusters(matrix, distance)
-        self.plot(coords, f"{name}-{distance}")
-        rows_common = {
-            "distance": distance,
-            "name": name,
-            "mean": np.mean(coords),
-            "var": np.var(coords)
-        }
-        print(rows_common)
-        stats.append(rows_common)
+        try:
+            coords = self.build_clusters(matrix, distance)
+            self.plot(coords, f"{name}-{distance}")
+            rows_common = {
+                "distance": distance,
+                "name": name,
+                "mean": np.mean(coords),
+                "var": np.var(coords)
+            }
+            print(rows_common)
+            stats.append(rows_common)
+        except ValueError as e:
+            print("Error occured for", name, distance)
+            print(e)
         #for r, c in enumerate(coords):
         #    stats.append({
         #        **{f"x{i}": c[i] for i in range(len(coords[0]))},
