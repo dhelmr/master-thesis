@@ -39,6 +39,7 @@ experiment:
           - cosine
           - jaccard
           - hamming
+          - jensenshannon
           - hellinger
           - jaccard-hellinger
           - jaccard-cosine
