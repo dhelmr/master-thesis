@@ -82,7 +82,8 @@ class ClusterVisualize(AnalyserBB):
 
     def reduce_dim(self, matrix, n_components=10):
         pca = PCA(n_components)
-        return pca.fit_transform(matrix)
+        transformed = pca.fit_transform(matrix)
+        return MinMaxScaler().fit_transform(transformed)
 
     def build_clusters(self, matrix, distance):
         # TODO. refactor with ThreadClusteringOD
