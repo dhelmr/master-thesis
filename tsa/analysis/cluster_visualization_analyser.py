@@ -12,6 +12,7 @@ from sklearn.manifold import MDS
 from sklearn.preprocessing import MinMaxScaler
 
 from algorithms.features.impl.min_max_scaling import MinMaxScaling
+from tsa.unsupervised.thread_clustering import DISTANCE_FN
 from tsa.utils import log_pandas_df
 from tsa.analysis.analyser import AnalyserBB
 import matplotlib.pyplot as plt
@@ -85,7 +86,8 @@ class ClusterVisualize(AnalyserBB):
 
     def build_clusters(self, matrix, distance):
         # TODO. refactor with ThreadClusteringOD
-
+        if distance in DISTANCE_FN:
+            distance = DISTANCE_FN[distance]
         distance_matrix = squareform(pdist(matrix, metric=distance))
 
         mds = MDS(n_components=2, metric=True, dissimilarity="precomputed")
