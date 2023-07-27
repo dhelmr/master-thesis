@@ -30,7 +30,7 @@ class AnalyserBB(BuildingBlock):
         inp = self._input.get_result(syscall)
         self._add_input(syscall, inp)
         self._current_i += 1
-        if self._current_i % self._update_interval == 0:
+        if self._update_interval is not None and self._current_i % self._update_interval == 0:
             self.__update_stats()
 
     def fit(self):

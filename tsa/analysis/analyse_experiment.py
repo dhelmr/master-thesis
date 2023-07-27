@@ -1,16 +1,13 @@
-import os
-import tempfile
-
-import mlflow
 from pandas import DataFrame
 
 from algorithms.building_block import BuildingBlock
-from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
 from algorithms.ids import IDS
 from dataloader.syscall import Syscall
+
 from tsa.analysis.analyser import AnalyserBB
-from tsa.building_block_builder import IDSPipelineBuilder
 from tsa.experiment import Experiment
+from tsa.utils import log_pandas_df
+
 
 class DummyDecider(BuildingBlock):
     def __init__(self, inp: BuildingBlock):
@@ -45,7 +42,7 @@ class AnalysisExperiment(Experiment):
             if isinstance(bb, AnalyserBB):
                 stats = bb.get_stats()
                 if isinstance(stats, DataFrame):
-                    self.log_pandas_df(stats, name=bb.name)
+                    log_pandas_df(stats, name=bb.name)
                 elif stats is None:
                     print("Got no stats")
                 else:
@@ -53,11 +50,6 @@ class AnalysisExperiment(Experiment):
 
         return {}, {}, ids
 
-    def log_pandas_df(self, df: DataFrame, name: str):
-        tmpdir = tempfile.mkdtemp()
-        tmpfile = os.path.join(tmpdir, f"{name}.parquet.gz")
-        df.to_parquet(tmpfile, compression="gzip")
-        mlflow.log_artifact(tmpfile)
 
 def unpack_dependencies(last_bb: BuildingBlock):
     inner_deps = []

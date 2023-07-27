@@ -1,28 +1,30 @@
 Robustness studies and training set analysis for HIDS
-# July I (03-12)
-
-
-
-
-
----
-
-# JULY II (12-21) 
+# July III (22-31)
 
 ## Various
 
 * T-Stide: relative frequency
+* Data Drift Training Set vs Validation Set
+* n-th percentil threshold
 
+* Relative Entropy of ngram as Anomaly Score
+* transfer learning W2V + Freq => Frequency-Scaled W2V Embedding
 
-## Experiment Building
+## Experiment Maintainance
+
+* eval-trend (only comare existing runs)
+* tsa + syscall matching (doodle/syscall_graph als subcommand)
+* other metrics than f1_cfa in doodle/syscall_graph
+
+## Experiment Buildings
 
 * Decision Engine as Outlier Detector 
-* Multiply/ADD FrequencySTIDE to SOM Score
 
 ## Code Maintainance
 
 * backup databricks mlflow runs
 * test loaded attacks in dataloader
+* "check" for search mode
 
 ## Similar Normal Behaviour (2019)
 
@@ -32,12 +34,25 @@ Robustness studies and training set analysis for HIDS
 * CVE-2016-6515 + CVE-2015-5602 (Local Privilege Escalation)
 * Zip Slip + SWE-434 (Zip Slip, PS)
 
+## Data set Quality Heuristics
+
+* unique_ngrams / n_threads < 0.5
+* unique_ngrams / syscalls < X
 
 --- 
 
 # BACKLOG
 
+* evaluation: interpolate f1 score for average calculation
+* evaluation: ROC curve?
+* set threshold as p95, *2, ... for robustness
+* mean kNN distance as local outlier factor
 * f-stide alpha anhand von training set eigenschaften bestimmen
+* STIDE experiment mit ngram_length = (1,...,15) 
+    => wie hängt robustness von ngram länge ab?
+    => Conditional Entropy X ngram länge?
+* visualize thread clustering results
+* Jensen-Shannon Divergence for all probability distributions of matrix
 
 ## TSA
 

@@ -4,12 +4,13 @@ import numpy as np
 from matplotlib import pyplot as plt
 from numpy.linalg import linalg
 from sklearn.covariance import EllipticEnvelope
+from sklearn.decomposition import PCA
 from sklearn.ensemble import IsolationForest
 from sklearn.manifold import MDS
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.preprocessing import MinMaxScaler
 
-from scipy.spatial.distance import pdist, cosine, squareform
+from scipy.spatial.distance import pdist, cosine, squareform, euclidean
 from tsa.ngram_thread_matrix import NgramThreadMatrix
 from tsa.unsupervised.preprocessing import OutlierDetector
 
@@ -17,7 +18,8 @@ OD_METHODS = {
     cls.__name__: cls for cls in [LocalOutlierFactor, IsolationForest, EllipticEnvelope]
 }
 
-def binary_jaccard_distance(u,v):
+
+def binary_jaccard_distance(u, v):
     sum_and = 0
     sum_or = 0
     for i in range(len(u)):
@@ -25,23 +27,33 @@ def binary_jaccard_distance(u,v):
             sum_and += 1
         if u[i] > 0 or v[i] > 0:
             sum_or += 1
-    return (1-sum_and/sum_or) if sum_or != 0 else 0
+    return (1 - sum_and / sum_or) if sum_or != 0 else 0
+
+
+_SQRT2 = np.sqrt(2)
+
+
+def hellinger(u, v):
+    return euclidean(np.sqrt(u), np.sqrt(v)) / _SQRT2
+
 
 DISTANCE_FN = {
-    "jaccard-cosine": lambda u,v: binary_jaccard_distance(u,v)*cosine(u,v),
-    "binary-jaccard": binary_jaccard_distance
-    # TODO hellinger, ...
+    "jaccard-cosine": lambda u, v: binary_jaccard_distance(u, v) * cosine(u, v),
+    "binary-jaccard": binary_jaccard_distance,
+    "hellinger": hellinger,
+    "jaccard-hellinger": lambda u, v: binary_jaccard_distance(u, v) * hellinger(u, v)
 }
+
 
 class ThreadClusteringOD(OutlierDetector):
 
     def __init__(self, building_block, train_features=None, n_components=2, distance="jaccard-cosine", tf_idf=False,
-                 skip_mds: bool = False, thread_based = True, normalize_rows=False, normalize_ord=1,
-                 od_method: str = "IsolationForest", od_kwargs=None):
+                 skip_mds: bool = False, thread_based=True, normalize_rows=False, normalize_ord=1, metric_mds=True,
+                 plot_mds=False, od_method: str = "IsolationForest", od_kwargs=None):
         super().__init__(building_block, train_features)
         if od_kwargs is None:
             od_kwargs = {}
-        self._mds = MDS(n_components=n_components, dissimilarity="precomputed")
+        self._mds = MDS(n_components=n_components, metric=metric_mds, dissimilarity="precomputed")
         if od_method not in OD_METHODS:
             raise ValueError("Invalid od_method name %s. Must be one of: %s" % (od_method, list(OD_METHODS.keys())))
         if od_method == "LocalOutlierFactor" and skip_mds:
@@ -61,12 +73,13 @@ class ThreadClusteringOD(OutlierDetector):
         self._thread_based = thread_based
         self._normalize_rows = normalize_rows
         self._normalize_ord = normalize_ord
+        self._plot_mds = plot_mds
 
     def _add_training_data(self, index, ngram, syscall):
         self._training_data.append((index, ngram, syscall.thread_id()))
 
     def detect_anomalies(self, training_data):
-        #counts_by_thread = dict()
+        # counts_by_thread = dict()
         #
         #    if thread_id not in counts_by_thread:
         #        counts_by_thread[thread_id] = Histogram()
@@ -75,19 +88,18 @@ class ThreadClusteringOD(OutlierDetector):
         for i, ngram, thread_id in training_data:
             matrix_builder.add(ngram, thread_id)
 
-
         print("number of threads in training set: ", len(matrix_builder.threads()))
         print("number of ngrams in training set: ", len(matrix_builder.ngrams()))
-                # distance_matrix = make_distance_matrix(counts_by_thread, self._distance)
+        # distance_matrix = make_distance_matrix(counts_by_thread, self._distance)
         if self._tf_idf:
             print("Calculate tf_idf matrix")
             matrix, ngrams, threads = matrix_builder.tf_idf_matrix()
         else:
             matrix, ngrams, threads = matrix_builder.ngram_thread_matrix()
         if self._thread_based:
-            matrix = np.transpose(matrix) # convert ngram-thread matrix to thread-ngram matrix
+            matrix = np.transpose(matrix)  # convert ngram-thread matrix to thread-ngram matrix
         if self._normalize_rows:
-            norm = linalg.norm(matrix, axis=1, ord=self._normalize_ord).reshape(-1,1)
+            norm = linalg.norm(matrix, axis=1, ord=self._normalize_ord).reshape(-1, 1)
             matrix = matrix / norm
         print("Calculate distance matrix...")
         distance_matrix = squareform(pdist(matrix, metric=self._distance))
@@ -105,7 +117,7 @@ class ThreadClusteringOD(OutlierDetector):
 
         anomalies = set()
         for i, ngram, thread_id in training_data:
-            if (self._thread_based and thread_id in anomalous_entities)\
+            if (self._thread_based and thread_id in anomalous_entities) \
                     or (not self._thread_based and ngram in anomalous_entities):
                 anomalies.add(i)
         return anomalies
@@ -118,14 +130,19 @@ class ThreadClusteringOD(OutlierDetector):
             transformed = MinMaxScaler().fit_transform(transformed)
             print("finished MDS")
             X = transformed
-            plot(X)
+            if self._plot_mds:
+                plot(X)
         print("Start Outlier Detection with", self._od.__dict__)
         preds = self._od.fit_predict(X)
         return preds
+
+
+
 def plot(matrix):
     if len(matrix[0]) > 2:
-        print("dim > 2, abort")
-        return
+        print("dim > 2, transform with pca")
+        pca = PCA(n_components=2)
+        matrix = pca.fit_transform(matrix)
     X = [x for x, _ in matrix]
     Y = [y for _, y in matrix]
     plt.scatter(X, Y)

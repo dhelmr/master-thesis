@@ -1,6 +1,11 @@
 import itertools
 import math
+import os
 import random
+import tempfile
+
+import mlflow
+from pandas import DataFrame
 
 
 def split_list(l, fraction_sublist1: float):
@@ -73,3 +78,10 @@ def choose_element(iterator, index):
             return el
     raise ValueError(
         "Cannot choose the %s-th element, because the iterator returned only %s elements." % (index, total))
+
+
+def log_pandas_df(df: DataFrame, name: str):
+    tmpdir = tempfile.mkdtemp()
+    tmpfile = os.path.join(tmpdir, f"{name}.parquet.gz")
+    df.to_parquet(tmpfile, compression="gzip")
+    mlflow.log_artifact(tmpfile)
