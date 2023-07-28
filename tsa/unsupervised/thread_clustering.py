@@ -29,6 +29,15 @@ def binary_jaccard_distance(u, v):
             sum_or += 1
     return (1 - sum_and / sum_or) if sum_or != 0 else 0
 
+def binary_hamming(u, v):
+    distance = 0
+    for i in range(len(u)):
+        if u[i] > 0 and v[i] > 0:
+            continue
+        if u[i] == 0 and v[i] == 0:
+            continue
+        distance += 1
+    return distance
 
 _SQRT2 = np.sqrt(2)
 
@@ -41,6 +50,7 @@ DISTANCE_FN = {
     "jaccard-cosine": lambda u, v: binary_jaccard_distance(u, v) * cosine(u, v),
     "binary-jaccard": binary_jaccard_distance,
     "hellinger": hellinger,
+    "binary-hamming": binary_hamming,
     "jaccard-hellinger": lambda u, v: binary_jaccard_distance(u, v) * hellinger(u, v)
 }
 
