@@ -7,7 +7,7 @@ import mlflow
 from mlflow.entities import RunStatus, Run
 from pandas import DataFrame
 
-from tsa.experiment import Experiment, RunConfig
+from tsa.experiment import Experiment, RunConfig, IGNORE_SCENARIOS
 
 
 @dataclasses.dataclass()
@@ -91,6 +91,8 @@ class ExperimentChecker:
                 print("Skip run %s, error is: %s" % (r.info.run_id, e))
                 skipped.append(r)
                 continue
+            if run_cfg.scenario in IGNORE_SCENARIOS:
+                continue
             counts = counts_by_status[status]
             if run_cfg.iteration not in counts:
                 counts[run_cfg.iteration] = 0
@@ -125,7 +127,7 @@ class ExperimentChecker:
                 "The following mlflow runs have unexpected parameters (based on their iteration id): %s" %
                 [r.iteration for r in failed_integrity])
         if len(not_found) > 0:
-            raise RuntimeError("The following mlflow runs are not expected" % [r.iteration for r in not_found])
+            raise RuntimeError("The following mlflow runs are not expected %s" % [r.iteration for r in not_found])
 
         fin_counts = counts[RunStatus.FINISHED]
         runn_counts = counts[RunStatus.RUNNING]
@@ -194,6 +196,7 @@ class ExperimentChecker:
                 raise RuntimeError("Experiment is not finished.")
         exp = mlflow.get_experiment_by_name(self.experiment.mlflow_name)
         runs = mlflow.search_runs(experiment_ids=[exp.experiment_id])
+        runs = runs.loc[~runs["params.dataloader.scenario"].isin(IGNORE_SCENARIOS)]
         return runs, stats.is_finished()
 
 

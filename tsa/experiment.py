@@ -23,12 +23,13 @@ from tsa.dataloaders.filter_dl import FilterDataloader
 from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 from tsa.utils import access_cfg
 
-
-
 ScenarioName = str
+
+
 @dataclasses.dataclass
 class CombinedScenario:
     scenarios: Dict[ScenarioName, dict]
+
 
 @dataclasses.dataclass
 class RunConfig:
@@ -44,6 +45,10 @@ class RunConfig:
         if isinstance(self.scenario, CombinedScenario):
             d["scenario"] = [s for s, _ in self.scenario.scenarios.items()]
         return d
+
+
+IGNORE_SCENARIOS = ["LID-DS-2021/CVE-2017-12635_6"]
+print("Ignore scenarios:", IGNORE_SCENARIOS)
 
 
 class Experiment:
@@ -67,8 +72,9 @@ class Experiment:
                 raise ValueError("Invalid value for permutation_i: %s" % permutation_i_values)
             permutation_i_values = [permutation_i_values]
         iteration = 0
-        for permutation_i, scenario, num_attacks in itertools.product(permutation_i_values,self.scenarios, num_attacks_range):
-#            lid_ds_version, scenario_name = scenario.split("/")
+        for permutation_i, scenario, num_attacks in itertools.product(permutation_i_values, self.scenarios,
+                                                                      num_attacks_range):
+            #            lid_ds_version, scenario_name = scenario.split("/")
             if isinstance(scenario, dict):
                 scenario = CombinedScenario(scenarios=scenario)
             cfg = RunConfig(
@@ -78,7 +84,9 @@ class Experiment:
                 scenario=scenario,
                 permutation_i=permutation_i
             )
-            configs.append(cfg)
+
+            if scenario not in IGNORE_SCENARIOS:
+                configs.append(cfg)
             iteration += 1
         return configs
 
@@ -166,7 +174,7 @@ class Experiment:
                     **scenario_dl_cfg,
                     **dataloader_cfg
                 }
-                if i == 0: # first dataloader has mum_attacks from run cfg
+                if i == 0:  # first dataloader has mum_attacks from run cfg
                     part_dataloader = self._make_dl_from_scenario(scenario_name, dataloader_cfg)
                 else:
                     dataloader_cfg["num_attacks"] = 0
@@ -181,7 +189,7 @@ class Experiment:
     def _get_dataloader_cfg(self):
         cfg = self._get_param("dataloader", "base", exp_type=dict)
         if "direction" not in cfg:
-            cfg["direction"] = Direction.BOTH # TODO: make configurable
+            cfg["direction"] = Direction.BOTH  # TODO: make configurable
         return cfg
 
     def train_test(self, dataloader: BaseDataLoader, run_cfg: RunConfig, builder):
@@ -247,7 +255,7 @@ class Experiment:
         context = str(cfg) + "||" + str(dataloader.cfg_dict()) + "||" + str(run_cfg.to_dict())
         print("Cache context:", context)
         context_hash = hashlib.md5(context.encode()).hexdigest()
-        return os.path.join(base_path, context_hash+".ids.pickle")
+        return os.path.join(base_path, context_hash + ".ids.pickle")
 
     def _serialize_ids(self, ids: IDS, dataloader, run_cfg):
         path = self._serialization_path(dataloader, run_cfg)

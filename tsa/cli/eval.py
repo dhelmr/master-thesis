@@ -6,6 +6,7 @@ from pandas import DataFrame
 
 from tsa.cli.check import load_exp_from_parser
 from tsa.cli.run import SubCommand
+from tsa.experiment import IGNORE_SCENARIOS
 from tsa.mlflow.experiment_name_conversion import ExperimentNameConversion, MlflowResultsCache
 
 NUM_ATTACK_WEIGHTS = {  # TODO!
@@ -48,6 +49,7 @@ class EvalSubCommand(SubCommand):
             name = converter.get_rel_exp_name(checker.experiment.mlflow_name)
             print(checker.experiment.mlflow_name)
             runs = self._get_results(checker, name, cache, args.allow_unfinished)
+            runs = runs.loc[~runs["params.dataloader.scenario"].isin(IGNORE_SCENARIOS)]
             runs["params.num_attacks"] = pd.to_numeric(runs["params.num_attacks"])
             if args.query is not None:
                 runs = runs.query(args.query, engine="python")
