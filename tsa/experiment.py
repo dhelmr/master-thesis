@@ -245,6 +245,7 @@ class Experiment:
         base_path = os.environ["IDS_CACHE_PATH"]
         cfg = self.parameter_cfg
         context = str(cfg) + "||" + str(dataloader.cfg_dict()) + "||" + str(run_cfg.to_dict())
+        print("Cache context:", context)
         context_hash = hashlib.md5(context.encode()).hexdigest()
         return os.path.join(base_path, context_hash+".ids.pickle")
 
