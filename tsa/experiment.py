@@ -92,10 +92,9 @@ class Experiment:
 
     def start(self, start_at=0, dry_run=False, num_runs=None):
         mlflow.set_experiment(self.mlflow_name)
-        i = -1
         current_run = 0
         for run_cfg in self.run_configurations():
-            i = i + 1
+            i = run_cfg.iteration
             if i < start_at:
                 continue
             dataloader = self._get_dataloader_cls(run_cfg)
