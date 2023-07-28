@@ -53,6 +53,7 @@ class TfidfSTIDE(BuildingBlock):
             self._anomaly_scores[ngram] = anomaly_score
             print(ngram, anomaly_score)
         self._max_score = max(self._anomaly_scores.values())
+        del self._matrix
 
     def _calculate(self, syscall: Syscall):
         """
