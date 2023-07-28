@@ -10,11 +10,13 @@ AGGREGATION_FUNCTIONS = {
     "mean": np.mean,
     "max": np.max
 }
+
+
 class TfidfSTIDE(BuildingBlock):
     """
     """
 
-    def __init__(self, input: BuildingBlock, unseen_factor = 1.5, aggregation="mean"):
+    def __init__(self, input: BuildingBlock, unseen_factor=1.5, aggregation="mean"):
         super().__init__()
         # parameter
         self._input = input
@@ -63,5 +65,4 @@ class TfidfSTIDE(BuildingBlock):
         if ngram in self._anomaly_scores:
             return self._anomaly_scores[ngram]
         else:
-            return self._max_score*self._unseen_factor
-
+            return self._max_score * self._unseen_factor
