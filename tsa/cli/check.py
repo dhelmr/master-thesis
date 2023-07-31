@@ -28,6 +28,7 @@ class CheckSubCommand(SubCommand):
 
     def __init__(self):
         super().__init__("check", "check experiment for completeness and integrity")
+        self._no_choice = False
 
     def make_subparser(self, parser: ArgumentParser):
         parser.add_argument("--experiment", "-e", required=False,
@@ -39,14 +40,17 @@ class CheckSubCommand(SubCommand):
         parser.add_argument("--stale-hours", help="defines after how many hours RUNNING runs defined as 'stale'",
                             type=int, default=49)
         parser.add_argument("--remove-duplicate", action="store_true", default=False)
+        parser.add_argument("--no-choice", action="store_true", default=False, help="Assume yes/first choice if asked for confirmation. (used for remove-duplicates or remove-stale)")
         parser.add_argument("--verbose", action="store_true", help="Verbose output", default=False)
 
     def exec(self, args, parser):
+        self._no_choice = args.no_choice
         if args.experiment is not None:
             experiment_name = args.experiment
         else:
             converter = ExperimentNameConversion()
             experiment_name = converter.infer_exp_name(args.config)
+
         with open(args.config) as f:
             cfg = yaml.safe_load(f)
         if "experiment" in cfg:
@@ -94,7 +98,7 @@ class CheckSubCommand(SubCommand):
             start_time_seconds = int(s.info.start_time / 1000)
             start_time = strftime('%Y-%m-%d %H:%M:%S', localtime(start_time_seconds))
             print(s.info.run_id, start_time)
-        if choice("Remove these %s runs?" % len(stale)) == "y":
+        if self.choice("Remove these %s runs?" % len(stale)) == "y":
             for s in stale:
                 checker.experiment.mlflow.delete_run(s.info.run_id)
 
@@ -151,7 +155,7 @@ class CheckSubCommand(SubCommand):
                 found_runs.append(r)
             for i, r in enumerate(found_runs):
                 print("[%s] %s - %s - %s" % (i, r.info.run_name, r.info.status, r.info.start_time))
-            keep = choice("Found %s mlflow runs for run cfg %s. Enter which run to keep. (k for keep all)" % (
+            keep = self.choice("Found %s mlflow runs for run cfg %s. Enter which run to keep. (k for keep all)" % (
             len(found_runs), run_cfg),
                           choices=[str(index) for index in range(len(found_runs))] + ["k"])
             if keep == "k":
@@ -164,11 +168,13 @@ class CheckSubCommand(SubCommand):
                     checker.experiment.mlflow.delete_run(r.info.run_id)
 
 
-def choice(msg: str, choices=["y", "n"]):
-    inp = None
-    while inp not in choices:
-        inp = input("%s [%s]" % (msg, ", ".join(choices)))
-    return inp
+    def choice(self, msg: str, choices=["y", "n"]):
+        if self._no_choice:
+            return choices[0]
+        inp = None
+        while inp not in choices:
+            inp = input("%s [%s]" % (msg, ", ".join(choices)))
+        return inp
 
 
 def load_exp_from_parser(config, experiment_name):
