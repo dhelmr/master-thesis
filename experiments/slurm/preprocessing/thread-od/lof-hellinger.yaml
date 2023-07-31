@@ -31,7 +31,7 @@ ids:
       ngram_length: 5
   - name: ThreadClusteringOD
     args:
-      distance: jensenshannon
+      distance: hellinger
       od_method: LocalOutlierFactor
       skip_mds: true # MDS is not needed for LOF, since it can use the distance matrix directly
       normalize_rows: true # normalization is needed for scipy 1.10.1

@@ -1,4 +1,4 @@
-scenarios:
+nscenarios:
  - LID-DS-2019/CVE-2017-7529
  - LID-DS-2019/CVE-2019-5418
  - LID-DS-2019/CVE-2012-2122
@@ -35,6 +35,7 @@ ids:
       od_method: LocalOutlierFactor
       skip_mds: true # MDS is not needed for LOF, since it can use the distance matrix directly
       tf_idf: true
+      normalize_rows: true
   - name: Stide
   - name: StreamSum
     args:
