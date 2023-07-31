@@ -1,6 +1,7 @@
 import math
 from typing import Dict, List
 
+from dataloader.syscall import Syscall
 from tsa.NgramThreadEntropy import Ngram
 from tsa.histogram import Histogram
 
@@ -104,3 +105,6 @@ def hist_distance(hist1, hist2, distance_name):
         return math.sqrt(hist1.jensen_shannon_divergence(hist2))
     else:
         raise ValueError("Unknown distance: %s" % distance_name)
+
+def process_thread_id(syscall: Syscall):
+    return f"({syscall.process_id()},{syscall.thread_id()})"

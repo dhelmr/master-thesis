@@ -17,7 +17,7 @@ from tsa.utils import log_pandas_df
 from tsa.analysis.analyser import AnalyserBB
 import matplotlib.pyplot as plt
 
-from tsa.ngram_thread_matrix import NgramThreadMatrix
+from tsa.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
 
 DEFAULT_DISTANCES = [
     "euclidean", "cosine", "hamming"
@@ -37,7 +37,7 @@ class ClusterVisualize(AnalyserBB):
     def _add_input(self, syscall, inp):
         if inp is None:
             return  # TODO?
-        self._matrix.add(inp, syscall.thread_id())
+        self._matrix.add(inp, process_thread_id(syscall))
 
     def _make_stats(self):
         nXt, _, _ = self._matrix.ngram_thread_matrix()

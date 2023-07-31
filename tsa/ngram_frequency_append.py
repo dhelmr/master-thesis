@@ -1,6 +1,7 @@
 from algorithms.building_block import BuildingBlock
 from tsa.frequency_encoding import FrequencyAnomalyFunction
 from tsa.histogram import Histogram
+from tsa.ngram_thread_matrix import process_thread_id
 
 
 class NgramFrequencyAppender(BuildingBlock):
@@ -42,7 +43,7 @@ class NgramFrequencyAppender(BuildingBlock):
         # TODO: refactor code
         if ngram not in self._thread_counts:
             self._thread_counts[ngram] = Histogram()
-        thread_id = syscall.thread_id()
+        thread_id = process_thread_id(syscall)
         self._thread_counts[ngram].add(thread_id)
         self._observed_threads.add(thread_id)
 

@@ -6,6 +6,7 @@ from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 from tsa.frequency_encoding import FrequencyAnomalyFunction
 from tsa.histogram import Histogram
+from tsa.ngram_thread_matrix import process_thread_id
 
 Ngram = tuple
 
@@ -69,7 +70,7 @@ class NgramThreadEntropy(BuildingBlock):
             return
         if ngram not in self._thread_distributions:
             self._thread_distributions[ngram] = Histogram()
-        thread_id = syscall.thread_id()
+        thread_id = process_thread_id(syscall)
         self._observed_thread_ids.add(thread_id)
         self._thread_distributions[ngram].add(thread_id)
         self._ngram_frequencies.add(ngram)

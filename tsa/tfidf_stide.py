@@ -4,7 +4,7 @@ from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 from tsa.frequency_encoding import FrequencyAnomalyFunction
 from tsa.histogram import Histogram
-from tsa.ngram_thread_matrix import NgramThreadMatrix
+from tsa.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
 
 AGGREGATION_FUNCTIONS = {
     "mean": np.mean,
@@ -42,7 +42,7 @@ class TfidfSTIDE(BuildingBlock):
         ngram = self._input.get_result(syscall)
         if ngram is None:
             return
-        self._matrix.add(ngram, syscall.thread_id())
+        self._matrix.add(ngram, process_thread_id(syscall))
 
     def fit(self):
         tfidf, ngrams, threads = self._matrix.tf_idf_matrix()

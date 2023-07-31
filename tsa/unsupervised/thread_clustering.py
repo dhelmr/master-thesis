@@ -11,7 +11,7 @@ from sklearn.neighbors import LocalOutlierFactor
 from sklearn.preprocessing import MinMaxScaler
 
 from scipy.spatial.distance import pdist, cosine, squareform, euclidean
-from tsa.ngram_thread_matrix import NgramThreadMatrix
+from tsa.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
 from tsa.unsupervised.preprocessing import OutlierDetector
 
 OD_METHODS = {
@@ -86,7 +86,8 @@ class ThreadClusteringOD(OutlierDetector):
         self._plot_mds = plot_mds
 
     def _add_training_data(self, index, ngram, syscall):
-        self._training_data.append((index, ngram, syscall.thread_id()))
+        # avoid possibility of ambiguity by using process id+thread_id
+        self._training_data.append((index, ngram, process_thread_id(syscall)))
 
     def detect_anomalies(self, training_data):
         # counts_by_thread = dict()

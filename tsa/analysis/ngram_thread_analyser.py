@@ -4,7 +4,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import MinMaxScaler
 
 from tsa.analysis.analyser import AnalyserBB
-from tsa.ngram_thread_matrix import NgramThreadMatrix
+from tsa.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
 
 
 class NgramThreadAnalyser(AnalyserBB):
@@ -21,8 +21,7 @@ class NgramThreadAnalyser(AnalyserBB):
             # TODO
             return
         ngram = inp
-        thread_id = syscall.thread_id()
-        self.ngram_thread_matrix.add(ngram, thread_id)
+        self.ngram_thread_matrix.add(ngram, process_thread_id(syscall))
 
     def _make_stats(self):
         matrix, _, _ = self.ngram_thread_matrix.ngram_thread_matrix()
