@@ -1,14 +1,12 @@
 import math
 from statistics import mean
-from typing import Dict, List
+from typing import Dict
 
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 from tsa.frequency_encoding import FrequencyAnomalyFunction
 from tsa.histogram import Histogram
-from tsa.ngram_thread_matrix import process_thread_id
-
-Ngram = tuple
+from tsa.ngram_thread_matrix import process_thread_id, Ngram
 
 COMBINE_VALUES = ["arithmetic", "harmonic", "geometric"]
 

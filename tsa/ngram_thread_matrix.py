@@ -2,10 +2,9 @@ import math
 from typing import Dict, List
 
 from dataloader.syscall import Syscall
-from tsa.NgramThreadEntropy import Ngram
 from tsa.histogram import Histogram
 
-
+Ngram = tuple
 class NgramThreadMatrix:
     # TODO: needs tests
     def __init__(self):
@@ -108,3 +107,5 @@ def hist_distance(hist1, hist2, distance_name):
 
 def process_thread_id(syscall: Syscall):
     return f"({syscall.process_id()},{syscall.thread_id()})"
+
+

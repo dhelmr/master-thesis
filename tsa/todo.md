@@ -3,12 +3,11 @@ Robustness studies and training set analysis for HIDS
 
 ## Various
 
-* T-Stide: relative frequency
 * Data Drift Training Set vs Validation Set
-* n-th percentil threshold
 
-* Relative Entropy of ngram as Anomaly Score
-* transfer learning W2V + Freq => Frequency-Scaled W2V Embedding
+* f1 classifier refactoring
+    - recall, precision predicten
+    - Ausgabe visualisieren (diagram, ...) / mlflow
 
 ## Experiment Maintainance
 
@@ -16,13 +15,10 @@ Robustness studies and training set analysis for HIDS
 * tsa + syscall matching (doodle/syscall_graph als subcommand)
 * other metrics than f1_cfa in doodle/syscall_graph
 
-## Experiment Buildings
-
-* Decision Engine as Outlier Detector 
+* automatically remove duplicates in slurm
 
 ## Code Maintainance
 
-* backup databricks mlflow runs
 * test loaded attacks in dataloader
 * "check" for search mode
 
@@ -42,6 +38,11 @@ Robustness studies and training set analysis for HIDS
 --- 
 
 # BACKLOG
+* n-th percentil threshold
+
+* Relative Entropy of ngram as Anomaly Score
+* Decision Engine as Outlier Detector 
+* transfer learning W2V + Freq => Frequency-Scaled W2V Embedding
 
 * evaluation: interpolate f1 score for average calculation
 * evaluation: ROC curve?
@@ -53,6 +54,7 @@ Robustness studies and training set analysis for HIDS
     => Conditional Entropy X ngram länge?
 * visualize thread clustering results
 * Jensen-Shannon Divergence for all probability distributions of matrix
+* backup databricks mlflow runs
 
 ## TSA
 
