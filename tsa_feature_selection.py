@@ -84,6 +84,7 @@ parser.add_argument("--input", "-i", required=True)
 parser.add_argument("--metric", default="f1_cfa")
 parser.add_argument("--threshold", type=float, default=0.8)
 parser.add_argument("--cv-leave-out", type=int, default=2)
+parser.add_argument("--out", required=True)
 args = parser.parse_args()
 def main():
     df = pd.read_csv(args.input)
@@ -129,7 +130,7 @@ def main():
         available_features.remove(best_feature)
         i+=1
     results_df = pd.DataFrame(aggregated_results)
-    results_df.to_csv("classification_results.csv")
+    results_df.to_csv(args.out)
 
 
 def start_exp_run(df, leave_out):
