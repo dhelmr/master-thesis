@@ -27,6 +27,19 @@ AVAILABLE_METRICS = ["f1_cfa"]
 KNOWN_NON_FEATURE_COLS = ["scenario", "syscalls"]
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--input", "-i", required=True)
+parser.add_argument("--metric", default="f1_cfa")
+parser.add_argument("--threshold", type=float, default=0.8)
+parser.add_argument("--cv-leave-out", type=int, default=2)
+parser.add_argument("--out", required=True)
+parser.add_argument("--start-features", nargs="+", default=[])
+parser.add_argument("--max-depth", default=10, type=int)
+parser.add_argument("--iterations", default=10, type=int)
+args = parser.parse_args()
+
+
+
 def train_test(train, test):
     # TODO change metric
     drop_cols = ["f1_cfa", "scenario"]
@@ -41,7 +54,7 @@ def train_test(train, test):
         # ("pca", PCA(n_components=50))
     ])
     # clf = SVC(kernel="rbf")
-    clf = DecisionTreeClassifier(random_state=1)
+    clf = DecisionTreeClassifier(random_state=1, max_depth=args.max_depth)
     #clf = RandomForestClassifier(random_state=1)
     # clf = MLPClassifier(solver='adam', alpha=1e-5, max_iter=500,
     #             hidden_layer_sizes=(200, 10, 2), random_state=1)
@@ -78,21 +91,17 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
 def get_features(df: pd.DataFrame) -> List[str]:
     return [col for col in df.columns if col not in KNOWN_NON_FEATURE_COLS + AVAILABLE_METRICS]
 
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--input", "-i", required=True)
-parser.add_argument("--metric", default="f1_cfa")
-parser.add_argument("--threshold", type=float, default=0.8)
-parser.add_argument("--cv-leave-out", type=int, default=2)
-parser.add_argument("--out", required=True)
-args = parser.parse_args()
 def main():
     df = pd.read_csv(args.input)
     df = clean_dataset(df)
 
     df[args.metric] = df[args.metric].apply(lambda f1: 1 if f1 > args.threshold else 0)
     available_features = set(get_features(df))
-    selected_features = []
+    selected_features = args.start_features
+
+    for f in selected_features:
+        available_features.remove(f)
+
     aggregated_results = []
     skip_features = []
 
@@ -129,6 +138,9 @@ def main():
         selected_features.append(best_feature)
         available_features.remove(best_feature)
         i+=1
+        if i >= args.iterations:
+            print("Finished")
+            break
     results_df = pd.DataFrame(aggregated_results)
     results_df.to_csv(args.out)
 
