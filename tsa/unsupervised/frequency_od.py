@@ -3,8 +3,8 @@ from tsa.unsupervised.preprocessing import OutlierDetector
 
 class FrequencyOD(OutlierDetector):
 
-    def __init__(self, building_block, train_features=None, threshold=3, relative=False):
-        super().__init__(building_block, train_features)
+    def __init__(self, building_block, train_features=None, threshold=3, relative=False, **kwargs):
+        super().__init__(building_block, train_features, **kwargs)
         self._relative = relative
         self._threshold = threshold
 

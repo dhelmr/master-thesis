@@ -8,8 +8,8 @@ from tsa.unsupervised.preprocessing import OutlierDetector
 
 
 class ScitkitOD(OutlierDetector):
-    def __init__(self, building_block, estimator, train_features=None, only_unique=False):
-        super().__init__(building_block, train_features)
+    def __init__(self, building_block, estimator, train_features=None, only_unique=False, **kwargs):
+        super().__init__(building_block, train_features, **kwargs)
         self._only_unique = only_unique
         self._estimator = estimator
 
@@ -30,14 +30,14 @@ class ScitkitOD(OutlierDetector):
 
 
 class LOF(ScitkitOD):
-    def __init__(self, building_block, train_features=None, only_unique=False, **kwargs):
-        super().__init__(building_block, LocalOutlierFactor(**kwargs), train_features, only_unique)
+    def __init__(self, building_block, train_features=None, only_unique=False, cache_key=None, **kwargs):
+        super().__init__(building_block, LocalOutlierFactor(**kwargs), train_features, only_unique, cache_key=cache_key)
 
 class EllipticEnvelopeOD(ScitkitOD):
-    def __init__(self, building_block, train_features=None, only_unique=False, **kwargs):
-        super().__init__(building_block, EllipticEnvelope(**kwargs), train_features, only_unique)
+    def __init__(self, building_block, train_features=None, only_unique=False, cache_key=None, **kwargs):
+        super().__init__(building_block, EllipticEnvelope(**kwargs), train_features, only_unique, cache_key=cache_key)
 
 class IsolationForestOD(ScitkitOD):
-    def __init__(self, building_block, train_features=None, only_unique=False, **kwargs):
-        super().__init__(building_block, IsolationForest(**kwargs), train_features, only_unique)
+    def __init__(self, building_block, train_features=None, only_unique=False,cache_key=None, **kwargs):
+        super().__init__(building_block, IsolationForest(**kwargs), train_features, only_unique, cache_key=cache_key)
 
