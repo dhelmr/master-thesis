@@ -10,6 +10,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 import sklearn.svm
+from sklearn.tree import export_text
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.kernel_ridge import KernelRidge
@@ -20,12 +21,12 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.svm import SVR, SVC
 from sklearn.tree import DecisionTreeClassifier
+from tqdm import tqdm
 
 from tsa.confusion_matrix import ConfusionMatrix
 
 AVAILABLE_METRICS = ["f1_cfa"]
 KNOWN_NON_FEATURE_COLS = ["scenario", "syscalls"]
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--input", "-i", required=True)
@@ -37,7 +38,6 @@ parser.add_argument("--start-features", nargs="+", default=[])
 parser.add_argument("--max-depth", default=10, type=int)
 parser.add_argument("--iterations", default=10, type=int)
 args = parser.parse_args()
-
 
 
 def train_test(train, test):
@@ -55,7 +55,7 @@ def train_test(train, test):
     ])
     # clf = SVC(kernel="rbf")
     clf = DecisionTreeClassifier(random_state=1, max_depth=args.max_depth)
-    #clf = RandomForestClassifier(random_state=1)
+    # clf = RandomForestClassifier(random_state=1)
     # clf = MLPClassifier(solver='adam', alpha=1e-5, max_iter=500,
     #             hidden_layer_sizes=(200, 10, 2), random_state=1)
     # clf = LogisticRegression()
@@ -77,6 +77,7 @@ def train_test(train, test):
     # err = mean_absolute_error(Y_test, preds)
     # err2 = mean_squared_error(Y_test, preds)
     cm = ConfusionMatrix.from_predictions(preds, Y_test, labels=[0, 1])
+    #print(export_text(clf))
     return cm
 
 
@@ -90,6 +91,7 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
 
 def get_features(df: pd.DataFrame) -> List[str]:
     return [col for col in df.columns if col not in KNOWN_NON_FEATURE_COLS + AVAILABLE_METRICS]
+
 
 def main():
     df = pd.read_csv(args.input)
@@ -108,23 +110,28 @@ def main():
     i = 0
     while len(available_features) > 0:
         print("Start run %s" % i)
-        print("Available Features", available_features)
+        print("selected features", selected_features)
         run_results = []
         f_to_remove = []
-        for f in available_features:
+
+        current_best = None
+
+        pbar = tqdm(available_features)
+        for f in pbar:
             feature_set = selected_features + [f]
             drop_cols = [c for c in available_features if c != f] + skip_features
-            print(feature_set)
             try:
-                results = start_exp_run(df.drop(columns=drop_cols), leave_out=args.cv_leave_out)
-                run_results.append((f, results[0]))
-                for r in results:
-                    aggregated_results.append({
-                        "query": r[0],
-                        "features": ",".join(feature_set),
-                        "f1": r[1],
-                        "precision": r[2]
-                    })
+                results = start_exp_run(df.drop(columns=drop_cols), leave_out=args.cv_leave_out)[0]
+                run_results.append((f, results))
+                aggregated_results.append({
+                    "query": results[0],
+                    "features": ",".join(feature_set),
+                    "f1": results[1],
+                    "precision": results[2]
+                })
+                if current_best is None or current_best[1] < results[1]:
+                    current_best = results + (f,)
+                pbar.set_description("Current best: %s" % (current_best,))
             except Exception as e:
                 print(e)
                 print("Remove %s from feature set permanently" % f)
@@ -137,7 +144,7 @@ def main():
         print("best feature of run %s: %s (results: %s)" % (i, best_feature, run_results[0][1]))
         selected_features.append(best_feature)
         available_features.remove(best_feature)
-        i+=1
+        i += 1
         if i >= args.iterations:
             print("Finished")
             break
@@ -151,8 +158,6 @@ def start_exp_run(df, leave_out):
     results.append(("", f1, pr))
     sorted_f1 = sorted(results, key=lambda x: x[1], reverse=True)
     sorted_precision = sorted(results, key=lambda x: x[2], reverse=True)
-    pprint.pprint(sorted_f1)
-    pprint.pprint(sorted_precision)
     return results
 
 
