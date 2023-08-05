@@ -33,7 +33,7 @@ ids:
     args:
       thread_anomaly_fn: homographic
       thread_anomaly_fn_alpha: 2
-      combine: mean
+      combine: arithmetic
       features:
         - thread_frequency
   - name: StreamSum
