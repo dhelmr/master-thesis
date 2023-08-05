@@ -46,12 +46,18 @@ def hellinger(u, v):
     return euclidean(np.sqrt(u), np.sqrt(v)) / _SQRT2
 
 
+def jaccard_hellinger(u, v):
+    return binary_jaccard_distance(u, v) * hellinger(u, v)
+
+def jaccard_cosine(u,v ):
+    return binary_jaccard_distance(u, v) * cosine(u, v)
+
 DISTANCE_FN = {
-    "jaccard-cosine": lambda u, v: binary_jaccard_distance(u, v) * cosine(u, v),
+    "jaccard-cosine": jaccard_cosine,
     "binary-jaccard": binary_jaccard_distance,
     "hellinger": hellinger,
     "binary-hamming": binary_hamming,
-    "jaccard-hellinger": lambda u, v: binary_jaccard_distance(u, v) * hellinger(u, v)
+    "jaccard-hellinger": jaccard_hellinger
 }
 
 
