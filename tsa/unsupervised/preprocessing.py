@@ -1,4 +1,6 @@
 import abc
+import os
+import pickle
 from typing import List, Set
 
 from algorithms.building_block import BuildingBlock, IDSPhase
@@ -7,7 +9,7 @@ from dataloader.syscall import Syscall
 
 class OutlierDetector(BuildingBlock):
 
-    def __init__(self, building_block: BuildingBlock = None, train_features=None):
+    def __init__(self, building_block: BuildingBlock = None, train_features=None, cache_key: str = None):
         super().__init__()
         self._input = building_block
         if train_features is None:
@@ -24,6 +26,15 @@ class OutlierDetector(BuildingBlock):
         self.anomaly_return_value = None
         self._train_index = -1
         self._test_index = -1
+        self._cache_key = cache_key
+        if cache_key is not None:
+            anomaly_indexes = self._load_anomaly_indexes(cache_key)
+            if anomaly_indexes is not None:
+                self._anomaly_indexes = anomaly_indexes
+                self._fitted = True
+                self.train_on = BuildingBlock().train_on
+                self.fit = BuildingBlock().fit
+                del self._training_data
 
     def _calculate(self, syscall: Syscall):
         self._test_index += 1
@@ -54,6 +65,8 @@ class OutlierDetector(BuildingBlock):
         del self._training_data
         self._fitted = True
         print("Number of Anomalies:", len(self._anomaly_indexes))
+        if self._cache_key is not None:
+            self._save_anomaly_indexes()
 
     @abc.abstractmethod
     def detect_anomalies(self, training_data) -> Set[int]:
@@ -61,6 +74,25 @@ class OutlierDetector(BuildingBlock):
 
     def depends_on(self) -> list:
         return self._dependency_list
+
+    def _get_cache_path(self, cache_key) -> Optional[List[int]]:
+        if "CACHE_PATH" not in os.environ:
+            raise KeyError("$CACHE_PATH must be set")
+        path = os.path.join(os.environ["CACHE_PATH"], cache_key + ".pkl")
+        return path
+    def _load_anomaly_indexes(self, cache_key):
+        path = self._get_cache_path(cache_key)
+        if not os.path.exists(path):
+            return None
+        with open(path, "rb") as f:
+            return pickle.load(f)
+    def _save_anomaly_indexes(self):
+        path = self._get_cache_path(self._cache_key)
+        if os.path.exists(path):
+            print("Skip serialization, path already exists:", path)
+            return
+        with open(path, "wb") as f:
+            pickle.dump(f, self._anomaly_indexes)
 
 
 
