@@ -7,7 +7,7 @@ import mlflow
 from mlflow.entities import RunStatus, Run
 from pandas import DataFrame
 
-from tsa.experiment import Experiment, RunConfig, IGNORE_SCENARIOS
+from tsa.experiment import Experiment, RunConfig, IGNORE_SCENARIOS, CombinedScenario
 
 
 @dataclasses.dataclass()
@@ -108,7 +108,7 @@ class ExperimentChecker:
             found_one = False
             for expected_run_cfg in expected_run_cfgs:
                 if expected_run_cfg.iteration == mlflow_cfg.iteration:
-                    if expected_run_cfg == mlflow_cfg:
+                    if self._compare_configs(expected_run_cfg, mlflow_cfg):
                         found_one = True
                     else:
                         print(expected_run_cfg, mlflow_cfg)
@@ -116,6 +116,12 @@ class ExperimentChecker:
             if not found_one:
                 not_found.append(mlflow_cfg)
         return failed_integrity, not_found
+
+    def _compare_configs(self, expected_run_cfg: RunConfig, mlflow_cfg: RunConfig):
+        if isinstance(expected_run_cfg.scenario, CombinedScenario):
+            scenario_list_as_str = str([s for s, _ in expected_run_cfg.scenario.scenarios.items()])
+            expected_run_cfg = dataclasses.replace(expected_run_cfg, scenario=scenario_list_as_str)
+        return expected_run_cfg == mlflow_cfg
 
     def stats(self) -> ExperimentStats:
         runs = self.experiment.run_configurations()
