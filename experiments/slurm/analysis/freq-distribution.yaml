@@ -1,0 +1,18 @@
+mode: analysis
+scenarios:
+  - LID-DS-2021/CVE-2012-2122
+ids:
+  - name: Ngram
+    args:
+      thread_aware: true
+      ngram_length: 5
+  - name: FrequencyDistribution
+    args:
+      update_interval: null
+dataloader:
+  base:
+    cont_ratio: 0.2
+  permutation_i:
+    - 0
+  num_attacks:
+    - 0
