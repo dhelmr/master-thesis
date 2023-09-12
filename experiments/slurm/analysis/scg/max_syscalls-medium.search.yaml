@@ -1,0 +1,48 @@
+experiment:
+  scenarios:
+   - LID-DS-2021/CVE-2018-3760
+   - LID-DS-2021/PHP_CWE-434
+   - LID-DS-2021/ZipSlip
+   - LID-DS-2021/CWE-89-SQL-injection
+   - LID-DS-2019/CVE-2017-7529
+   - LID-DS-2019/CVE-2019-5418
+   - LID-DS-2019/CVE-2018-3760
+   - LID-DS-2019/PHP_CWE-434
+   - LID-DS-2019/SQL_Injection_CWE-89
+  ids:
+    - name: IntEmbedding
+    - name: Ngram
+      args:
+        thread_aware: true
+        ngram_length: 5
+    - name: SystemCallGraph
+    - name: StreamSum
+      args:
+        thread_aware: False
+        wait_until_full: False
+        window_length: 1000
+    - name: MaxScoreThreshold
+  dataloader:
+    base:
+      cont_ratio: 0.2
+    permutation_i: 0
+    num_attacks:
+      - 0
+    filter:
+      max_syscalls: null
+
+mode: grid
+name_prefix: max-syscalls-scg-medium
+search_space:
+  dataloader.filter.max_syscalls:
+    - 1000000
+    - 2000000
+    - 5000000
+    - 10000000
+    - 25000000
+    - 27500000
+    - 30000000
+    - 32500000
+    - 35000000
+    - 37500000
+    - 40000000
