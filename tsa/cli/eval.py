@@ -30,6 +30,8 @@ class EvalSubCommand(SubCommand):
         parser.add_argument("--cache", default=None, help="If set, use a local directory to cache mlflow results.")
         parser.add_argument("--query", "-q", default=None, help="Filter result dataframes using a pandas query")
         parser.add_argument("--plot-y", default="metrics.ids.f1_cfa")
+        parser.add_argument("--label-x", default=None)
+        parser.add_argument("--label-y", default=None)
 
     def exec(self, args, parser):
         pd.options.plotting.backend = "plotly"
@@ -76,6 +78,10 @@ class EvalSubCommand(SubCommand):
                       line_dash="experiment_name",
                       line_dash_sequence=["dot"],
                       markers=True)
+        fig.update_layout(
+            xaxis_title = args.label_x,
+            yaxis_title = args.label_y
+        )
         fig.show()
         robustness_scores_df = pd.DataFrame(robustness_values)
         print(robustness_scores_df)
