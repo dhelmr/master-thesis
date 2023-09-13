@@ -10,10 +10,10 @@ from tsa.cli.run import SubCommand, make_experiment, make_experiment_from_path
 from tsa.experiment_checker import ExperimentChecker
 
 
-class TSASubCommand(SubCommand):
+class TSADownloaderSubCommand(SubCommand):
 
     def __init__(self):
-        super().__init__("tsa", "analyse training set experiments")
+        super().__init__("tsa-dl", "analyse training set experiments")
     def make_subparser(self, parser: ArgumentParser):
         parser.add_argument("--experiment", "-e", required=False, help="Sets the mlflow experiment ID", type=str)
         parser.add_argument("-c", "--config", required=True, help="Experiment config yaml file.")
