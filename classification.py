@@ -3,6 +3,7 @@ import math
 import pprint
 import random
 import statistics
+import sys
 
 import numpy as np
 import pandas as pd
@@ -98,12 +99,14 @@ def train_test(train, test):
 
 
 def main():
-    df = pd.read_csv("entropyXsyscalls.csv")
+    df = pd.read_csv(sys.argv[1])
     df = df.drop(columns=["Unnamed: 0"])
     df["f1_cfa"] = df["f1_cfa"].apply(lambda f1: 1 if f1 > 0.75 else 0)
 
     aggregated_results = []
-    features = ["conditional_entropy", "entropy", "u/t", "unique", "simpson_index"]
+   # features = ["conditional_entropy", "entropy", "u/t", "unique", "simpson_index"]
+    #features = ["unique_ngrams/n_threads", "unique_ngrams/total", "n_threads", "ngram_dists-simpson-index_mean", "ngram_dists_norm_entropy_mean", "nXt_pca-pca-evr-sum"]
+    features = ["tXn_pca-pca-ev-n0", "unique_ngrams/total", "tXn_pca-pca-evr-n0", "tXn_pca-pca-noise-var", "nXt_pca-pca-evr-sum", "ngramXthreads_iod", "nXt_pca-pca-noise-var", "thread_dists_norm_entropy_mean"]
     for ss_l in range(len(features)-1):
         for subset in itertools.combinations(features, ss_l):
             if len(subset) == len(features):

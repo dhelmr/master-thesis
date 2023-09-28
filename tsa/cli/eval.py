@@ -30,6 +30,7 @@ class EvalSubCommand(SubCommand):
         parser.add_argument("--cache", default=None, help="If set, use a local directory to cache mlflow results.")
         parser.add_argument("--query", "-q", default=None, help="Filter result dataframes using a pandas query")
         parser.add_argument("--plot-y", default="metrics.ids.f1_cfa")
+        parser.add_argument("--names", default=None, nargs="+", type=str)
         parser.add_argument("--label-x", default=None)
         parser.add_argument("--label-y", default=None)
 
@@ -47,7 +48,7 @@ class EvalSubCommand(SubCommand):
             checkers.append(checker)
         robustness_values = {}
         dfs = []
-        for checker in checkers:
+        for i, checker in enumerate(checkers):
             name = converter.get_rel_exp_name(checker.experiment.mlflow_name)
             print(checker.experiment.mlflow_name)
             runs = self._get_results(checker, name, cache, args.allow_unfinished)
@@ -66,7 +67,10 @@ class EvalSubCommand(SubCommand):
                                                 ).groupby("params.num_attacks").mean(numeric_only=False).reset_index()
             robustness_values[name] = self._calc_robustness_scores(aggregated)
             aggregated.sort_values(by=["params.num_attacks"], inplace=True)
-            aggregated["experiment_name"] = name
+            aggregated["Experiment Name"] = name
+            if args.names is not None and args.names[i] != "-":
+                aggregated["Experiment Name"] = args.names[i]
+
             dfs.append(aggregated)
             # print(group_by)
             # print("===========================\n")
@@ -74,8 +78,8 @@ class EvalSubCommand(SubCommand):
         fig = px.line(merged,
                       x="params.num_attacks",
                       y=args.plot_y,
-                      color="experiment_name",
-                      line_dash="experiment_name",
+                      color="Experiment Name",
+                      line_dash="Experiment Name",
                       line_dash_sequence=["dot"],
                       markers=True)
         fig.update_layout(
