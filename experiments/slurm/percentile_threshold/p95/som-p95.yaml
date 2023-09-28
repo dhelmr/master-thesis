@@ -40,7 +40,8 @@ ids:
      epochs: 100
      sigma: 1.0
   - name: PercentileThreshold
-    percentile: 95
+    args:
+      percentile: 95
 cache: true
 dataloader:
   base:

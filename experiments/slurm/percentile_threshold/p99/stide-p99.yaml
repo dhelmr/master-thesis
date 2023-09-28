@@ -36,7 +36,8 @@ ids:
       wait_until_full: False
       window_length: 1000
   - name: PercentileThreshold
-    percentile: 99
+    args:
+      percentile: 99
 cache: true
 dataloader:
   base:
