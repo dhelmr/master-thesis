@@ -1,3 +1,4 @@
+import pprint
 from argparse import ArgumentParser
 from datetime import timedelta, datetime
 from time import localtime, strftime
@@ -42,6 +43,7 @@ class CheckSubCommand(SubCommand):
         parser.add_argument("--remove-duplicate", action="store_true", default=False)
         parser.add_argument("--no-choice", action="store_true", default=False, help="Assume yes/first choice if asked for confirmation. (used for remove-duplicates or remove-stale)")
         parser.add_argument("--verbose", action="store_true", help="Verbose output", default=False)
+        parser.add_argument("--scenarios", action="store_true", help="Print missing scenarios", default=False)
 
     def exec(self, args, parser):
         self._no_choice = args.no_choice
@@ -72,7 +74,7 @@ class CheckSubCommand(SubCommand):
                 self._remove_duplicate(stats, checker)
             else:
                 stats = checker.stats()
-                ok, status = self.print_stats(stats, verbose=args.verbose)
+                ok, status = self.print_stats(stats, verbose=args.verbose, print_scenarios=args.scenarios)
                 if ok:
                     print(bcolors.OKGREEN + "Ok" + bcolors.ENDC)
                     count_ok += 1
@@ -108,7 +110,7 @@ class CheckSubCommand(SubCommand):
         for r, count in stats.duplicate_runs:
             print(f"[{index}] {r}: {count}x")
 
-    def print_stats(self, stats, verbose=False):
+    def print_stats(self, stats, verbose=False, print_scenarios=False):
         ok = True
         status = ""
 
@@ -136,6 +138,10 @@ class CheckSubCommand(SubCommand):
                         print(r)
             ok = False
             status += "%s missing runs; " % len(stats.missing_runs)
+
+        if print_scenarios and len(stats.missing_scenarios) != 0:
+            print("Missing scenarios:")
+            pprint.pprint(stats.missing_scenarios)
 
         finished_count = len(stats.run_configs) - len(stats.missing_runs)
         print("Progress: %s finished; %s running (out of missing runs)" %

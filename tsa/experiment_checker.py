@@ -18,6 +18,7 @@ class ExperimentStats:
     missing_runs: List[RunConfig]
     missing_runs_but_running: List[RunConfig]
     duplicate_runs: List[Tuple[RunConfig, int]]
+    missing_scenarios: Dict[str, int]
 
     def is_finished(self):
         return len(self.missing_runs) == 0 and len(self.missing_runs_but_running) == 0
@@ -142,8 +143,14 @@ class ExperimentChecker:
         missing_but_running = [run for run in missing if run.iteration in runn_counts]
         duplicates = [(run, fin_counts[run.iteration]) for run in runs if run.iteration if
                       run.iteration in fin_counts and fin_counts[run.iteration] > 1]
+
+        missing_scenarios = {}
+        for run in missing:
+            if run.scenario not in missing_scenarios:
+                missing_scenarios[run.scenario] = 0
+            missing_scenarios[run.scenario] += 1
         # TODO add running runs duplicates
-        return ExperimentStats(counts, runs, skipped, missing, missing_but_running, duplicates)
+        return ExperimentStats(counts, runs, skipped, missing, missing_but_running, duplicates, missing_scenarios)
 
     def get_stale_runs(self, older_than: timedelta):
         now = time.time() * 1000
