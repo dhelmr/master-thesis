@@ -51,8 +51,8 @@ class Som(BuildingBlock):
         self._size = size
         self._size_factor = size_factor
         self._sampling_prob_alpha = sampling_prob_alpha
-        if sampling_prob_alpha <= 0 or sampling_prob_alpha > 1:
-            raise ValueError("sampling_prob_alpha is %s but must be in (0,1] interval!" % sampling_prob_alpha)
+        if sampling_prob_alpha < 0 or sampling_prob_alpha >= 1:
+            raise ValueError("sampling_prob_alpha is %s but must be in [0,1) interval!" % sampling_prob_alpha)
         self.custom_fields = {}
 
     def depends_on(self):
