@@ -1,4 +1,5 @@
 import math
+import random
 import sys
 
 from matplotlib import pyplot as plt
@@ -16,7 +17,8 @@ ACTIVATION_FREQ_WEIGHTED = "freq-eucl"
 
 class Som(BuildingBlock):
     def __init__(self, input_vector: BuildingBlock, epochs: int = 50, sigma: float = 1.0, learning_rate: float = 0.5,
-                 max_size: int = None, activation_distance: str = None, exp_euclidean_beta=3, size=None, size_factor=1):
+                 max_size: int = None, activation_distance: str = None, exp_euclidean_beta=3, size=None, size_factor=1,
+                 sampling_prob_alpha=0):
         """
             Anomaly Detection Engine based on Teuvo Kohonen's Self-Organizing-Map (SOM)
 
@@ -39,7 +41,7 @@ class Som(BuildingBlock):
         self._dependency_list = [input_vector]
         self._sigma = sigma
         self._learning_rate = learning_rate
-        self._buffer = set()
+        self._buffer = dict()
         self._epochs = epochs
         self._som = None
         self._cache = {}
@@ -48,6 +50,9 @@ class Som(BuildingBlock):
         self._max_size = max_size
         self._size = size
         self._size_factor = size_factor
+        self._sampling_prob_alpha = sampling_prob_alpha
+        if sampling_prob_alpha <= 0 or sampling_prob_alpha > 1:
+            raise ValueError("sampling_prob_alpha is %s but must be in (0,1] interval!" % sampling_prob_alpha)
         self.custom_fields = {}
 
     def depends_on(self):
@@ -82,7 +87,8 @@ class Som(BuildingBlock):
         input_vector = self._input_vector.get_result(syscall)
         if input_vector is not None:
             if input_vector not in self._buffer:
-                self._buffer.add(input_vector)
+                self._buffer[input_vector] = 0
+            self._buffer[input_vector] += 1
 
     def fit(self):
         """
@@ -109,8 +115,9 @@ class Som(BuildingBlock):
         self._som = MiniSom(som_size, som_size, vector_size, **kwargs)
 
         for epoch in tqdm(range(self._epochs), desc='Training SOM'.rjust(27)):
-            for vector in self._buffer:
-                self._som.update(vector, self._som.winner(vector), epoch, self._epochs)
+            for vector, freq in self._buffer.items():
+                if self._sample_vector(freq):
+                    self._som.update(vector, self._som.winner(vector), epoch, self._epochs)
 
     def _calculate(self, syscall: Syscall):
         """
@@ -184,6 +191,9 @@ class Som(BuildingBlock):
         else:
             return dist
 
+    def _sample_vector(self, frequency) -> bool:
+        probability = 1-(math.pow(self._sampling_prob_alpha, frequency))
+        return random.random() < probability
 
 def exp_euclidean(x, w, beta):
     return np.sqrt(1 - np.exp(-beta * linalg.norm(x - w, axis=-1)))
