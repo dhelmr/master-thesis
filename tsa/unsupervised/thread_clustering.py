@@ -1,4 +1,7 @@
+import hashlib
 import math
+import os
+import pickle
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -65,7 +68,7 @@ class ThreadClusteringOD(OutlierDetector):
 
     def __init__(self, building_block, train_features=None, n_components=2, distance="jaccard-cosine", tf_idf=False,
                  skip_mds: bool = False, thread_based=True, normalize_rows=False, normalize_ord=1, metric_mds=True,
-                 plot_mds=False, od_method: str = "IsolationForest", od_kwargs=None, **kwargs):
+                 plot_mds=False, od_method: str = "IsolationForest", od_kwargs=None, cache_key=None, **kwargs):
         super().__init__(building_block, train_features, **kwargs)
         if od_kwargs is None:
             od_kwargs = {}
@@ -90,20 +93,64 @@ class ThreadClusteringOD(OutlierDetector):
         self._normalize_rows = normalize_rows
         self._normalize_ord = normalize_ord
         self._plot_mds = plot_mds
+        self._cache_key = cache_key
 
     def _add_training_data(self, index, ngram, syscall):
+        if self._cache_key is not None and os.path.exists(self._cache_key_to_path(self._cache_key)):
+            return
         # avoid possibility of ambiguity by using process id+thread_id
         self._training_data.append((index, ngram, process_thread_id(syscall)))
 
+    def _cache_key_to_path(self, cache_key: str):
+        if "IDS_CACHE_PATH" not in os.environ:
+            raise KeyError("$W2V_CACHE_PATH must be set")
+
+        md5_hash = hashlib.md5(cache_key.encode()).hexdigest()
+        model_path = os.path.join(os.environ["IDS_CACHE_PATH"], "%s.ngram-matrix.pickle" % md5_hash)
+        return model_path
+
+    def _load_data_from_cache(self):
+        path = self._cache_key_to_path(self._cache_key)
+        if not os.path.exists(path):
+            return None, None
+        with open(path, "rb") as f:
+            print("Open cache: %s" % path)
+            data = pickle.load(f)
+            return data["matrix"], data["training_data"]
+
+    def _store_cache(self, training_data, matrix):
+        path = self._cache_key_to_path(self._cache_key)
+        if os.path.exists(path):
+            print("cache %s exists, skip" % path)
+            return
+        with open(path, "wb") as f:
+            print("Write to cache: %s" % path)
+            pickle.dump({
+                "matrix": matrix, "training_data": training_data
+            }, f)
     def detect_anomalies(self, training_data):
         # counts_by_thread = dict()
         #
         #    if thread_id not in counts_by_thread:
         #        counts_by_thread[thread_id] = Histogram()
         #    counts_by_thread[thread_id].add(ngram)
-        matrix_builder = NgramThreadMatrix()
-        for i, ngram, thread_id in training_data:
-            matrix_builder.add(ngram, thread_id)
+        matrix_builder = None
+        if self._cache_key is not None:
+            training_data_cache, matrix_cache = self._load_data_from_cache()
+            if training_data_cache is not None:
+                print("Load training data from cache")
+                training_data = training_data_cache
+            if matrix_cache is not None:
+                print("Load ngram-thread matrix from cache")
+                matrix_builder = matrix_cache
+
+        if matrix_builder is None:
+            matrix_builder = NgramThreadMatrix()
+            for i, ngram, thread_id in training_data:
+                matrix_builder.add(ngram, thread_id)
+
+        if self._cache_key is not None:
+            self._store_cache(training_data, matrix_builder)
 
         print("number of threads in training set: ", len(matrix_builder.threads()))
         print("number of ngrams in training set: ", len(matrix_builder.ngrams()))
