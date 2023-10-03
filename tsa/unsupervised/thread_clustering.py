@@ -112,10 +112,13 @@ class ThreadClusteringOD(OutlierDetector):
             print("Calculate tf_idf matrix")
             matrix, ngrams, threads = matrix_builder.tf_idf_matrix()
         else:
+            print("Calculate ngram-thread matrix matrix")
             matrix, ngrams, threads = matrix_builder.ngram_thread_matrix()
         if self._thread_based:
+            print("Transpose matrix...")
             matrix = np.transpose(matrix)  # convert ngram-thread matrix to thread-ngram matrix
         if self._normalize_rows:
+            print("Normalize matrix...")
             norm = linalg.norm(matrix, axis=1, ord=self._normalize_ord).reshape(-1, 1)
             matrix = matrix / norm
         print("Calculate distance matrix...")
