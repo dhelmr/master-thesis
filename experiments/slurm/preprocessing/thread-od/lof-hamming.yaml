@@ -35,6 +35,7 @@ ids:
       od_method: LocalOutlierFactor
       skip_mds: true # MDS is not needed for LOF, since it can use the distance matrix directly
       normalize_rows: false
+    cache_key: true
   - name: Stide
   - name: StreamSum
     args:
