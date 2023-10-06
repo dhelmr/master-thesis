@@ -47,6 +47,7 @@ class ContaminatedDataLoader2019(TsaBaseDataloader):
             self._contaminated_recordings
         ], limit=self._training_size))
         self._metrics["train_recordings"] = len(recordings)
+        return recordings
 
 
 
