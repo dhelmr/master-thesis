@@ -38,28 +38,32 @@ class ContaminatedDataLoader2019(TsaBaseDataloader):
         self._true_metadata = true_metadata
         self._no_test_attacks = no_test_attacks
         self._initialized = False
+        self._metrics = {}
 
     def training_data(self) -> list:
         self._init_once()
-        return list(yield_successively([
+        recordings = list(yield_successively([
             self._normal_recordings[:TRAIN_OFFSET],
             self._contaminated_recordings
         ], limit=self._training_size))
+        self._metrics["train_recordings"] = len(recordings)
 
 
 
     def validation_data(self) -> list:
         self._init_once()
-        val_data=self._normal_recordings[TRAIN_OFFSET:TRAIN_OFFSET + VAL_OFFSET]
-        if self._validation_size is None:
-            return val_data
-        else:
-            return val_data[:self._validation_size]
+        recordings=self._normal_recordings[TRAIN_OFFSET:TRAIN_OFFSET + VAL_OFFSET]
+        if self._validation_size is not None:
+            recordings = recordings[:self._validation_size]
+        self._metrics["validation_recordings"] = len(recordings)
+        return recordings
 
     def test_data(self) -> list:
         self._init_once()
         normal_test_data = self._normal_recordings[TRAIN_OFFSET + VAL_OFFSET:]
-        return list(yield_successively([normal_test_data, self._exploit_recordings], limit=self._test_size))
+        recordings = list(yield_successively([normal_test_data, self._exploit_recordings], limit=self._test_size))
+        self._metrics["test_recordings"] = len(recordings)
+        return recordings
 
     def cfg_dict(self):
         return {
@@ -134,7 +138,7 @@ class ContaminatedDataLoader2019(TsaBaseDataloader):
             return self._distinct_syscalls
 
     def metrics(self):
-        return {}
+        return self._metrics
 
     def artifact_dict(self):
         return {

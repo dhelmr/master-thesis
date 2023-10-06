@@ -43,6 +43,7 @@ class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
         self._permutation_i = permutation_i
         self._true_metadata = true_metadata
         self._no_test_attacks = no_test_attacks
+        self._metrics = {}
         self._init_contaminated()
 
     def _init_contaminated(self):
@@ -65,22 +66,27 @@ class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
         test_data = super().test_data()
         contaminated_data = [ContaminatedRecording2021(r, true_metadata=self._true_metadata) for r in test_data if
                              r.name in self._contaminated_recordings]
-        return list(yield_successively([training_data, contaminated_data], limit=self._training_size))
+
+        recordings = list(yield_successively([training_data, contaminated_data], limit=self._training_size))
+        self._metrics["train_recordings"] = len(recordings)
+        return recordings
 
     def test_data(self, recording_type: RecordingType = None) -> list:
         test_data = super().test_data()
         test_recordings = [r for r in test_data if r.name not in self._exclude_recordings]
+        recordings = test_recordings
         if self._test_size is not None:
-            return test_recordings[:self._test_size]
-        else:
-            return test_recordings
+            recordings = test_recordings[:self._test_size]
+        self._metrics["test_recordings"] = len(recordings)
+        return recordings
 
     def validation_data(self, recording_type: RecordingType = None) -> list:
         val_data = super().validation_data()
+        recordings = val_data
         if self._validation_size is not None:
-            return val_data[:self._validation_size]
-        else:
-            return val_data
+            recordings = val_data[:self._validation_size]
+        self._metrics["validation_recordings"] = len(recordings)
+        return recordings
 
     def cfg_dict(self):
         return {
@@ -94,7 +100,7 @@ class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
         }
 
     def metrics(self):
-        return {}
+        return self._metrics
 
     def artifact_dict(self):
         return {
