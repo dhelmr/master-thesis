@@ -94,12 +94,15 @@ class ThreadClusteringOD(OutlierDetector):
         self._normalize_ord = normalize_ord
         self._plot_mds = plot_mds
         self._cache_key = cache_key
-
+        self._skip_training_data = self._cache_key is not None and os.path.exists(self._cache_key_to_path(self._cache_key))
+        self._matrix_builder = None if self._skip_training_data else NgramThreadMatrix()
     def _add_training_data(self, index, ngram, syscall):
-        if self._cache_key is not None and os.path.exists(self._cache_key_to_path(self._cache_key)):
+        if self._skip_training_data:
             return
         # avoid possibility of ambiguity by using process id+thread_id
-        self._training_data.append((index, ngram, process_thread_id(syscall)))
+        thread_id = process_thread_id(syscall)
+        self._training_data.append((index, ngram, thread_id))
+        self._matrix_builder.add(ngram, thread_id)
 
     def _cache_key_to_path(self, cache_key: str):
         if "IDS_CACHE_PATH" not in os.environ:
@@ -134,7 +137,7 @@ class ThreadClusteringOD(OutlierDetector):
         #    if thread_id not in counts_by_thread:
         #        counts_by_thread[thread_id] = Histogram()
         #    counts_by_thread[thread_id].add(ngram)
-        matrix_builder = None
+
         if self._cache_key is not None:
             training_data_cache, matrix_cache = self._load_data_from_cache()
             if training_data_cache is not None:
@@ -142,25 +145,20 @@ class ThreadClusteringOD(OutlierDetector):
                 training_data = training_data_cache
             if matrix_cache is not None:
                 print("Load ngram-thread matrix from cache")
-                matrix_builder = matrix_cache
-
-        if matrix_builder is None:
-            matrix_builder = NgramThreadMatrix()
-            for i, ngram, thread_id in training_data:
-                matrix_builder.add(ngram, thread_id)
+                self._matrix_builder = matrix_cache
 
         if self._cache_key is not None:
-            self._store_cache(training_data, matrix_builder)
+            self._store_cache(training_data, self._matrix_builder)
 
-        print("number of threads in training set: ", len(matrix_builder.threads()))
-        print("number of ngrams in training set: ", len(matrix_builder.ngrams()))
+        print("number of threads in training set: ", len(self._matrix_builder.threads()))
+        print("number of ngrams in training set: ", len(self._matrix_builder.ngrams()))
         # distance_matrix = make_distance_matrix(counts_by_thread, self._distance)
         if self._tf_idf:
             print("Calculate tf_idf matrix")
-            matrix, ngrams, threads = matrix_builder.tf_idf_matrix()
+            matrix, ngrams, threads = self._matrix_builder.tf_idf_matrix()
         else:
             print("Calculate ngram-thread matrix matrix")
-            matrix, ngrams, threads = matrix_builder.ngram_thread_matrix()
+            matrix, ngrams, threads = self._matrix_builder.ngram_thread_matrix()
         if self._thread_based:
             print("Transpose matrix...")
             matrix = np.transpose(matrix)  # convert ngram-thread matrix to thread-ngram matrix
