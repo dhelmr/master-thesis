@@ -109,7 +109,7 @@ class ThreadClusteringOD(OutlierDetector):
             raise KeyError("$W2V_CACHE_PATH must be set")
 
         md5_hash = hashlib.md5(cache_key.encode()).hexdigest()
-        model_path = os.path.join(os.environ["IDS_CACHE_PATH"], "%s.ngram-matrix.pickle" % md5_hash)
+        model_path = os.path.join(os.environ["CACHE_PATH"], "%s.ngram-matrix.pickle" % md5_hash)
         return model_path
 
     def _load_data_from_cache(self):
