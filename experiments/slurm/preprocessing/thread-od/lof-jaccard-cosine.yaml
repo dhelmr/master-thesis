@@ -56,5 +56,4 @@ dataloader:
     - 3
     - 5
     - 10
-id: thread-clustering-lof-jaccard-cosine.yaml
 cache: true

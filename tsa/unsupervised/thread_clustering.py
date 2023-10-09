@@ -69,7 +69,7 @@ class ThreadClusteringOD(OutlierDetector):
     def __init__(self, building_block, train_features=None, n_components=2, distance="jaccard-cosine", tf_idf=False,
                  skip_mds: bool = False, thread_based=True, normalize_rows=False, normalize_ord=1, metric_mds=True,
                  plot_mds=False, od_method: str = "IsolationForest", od_kwargs=None, cache_key=None, **kwargs):
-        super().__init__(building_block, train_features, **kwargs)
+        super().__init__(building_block, train_features, cache_key)
         if od_kwargs is None:
             od_kwargs = {}
         self._mds = MDS(n_components=n_components, metric=metric_mds, dissimilarity="precomputed")
