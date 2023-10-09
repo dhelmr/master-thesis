@@ -2,6 +2,7 @@ import copy
 import dataclasses
 import hashlib
 import itertools
+import json
 import pickle
 import pprint
 from typing import List, Union, Dict
@@ -29,6 +30,8 @@ ScenarioName = str
 @dataclasses.dataclass
 class CombinedScenario:
     scenarios: Dict[ScenarioName, dict]
+    def __hash__(self):
+        return hash(json.dumps(self.scenarios, sort_keys=True))
 
 
 @dataclasses.dataclass
