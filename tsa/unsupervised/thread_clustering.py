@@ -14,6 +14,8 @@ from sklearn.neighbors import LocalOutlierFactor
 from sklearn.preprocessing import MinMaxScaler
 
 from scipy.spatial.distance import pdist, cosine, squareform, euclidean
+
+from algorithms.building_block import BuildingBlock
 from tsa.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
 from tsa.unsupervised.preprocessing import OutlierDetector
 
@@ -96,6 +98,8 @@ class ThreadClusteringOD(OutlierDetector):
         self._cache_key = cache_key
         self._skip_training_data = self._cache_key is not None and os.path.exists(self._cache_key_to_path(self._cache_key))
         self._matrix_builder = None if self._skip_training_data else NgramThreadMatrix()
+        if self._skip_training_data:
+            self.train_on = BuildingBlock().train_on
     def _add_training_data(self, index, ngram, syscall):
         if self._skip_training_data:
             return
@@ -139,7 +143,7 @@ class ThreadClusteringOD(OutlierDetector):
         #    counts_by_thread[thread_id].add(ngram)
 
         if self._cache_key is not None:
-            training_data_cache, matrix_cache = self._load_data_from_cache()
+            matrix_cache, training_data_cache = self._load_data_from_cache()
             if training_data_cache is not None:
                 print("Load training data from cache")
                 training_data = training_data_cache
