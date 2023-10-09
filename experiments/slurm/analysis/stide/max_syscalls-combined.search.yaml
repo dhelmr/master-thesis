@@ -1,0 +1,71 @@
+experiment:
+  scenarios:
+    - LID-DS-2019/CVE-2018-3760: {}
+      LID-DS-2019/CVE-2019-5418: {}
+      LID-DS-2019/CVE-2012-2122: {}
+    - LID-DS-2019/CVE-2014-0160: {}
+      LID-DS-2019/CVE-2017-7529: {}
+    - LID-DS-2019/PHP_CWE-434: {}
+      LID-DS-2019/SQL_Injection_CWE-89: {}
+    - LID-DS-2021/CWE-89-SQL-injection: {}
+      LID-DS-2021/PHP_CWE-434: {}
+    - LID-DS-2021/CVE-2014-0160: {}
+      LID-DS-2021/Bruteforce_CWE-307: {}
+    - LID-DS-2021/CVE-2017-7529: {}
+      LID-DS-2021/CVE-2012-2122: {}
+      LID-DS-2021/CVE-2020-23839: {}
+    - LID-DS-2021/ZipSlip: {}
+      LID-DS-2021/CVE-2018-3760: {}
+  ids:
+    - name: IntEmbedding
+    - name: Ngram
+      args:
+        thread_aware: true
+        ngram_length: 5
+    - name: Stide
+    - name: StreamSum
+      args:
+        thread_aware: False
+        wait_until_full: False
+        window_length: 1000
+    - name: MaxScoreThreshold
+  dataloader:
+    base:
+      cont_ratio: 0.2
+    permutation_i: 0
+    num_attacks:
+      - 0
+    filter:
+      max_syscalls: null
+
+mode: grid
+name_prefix: max-syscalls-stide-combined
+search_space:
+  dataloader.filter.max_syscalls:
+    - 500000
+    - 1000000
+    - 1500000
+    - 2000000
+    - 2500000
+    - 3000000
+    - 3500000
+    - 4000000
+    - 4500000
+    - 5000000
+    - 6000000
+    - 7000000
+    - 8000000
+    - 9000000
+    - 10000000
+    - 12500000
+    - 15000000
+    - 17500000
+    - 20000000
+    - 22500000
+    - 25000000
+    - 27500000
+    - 30000000
+    - 32500000
+    - 35000000
+    - 37500000
+    - 40000000
