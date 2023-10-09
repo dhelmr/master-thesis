@@ -58,11 +58,22 @@ class NgramThreadAnalyser(AnalyserBB):
             self._update_deviation_stats(stats, prefix="%s_norm_entropy" % prefix, items=entropies)
 
         simpson_indexes = []
+        gini_coeffs = []
+        zipf_params_a = []
+        zipf_params_loc = []
         for ngram, dist in dists.items():
             if len(dist.keys()) <= 1:
                 # print("skip simpson index, because less or equal 1 classes", ngram)
                 continue
             simpson_indexes.append(dist.simpson_index())
+            gini_coeffs.append(dist.gini_coeff())
+            zipf = dist.fit_zipf()
+            zipf_params_a.append(zipf["a"])
+            zipf_params_loc.append(zipf["loc"])
+        self._update_deviation_stats(stats, prefix="%s-simpson-index" % prefix, items=simpson_indexes)
+        self._update_deviation_stats(stats, prefix="%s-gini-coeff" % prefix, items=gini_coeffs)
+        self._update_deviation_stats(stats, prefix="%s-zipf_a" % prefix, items=zipf_params_a)
+        self._update_deviation_stats(stats, prefix="%s-zipf_loc" % prefix, items=zipf_params_loc)
         self._update_deviation_stats(stats, prefix="%s-simpson-index" % prefix, items=simpson_indexes)
 
         self._update_deviation_stats(stats,

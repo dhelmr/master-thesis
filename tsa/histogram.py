@@ -1,7 +1,12 @@
 import math
+import random
 
 import numpy as np
+import numpy.random
+import scipy
 from numpy import e, nan
+
+from tsa.utils import gini_coeff
 
 
 class Histogram:
@@ -103,8 +108,21 @@ class Histogram:
     def simpson_index(self):
         arr = self.counts_as_np_arr()
         if self._size == 1:
-            return nan # TODO!!
+            return nan  # TODO!!
         return np.sum((arr * (arr - 1))) / (self._size * (self._size - 1))
+
+    def gini_coeff(self):
+        arr = self.counts_as_np_arr()
+        return gini_coeff(arr)
+
+    def fit_zipf(self, a_upper_bound=20):
+        sorted_counts = sorted(self._counts.values(), reverse=True)
+        ##data = list(enumerate(sorted_counts))
+        fitted = scipy.stats.fit(scipy.stats.zipf, sorted_counts, bounds={"a": (0, a_upper_bound)})
+        return {
+            "a": fitted.params.a,
+            "loc": fitted.params.loc
+        }
 
     def values(self):
         return self._counts.values()
@@ -124,10 +142,10 @@ class Histogram:
         total1 = len(self)
         total2 = len(hist2)
         for _, c1, c2 in self.zip(hist2):
-            mixture_prob = 0.5*(c1/total1+c2/total2)
+            mixture_prob = 0.5 * (c1 / total1 + c2 / total2)
             mixture_entropy += mixture_prob * math.log(mixture_prob, base)
-        jsd = - mixture_entropy - 0.5*(self.entropy(base=base)+hist2.entropy(base=base))
-        if jsd < 0: # handle numerical inaccuracies; jsd should always be >= 0
+        jsd = - mixture_entropy - 0.5 * (self.entropy(base=base) + hist2.entropy(base=base))
+        if jsd < 0:  # handle numerical inaccuracies; jsd should always be >= 0
             return 0
         return jsd
 
@@ -138,21 +156,24 @@ class Histogram:
             or_sum += 1
             if c1 > 0 and c2 > 0:
                 and_sum += 1
-        return and_sum/or_sum
+        return and_sum / or_sum
+
     def cosine_similarity(self, hist2: "Histogram"):
         dot_product = self.dot_product(hist2)
         return dot_product / (self.l2norm() * hist2.l2norm())
+
     def dot_product(self, hist2: "Histogram"):
         sum = 0
         for _, c1, c2 in self.zip(hist2):
-            sum += c1*c2
+            sum += c1 * c2
         return sum
 
     def l2norm(self):
         sum = 0
         for c in self._counts.values():
-            sum += c*c
+            sum += c * c
         return math.sqrt(sum)
+
     def bhattacharyya_coef(self, hist2):
         hist1 = self
         total1 = len(hist1)

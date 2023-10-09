@@ -5,7 +5,7 @@ import random
 import tempfile
 
 import mlflow
-from pandas import DataFrame
+from pandas import DataFrame, np
 
 
 def split_list(l, fraction_sublist1: float):
@@ -85,3 +85,11 @@ def log_pandas_df(df: DataFrame, name: str):
     tmpfile = os.path.join(tmpdir, f"{name}.parquet.gz")
     df.to_parquet(tmpfile, compression="gzip")
     mlflow.log_artifact(tmpfile)
+
+# see https://stackoverflow.com/a/49571213
+def gini_coeff(x):
+    sorted_x = np.sort(x)
+    n = len(x)
+    cumx = np.cumsum(sorted_x, dtype=float)
+    # The above formula, with all weights equal to 1 simplifies to:
+    return (n + 1 - 2 * np.sum(cumx) / cumx[-1]) / n
