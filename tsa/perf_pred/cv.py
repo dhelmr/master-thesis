@@ -37,17 +37,22 @@ class TrainTestSplit:
 class PerformanceData:
     def __init__(self, df: DataFrame,
                  feature_cols: List[str],
-                 scenario_col="scenario"):
-        self._df = df
+                 scenario_col="scenario",
+                 syscalls_col="syscalls"):
+        self.df = df
         self._feature_cols = feature_cols
-        self._scenario_col = scenario_col
+        self.scenario_col = scenario_col
         self.target_cols = [col for col in df.columns if col not in feature_cols and col != scenario_col]
+        self.syscalls_col = syscalls_col
 
     def feature_cols(self):
         return self._feature_cols
 
     def get_scenarios(self) -> List[str]:
-        return pd.unique(self._df[self._scenario_col])
+        return pd.unique(self.df[self.scenario_col])
+
+    def get_scenario_data(self, sc_name: str) -> pandas.DataFrame:
+        return self.df.loc[self.df[self.scenario_col] == sc_name]
 
     def get_split(self, target_var: str, test_scenarios: List[str], threshold: float) -> TrainTestSplit:
         all_scenarios = self.get_scenarios()
@@ -57,8 +62,8 @@ class PerformanceData:
                 raise ValueError("Scenario %s does not exist in the dataset" % sc)
 
         train_scenarios = [sc for sc in all_scenarios if sc not in test_scenarios]
-        train = self._df[self._df[self._scenario_col].isin(train_scenarios)]
-        test = self._df[self._df[self._scenario_col].isin(test_scenarios)]
+        train = self.df[self.df[self.scenario_col].isin(train_scenarios)]
+        test = self.df[self.df[self.scenario_col].isin(test_scenarios)]
 
         train_X = train.filter(self._feature_cols)
         test_X = test.filter(self._feature_cols)
@@ -77,6 +82,7 @@ class PerformanceData:
             train_y=train_y,
             train_X=train_X
         )
+
 
 
 class CV:

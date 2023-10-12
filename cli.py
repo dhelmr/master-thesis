@@ -5,6 +5,7 @@ from tsa.cli.check import CheckSubCommand
 from tsa.cli.eval import EvalSubCommand
 from tsa.cli.run import RunSubCommand
 from tsa.cli.search import SearchSubCommand
+from tsa.cli.tsa_augment import TSAAugmentSubCommand
 from tsa.cli.tsa_combine import TSACombineSubCommand
 from tsa.cli.tsa_cv import TSACrossValidateSubCommand
 from tsa.cli.tsa_dl import TSADownloaderSubCommand
@@ -15,7 +16,8 @@ commands = [RunSubCommand(),
             TSACrossValidateSubCommand(),
             TSACombineSubCommand(),
             SearchSubCommand(),
-            EvalSubCommand()
+            EvalSubCommand(),
+            TSAAugmentSubCommand()
             ]
 
 if __name__ == '__main__':

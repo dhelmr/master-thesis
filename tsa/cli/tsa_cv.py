@@ -41,7 +41,7 @@ class TSACrossValidateSubCommand(SubCommand):
         parser.add_argument("--out", "-o", required=True)
 
     def exec(self, args, parser):
-        data = self._load_data(args.input, args.features, args.scenario_column)
+        data = load_data(args.input, args.features, args.scenario_column)
         all_stats = []
         for predictor_name in args.predictor:
             predictor = PREDICTORS[predictor_name]()
@@ -56,12 +56,22 @@ class TSACrossValidateSubCommand(SubCommand):
             all_stats.append(stats)
         df = pd.DataFrame(all_stats)
         df.to_csv(args.out)
+        self._print_results(df)
 
-    def _load_data(self, path: str, feature_cols, scenario_col) -> PerformanceData:
-        df = pandas.read_csv(path)
-        df = df.drop(columns=["Unnamed: 0"])
-        return PerformanceData(
-            df=df,
-            feature_cols=feature_cols,
-            scenario_col=scenario_col
-        )
+    def _print_results(self, df: pandas.DataFrame):
+        df = df.drop(columns=[c for c in df.columns if c not in ["mcc", "precision", "f1_score", "balanced_accuracy", "predictor"]])
+        df.sort_values(by="precision")
+        print(df)
+
+def load_data(path: str, feature_cols, scenario_col) -> PerformanceData:
+    df = pandas.read_csv(path)
+    drop_cols = [c for c in df.columns if str(c).startswith("Unnamed")]
+    df = df.drop(columns=drop_cols)
+    for f in feature_cols:
+        if f not in df.columns:
+            raise ValueError("Feature Column is not available: %s" % f)
+    return PerformanceData(
+        df=df,
+        feature_cols=feature_cols,
+        scenario_col=scenario_col
+    )
