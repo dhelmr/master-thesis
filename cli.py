@@ -9,6 +9,7 @@ from tsa.cli.tsa_augment import TSAAugmentSubCommand
 from tsa.cli.tsa_combine import TSACombineSubCommand
 from tsa.cli.tsa_cv import TSACrossValidateSubCommand
 from tsa.cli.tsa_dl import TSADownloaderSubCommand
+from tsa.cli.tsa_fs import TSAFsSubCommand
 
 commands = [RunSubCommand(),
             CheckSubCommand(),
@@ -17,7 +18,8 @@ commands = [RunSubCommand(),
             TSACombineSubCommand(),
             SearchSubCommand(),
             EvalSubCommand(),
-            TSAAugmentSubCommand()
+            TSAAugmentSubCommand(),
+            TSAFsSubCommand()
             ]
 
 if __name__ == '__main__':

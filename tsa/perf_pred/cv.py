@@ -1,7 +1,7 @@
 import abc
 import dataclasses
 import itertools
-from typing import List, Iterable
+from typing import List, Iterable, Any
 
 import numpy
 import numpy as np
@@ -83,6 +83,16 @@ class PerformanceData:
             train_X=train_X
         )
 
+    def with_features(self, feature_cols: List[str]) -> "PerformanceData":
+        return PerformanceData(
+            self.df,
+            feature_cols=feature_cols,
+            scenario_col=self.scenario_col,
+            syscalls_col=self.syscalls_col
+        )
+
+
+CVPerformance = Any
 
 
 class CV:
@@ -91,12 +101,12 @@ class CV:
         self.cv_leave_out = cv_leave_out
         self.predictor = predictor
 
-    def run(self, target_var: str, threshold: float):
+    def run(self, target_var: str, threshold: float) -> CVPerformance:
         if target_var not in self.data.target_cols:
             raise ValueError("No target variable: %s" % target_var)
         all_metrics = []
         for split in self._iter_cv_splits(target_var, threshold):
-            #if np.all(split.test_y == 0) or np.all(split.test_y == 1):
+            # if np.all(split.test_y == 0) or np.all(split.test_y == 1):
             #    print("Skip split, only one class in test data (test scenarios=%s)" % (split.test_scenarios, ))
             #    continue
             # TODO: preprocessing? (dim reduction, min-max scaling, ...?)
@@ -123,5 +133,3 @@ class CV:
         for val_scenarios in itertools.combinations(scenarios, self.cv_leave_out):
             split = self.data.get_split(target_var, val_scenarios, threshold)
             yield split
-
-

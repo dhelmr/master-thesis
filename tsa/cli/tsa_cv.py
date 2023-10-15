@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 from argparse import ArgumentParser
+from typing import Optional, List
 
 import mlflow
 import pandas
@@ -19,6 +20,10 @@ PREDICTORS = {
     [Heuristic1, Heuristic2, BaselineRandom, BaselineAlways1, BaselineAlways0, BaselineMajorityClass, DecisionTree]
 }
 
+NON_FEATURE_COLS = [
+    "syscalls", "run_id", "iteration", "parameter_cfg_id", "num_attacks", "permutation_id", "scenario", "f1_cfa",
+    "precision_with_cfa", "recall"
+]
 
 class TSACrossValidateSubCommand(SubCommand):
 
@@ -34,14 +39,14 @@ class TSACrossValidateSubCommand(SubCommand):
         parser.add_argument("--leave-out", default=2, type=int)
         parser.add_argument("-i", "--input", required=True,
                             help="input data file (training set statistics -> performance)")
-        parser.add_argument("--features", "-f", required=True, nargs="+")
+        parser.add_argument("--features", "-f", required=False, nargs="+", default=None)
         parser.add_argument("--target", default="f1_cfa")
         parser.add_argument("--threshold", default=0.8, type=float)
         parser.add_argument("--scenario-column", default="scenario")
         parser.add_argument("--out", "-o", required=True)
 
     def exec(self, args, parser):
-        data = load_data(args.input, args.features, args.scenario_column)
+        data = load_data(args.input, args.scenario_column, args.features)
         all_stats = []
         for predictor_name in args.predictor:
             predictor = PREDICTORS[predictor_name]()
@@ -56,17 +61,25 @@ class TSACrossValidateSubCommand(SubCommand):
             all_stats.append(stats)
         df = pd.DataFrame(all_stats)
         df.to_csv(args.out)
-        self._print_results(df)
+        print_results(df)
 
-    def _print_results(self, df: pandas.DataFrame):
-        df = df.drop(columns=[c for c in df.columns if c not in ["mcc", "precision", "f1_score", "balanced_accuracy", "predictor"]])
-        df.sort_values(by="precision")
-        print(df)
+def print_results(df: pandas.DataFrame, limit=None, cols=None):
+    if cols is None:
+        cols = ["mcc", "precision", "f1_score", "balanced_accuracy", "predictor"]
+    df = df.drop(columns=[c for c in df.columns if c not in cols])
+    df.sort_values(by="precision")
+    if limit is not None:
+        df = df.iloc[:limit]
+    print(df)
 
-def load_data(path: str, feature_cols, scenario_col) -> PerformanceData:
+def load_data(path: str, scenario_col, feature_cols: Optional[List[str]]) -> PerformanceData:
     df = pandas.read_csv(path)
     drop_cols = [c for c in df.columns if str(c).startswith("Unnamed")]
     df = df.drop(columns=drop_cols)
+    if feature_cols is None:
+        # all columns without a "." and not in above list are considered feature cols
+        feature_cols = [c for c in df.columns if str(c) not in NON_FEATURE_COLS and "." not in str(c)]
+        print("Selected features:", feature_cols)
     for f in feature_cols:
         if f not in df.columns:
             raise ValueError("Feature Column is not available: %s" % f)
