@@ -1,3 +1,4 @@
+import itertools
 import os
 import tempfile
 from argparse import ArgumentParser
@@ -48,9 +49,26 @@ class ForwardSelector:
     def total_rounds(self):
         return self.total
 
+class AllCombinations:
+    def __init__(self, all_data: PerformanceData, total=2):
+        self.all_data = all_data
+        self.all_features = all_data.feature_cols()
+        self.n_combinations = len(list(itertools.combinations(self.all_features, total)))
+        self._iterator = itertools.combinations(self.all_features, total)
+
+    def next(self, last_performances: Optional[List[Tuple[FeatureSelection, CVPerformance]]]) -> Optional[List[Any]]:
+        try:
+            next = list(self._iterator.__next__())
+            return [next]
+        except StopIteration as e:
+            return None
+
+    def total_rounds(self):
+        return self.n_combinations
 
 FEATURE_SELECTORS = {
-    "forward": ForwardSelector
+    "forward": ForwardSelector,
+    "all-2": AllCombinations # TODO find way to set params via cli
 }
 
 
@@ -108,4 +126,4 @@ class TSAFsSubCommand(SubCommand):
                 break
         df = pd.DataFrame(all_stats)
         df.to_csv(args.out)
-        print_results(df)
+        print_results(df, cols=["mcc", "f1_score", "precision", "features"])
