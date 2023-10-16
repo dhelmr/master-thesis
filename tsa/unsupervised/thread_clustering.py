@@ -141,7 +141,7 @@ class ThreadClusteringOD(OutlierDetector):
         #    if thread_id not in counts_by_thread:
         #        counts_by_thread[thread_id] = Histogram()
         #    counts_by_thread[thread_id].add(ngram)
-
+        print("Prepare anomaly detection...")
         if self._cache_key is not None:
             matrix_cache, training_data_cache = self._load_data_from_cache()
             if training_data_cache is not None:
