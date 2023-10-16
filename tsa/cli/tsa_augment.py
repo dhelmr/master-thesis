@@ -77,11 +77,11 @@ class TSAAugmentSubCommand(SubCommand):
         parser.add_argument("-i", "--input", required=True,
                             help="input data file (training set statistics -> performance)")
         parser.add_argument("--scenario-column", default="scenario")
-        parser.add_argument("--features", "-f", required=True, nargs="+")  # TODO auto-select all features
+        parser.add_argument("--features", "-f", required=False, default=None, nargs="+")
         parser.add_argument("--augmentor", "-a", required=True, choices=AUGMENTORS.keys())
 
     def exec(self, args, parser):
-        data = load_data(args.input, args.features, args.scenario_column)
+        data = load_data(args.input, args.scenario_column, args.features)
         augmentor = AUGMENTORS[args.augmentor]()
         augmented = augmentor.augment(data)
         augmented.to_csv(args.output)

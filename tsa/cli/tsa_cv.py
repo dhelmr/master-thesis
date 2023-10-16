@@ -22,7 +22,7 @@ PREDICTORS = {
 
 NON_FEATURE_COLS = [
     "syscalls", "run_id", "iteration", "parameter_cfg_id", "num_attacks", "permutation_id", "scenario", "f1_cfa",
-    "precision_with_cfa", "recall"
+    "precision_with_cfa", "recall", "detection_rate"
 ]
 
 class TSACrossValidateSubCommand(SubCommand):
@@ -67,7 +67,7 @@ def print_results(df: pandas.DataFrame, limit=None, cols=None):
     if cols is None:
         cols = ["mcc", "precision", "f1_score", "balanced_accuracy", "predictor"]
     df = df.drop(columns=[c for c in df.columns if c not in cols])
-    df.sort_values(by="precision")
+    df.sort_values(by="precision", inplace=True)
     if limit is not None:
         df = df.iloc[:limit]
     print(df)
