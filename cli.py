@@ -10,6 +10,7 @@ from tsa.cli.tsa_combine import TSACombineSubCommand
 from tsa.cli.tsa_cv import TSACrossValidateSubCommand
 from tsa.cli.tsa_dl import TSADownloaderSubCommand
 from tsa.cli.tsa_fs import TSAFsSubCommand
+from tsa.cli.tsa_ruleminer import TSARuleMinerSubCommand
 
 commands = [RunSubCommand(),
             CheckSubCommand(),
@@ -19,7 +20,8 @@ commands = [RunSubCommand(),
             SearchSubCommand(),
             EvalSubCommand(),
             TSAAugmentSubCommand(),
-            TSAFsSubCommand()
+            TSAFsSubCommand(),
+            TSARuleMinerSubCommand()
             ]
 
 if __name__ == '__main__':
@@ -28,10 +30,13 @@ if __name__ == '__main__':
     for comm in commands:
         sparser = subparsers.add_parser(comm.name, description=comm.desc)
         comm.make_subparser(sparser)
-    args = parser.parse_args()
+
+    args, unknown_args = parser.parse_known_args()
     for comm in commands:
         if comm.name == args.command:
-            comm.exec(args, parser)
+            if not comm.expect_unknown_args and unknown_args is not None and len(unknown_args) > 0:
+                raise RuntimeError("Unexpected arguments: %s" % unknown_args)
+            comm.exec(args, parser, unknown_args)
             sys.exit(0)
 
     parser.print_help()

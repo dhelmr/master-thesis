@@ -45,7 +45,7 @@ class CheckSubCommand(SubCommand):
         parser.add_argument("--verbose", action="store_true", help="Verbose output", default=False)
         parser.add_argument("--scenarios", action="store_true", help="Print missing scenarios", default=False)
 
-    def exec(self, args, parser):
+    def exec(self, args, parser, unknown_args):
         self._no_choice = args.no_choice
         if args.experiment is not None:
             experiment_name = args.experiment

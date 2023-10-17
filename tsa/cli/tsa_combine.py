@@ -33,7 +33,7 @@ class TSACombineSubCommand(SubCommand):
         parser.add_argument("--statistics-csv", required=True, help="csv file with training set statistics (downloaded with tsa-dl subcommand)")
         parser.add_argument("-o", "--output", required=True, help="Output csv with combined results")
 
-    def exec(self, args, parser):
+    def exec(self, args, parser, unknown_args):
         statistics_df = pd.read_csv(args.statistics_csv)
         performance_df = self._dl_performance(args)
         performance_df["metrics.dataloader.training_syscalls"] =\

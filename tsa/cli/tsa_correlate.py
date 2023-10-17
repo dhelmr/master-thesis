@@ -18,6 +18,6 @@ class TSACorrelateSubCommand(SubCommand):
     def make_subparser(self, parser: ArgumentParser):
 
         pass
-    def exec(self, args, parser):
+    def exec(self, args, parser, unknown_args):
         pass
 

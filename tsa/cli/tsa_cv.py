@@ -28,7 +28,7 @@ NON_FEATURE_COLS = [
 class TSACrossValidateSubCommand(SubCommand):
 
     def __init__(self):
-        super().__init__("tsa-cv", "cross validate performance predictor")
+        super().__init__("tsa-cv", "cross validate performance predictor", expect_unknown_args=True)
         import warnings
         warnings.filterwarnings("ignore", category=RuntimeWarning)
 
@@ -45,11 +45,11 @@ class TSACrossValidateSubCommand(SubCommand):
         parser.add_argument("--scenario-column", default="scenario")
         parser.add_argument("--out", "-o", required=True)
 
-    def exec(self, args, parser):
+    def exec(self, args, parser, unknown_args):
         data = load_data(args.input, args.scenario_column, args.features)
         all_stats = []
         for predictor_name in args.predictor:
-            predictor = PREDICTORS[predictor_name]()
+            predictor = PREDICTORS[predictor_name](unknown_args)
             cv = CV(
                 data,
                 predictor=predictor,

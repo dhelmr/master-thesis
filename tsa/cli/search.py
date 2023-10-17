@@ -22,7 +22,7 @@ class SearchSubCommand(SubCommand):
         parser.add_argument("-c", "--config", required=True, help="Experiment Search config yaml file.")
         parser.add_argument("--experiment", "-e", required=False, help="Sets the mlflow experiment ID", type=str)
 
-    def exec(self, args, parser):
+    def exec(self, args, parser, unknown_args):
         #outdir = args.out_dir
         #if outdir is not None:
         #    if not os.path.exists(outdir):

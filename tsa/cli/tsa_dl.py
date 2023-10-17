@@ -18,7 +18,7 @@ class TSADownloaderSubCommand(SubCommand):
         parser.add_argument("--experiment", "-e", required=False, help="Sets the mlflow experiment ID", type=str)
         parser.add_argument("-c", "--config", required=True, help="Experiment config yaml file.")
         parser.add_argument("-o", "--output", required=True, help="Output file")
-    def exec(self, args, parser):
+    def exec(self, args, parser, unknown_args):
         mlflow_client = MlflowClient() # TODO global singleton
         experiment = make_experiment_from_path(args.config, mlflow_client, args.experiment)
         checker = ExperimentChecker(experiment, no_ids_checks=True)

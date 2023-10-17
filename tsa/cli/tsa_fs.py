@@ -90,7 +90,7 @@ class TSAFsSubCommand(SubCommand):
         parser.add_argument("--out", "-o", required=True)
         parser.add_argument("--mode", "-m", choices=FEATURE_SELECTORS.keys(), default="forward")
 
-    def exec(self, args, parser):
+    def exec(self, args, parser, unknown_args):
         data = load_data(args.input, args.scenario_column, args.features)
         predictor = PREDICTORS[args.predictor]()
         selector = FEATURE_SELECTORS[args.mode](data)

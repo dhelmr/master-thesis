@@ -13,12 +13,20 @@ from tsa.confusion_matrix import ConfusionMatrix
 
 
 class PerformancePredictor(abc.ABC):
+
+    def __init__(self, cli_args):
+        pass
+    def reset(self):
+        pass
     @abc.abstractmethod
     def train(self, train_X: pandas.DataFrame, train_y: numpy.ndarray):
         pass
 
     @abc.abstractmethod
     def predict(self, test_X: pandas.DataFrame) -> numpy.ndarray:
+        pass
+
+    def extract_rules(self):
         pass
 
 
@@ -110,6 +118,7 @@ class CV:
             #    print("Skip split, only one class in test data (test scenarios=%s)" % (split.test_scenarios, ))
             #    continue
             # TODO: preprocessing? (dim reduction, min-max scaling, ...?)
+            self.predictor.reset()
             self.predictor.train(split.train_X, split.train_y)
             preds = self.predictor.predict(split.test_X)
             cm = ConfusionMatrix.from_predictions(preds, split.test_y, labels=[0, 1])

@@ -62,15 +62,16 @@ def last_running_run_id(mlflow_client: MlflowClient, experiment_name: str) -> st
 
 class SubCommand:
 
-    def __init__(self, name, desc):
+    def __init__(self, name, desc, expect_unknown_args=False):
         self.name = name
         self.desc = desc
+        self.expect_unknown_args = expect_unknown_args
     @abc.abstractmethod
     def make_subparser(self, parser: argparse.ArgumentParser):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def exec(self, args, parser):
+    def exec(self, args, parser, unknown_args):
         raise NotImplementedError()
 
 
@@ -90,7 +91,7 @@ class RunSubCommand(SubCommand):
         parser.add_argument("--number-runs", required=False, help="Only iterate for specific number of runs", type=int,
                             default=None)
 
-    def exec(self, args, parser):
+    def exec(self, args, parser, unknown_args):
         mlflow_client = MlflowClient()
         if args.experiment is None and args.continue_experiment is True:
             print("If --continue-experiment is set, an experiment must be specified with -e.")

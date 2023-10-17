@@ -34,7 +34,7 @@ class EvalSubCommand(SubCommand):
         parser.add_argument("--label-x", default=None)
         parser.add_argument("--label-y", default=None)
 
-    def exec(self, args, parser):
+    def exec(self, args, parser, unknown_args):
         pd.options.plotting.backend = "plotly"
         converter = ExperimentNameConversion()
         if args.cache is not None:

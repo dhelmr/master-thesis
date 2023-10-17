@@ -80,7 +80,7 @@ class TSAAugmentSubCommand(SubCommand):
         parser.add_argument("--features", "-f", required=False, default=None, nargs="+")
         parser.add_argument("--augmentor", "-a", required=True, choices=AUGMENTORS.keys())
 
-    def exec(self, args, parser):
+    def exec(self, args, parser, unknown_args):
         data = load_data(args.input, args.scenario_column, args.features)
         augmentor = AUGMENTORS[args.augmentor]()
         augmented = augmentor.augment(data)
