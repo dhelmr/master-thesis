@@ -75,7 +75,7 @@ FEATURE_SELECTORS = {
 class TSAFsSubCommand(SubCommand):
 
     def __init__(self):
-        super().__init__("tsa-fs", "perform feature selection for tsa-cv")
+        super().__init__("tsa-fs", "perform feature selection for tsa-cv", expect_unknown_args=True)
 
     def make_subparser(self, parser: ArgumentParser):
         parser.add_argument("-p", "--predictor", help="Name of the Predictor", choices=PREDICTORS.keys())
@@ -92,7 +92,7 @@ class TSAFsSubCommand(SubCommand):
 
     def exec(self, args, parser, unknown_args):
         data = load_data(args.input, args.scenario_column, args.features)
-        predictor = PREDICTORS[args.predictor]()
+        predictor = PREDICTORS[args.predictor](unknown_args)
         selector = FEATURE_SELECTORS[args.mode](data)
 
         all_stats = []
