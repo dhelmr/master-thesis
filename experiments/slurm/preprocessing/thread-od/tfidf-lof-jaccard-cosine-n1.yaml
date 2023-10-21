@@ -35,7 +35,6 @@ ids:
       od_method: LocalOutlierFactor
       skip_mds: true # MDS is not needed for LOF, since it can use the distance matrix directly
       tf_idf: true
-    cache_key: true
     dependencies:
       name: train_features
       blocks:
