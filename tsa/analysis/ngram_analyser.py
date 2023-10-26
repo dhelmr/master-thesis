@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from numpy import e
 
@@ -10,50 +12,100 @@ class NgramAnalyser(AnalyserBB):
         super().__init__(*args, **kwargs)
         self.tree = NgramTreeNode()
         self.len = -1
+        # keep track of last added n-gram because the tree won't return its sub-sequences
+        self._last_ngram = None
 
     def _add_input(self, syscall, inp):
         if inp is None:
             # TODO
             return
-        if self.len == -1:
-            self.len = len(inp)
-        elif self.len != len(inp):
-            raise ValueError("Unequal ngram size")
         # inp = tuple(reversed(inp))
-        inp = tuple(inp)
-        self.tree.add_ngram(inp)
+        self._add_ngram(tuple(inp))
+
+    def _add_ngram(self, ngram):
+        if self.len == -1:
+            self.len = len(ngram)
+        elif self.len != len(ngram):
+            raise ValueError("Unequal ngram size")
+        self._last_ngram = ngram
+        self.tree.add_ngram(ngram)
+
+    def _iter_ngrams(self, ngram_size):
+        # count the sub_ngrams for the last added n-gram because they are not covered in the tree
+        sub_ngrams = {}
+        if self._last_ngram is not None and len(self._last_ngram) > ngram_size:
+            sub_ngrams = count_ngrams(self._last_ngram[1:], ngram_size)
+        for ngram, count in self.tree.iter_length(ngram_size):
+            ngram = tuple(ngram)
+            if ngram in sub_ngrams:
+                count += sub_ngrams[ngram]
+                del sub_ngrams[ngram]
+            yield ngram, count
+        # additionally yield n-gram that were not yet yielded (because they only appear in the last n-gram)
+        for ngram, count in sub_ngrams.items():
+            yield ngram, count
 
     def _make_stats(self):
         stats = []
-        for depth in range(1, self.len + 1):
+        alphabet_size = 0
+        last_counts = {} # stores the n-gram counts for the last depth (used for conditional entropy calculation)
+        for ngram_size in range(1, self.len + 1):
             unique = 0
             total = 0
             counts = []
             rev_cond_probs = []
-            for ngram, count in self.tree.iter_length(depth):
+            current_counts = {}
+            for ngram, count in self._iter_ngrams(ngram_size):
                 unique += 1
                 total += count
                 counts.append(count)
-                reversed_cond_prob = self.tree.get_ngram_count(ngram[:-1]) / count
-                rev_cond_probs.append(reversed_cond_prob)
+                current_counts[ngram] = count
+                if ngram_size > 1:
+                    reversed_cond_prob = last_counts[ngram[:-1]] / count
+                    rev_cond_probs.append(reversed_cond_prob)
+            print(rev_cond_probs)
+            last_counts = current_counts
+            if ngram_size == 1:
+                # the alphabet size is the number of unique system calls (= 1-grams)
+                alphabet_size = unique
+            elif ngram_size == 2:
+                print(counts)
+            density = unique / math.pow(alphabet_size, ngram_size)
             counts = np.array(counts)
             rev_cond_probs = np.array(rev_cond_probs)
             norm_counts = np.array(counts) / total
-            entropy = -(norm_counts * np.log(norm_counts) / np.log(e)).sum()
-            cond_entropy = (norm_counts * np.log(rev_cond_probs)).sum()
+            entropy = -(norm_counts * np.log(norm_counts)).sum()
+            if ngram_size > 1:
+                cond_entropy = (norm_counts * np.log(rev_cond_probs)).sum()
+            else:
+                cond_entropy = math.nan
+            variability = entropy / np.log(unique)
             simpson_index = np.sum((counts * (counts - 1))) / (total * (total - 1))
             gini = gini_coeff(counts)
             stats.append({
-                "ngram_size": depth,
+                "ngram_size": ngram_size,
                 "unique": unique,
                 "total": total,
                 "u/t": unique / total,
                 "entropy": entropy,
                 "conditional_entropy": cond_entropy,
                 "simpson_index": simpson_index,
-                "gini": gini
+                "gini": gini,
+                "density": density,
+                "variability": variability
             })
         return stats
+
+
+def count_ngrams(sequence, size: int):
+    ngrams = {}
+    for i in range(len(sequence) - size + 1):
+        subsequence = sequence[i:i + size]
+        ngram = tuple([t for t in subsequence])
+        if ngram not in ngrams:
+            ngrams[ngram] = 0
+        ngrams[ngram] += 1
+    return ngrams
 
 
 class NgramTreeNode:
