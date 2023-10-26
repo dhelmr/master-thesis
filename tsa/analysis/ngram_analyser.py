@@ -19,7 +19,6 @@ class NgramAnalyser(AnalyserBB):
         if inp is None:
             # TODO
             return
-        # inp = tuple(reversed(inp))
         self._add_ngram(tuple(inp))
 
     def _add_ngram(self, ngram):
@@ -63,13 +62,10 @@ class NgramAnalyser(AnalyserBB):
                 if ngram_size > 1:
                     reversed_cond_prob = last_counts[ngram[:-1]] / count
                     rev_cond_probs.append(reversed_cond_prob)
-            print(rev_cond_probs)
             last_counts = current_counts
             if ngram_size == 1:
                 # the alphabet size is the number of unique system calls (= 1-grams)
                 alphabet_size = unique
-            elif ngram_size == 2:
-                print(counts)
             density = unique / math.pow(alphabet_size, ngram_size)
             counts = np.array(counts)
             rev_cond_probs = np.array(rev_cond_probs)
