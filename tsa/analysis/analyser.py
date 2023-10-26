@@ -12,7 +12,7 @@ from tsa.histogram import Histogram
 
 
 class AnalyserBB(BuildingBlock):
-    def __init__(self, input_bb: BuildingBlock, update_interval = 1000):
+    def __init__(self, input_bb: BuildingBlock, update_interval=1000):
         super().__init__()
         self._input = input_bb
         self._dependency_list = [self._input]
@@ -26,6 +26,7 @@ class AnalyserBB(BuildingBlock):
     @abc.abstractmethod
     def _add_input(self, syscall, inp):
         raise NotImplementedError()
+
     def train_on(self, syscall: Syscall):
         inp = self._input.get_result(syscall)
         self._add_input(syscall, inp)
@@ -34,17 +35,19 @@ class AnalyserBB(BuildingBlock):
             self.__update_stats()
 
     def fit(self):
-        self.__update_stats()
-    def __update_stats(self):
+        self.__update_stats(is_last=True)
+
+    def __update_stats(self, is_last=False):
         cur_stats = self._make_stats()
         if isinstance(cur_stats, dict):
-            self.__add_stats(cur_stats)
+            self.__add_stats(cur_stats, is_last)
         if isinstance(cur_stats, list):
             for s in cur_stats:
-                self.__add_stats(s)
+                self.__add_stats(s, is_last)
 
-    def __add_stats(self, stats_dict):
+    def __add_stats(self, stats_dict, is_last: bool):
         stats_dict["syscalls"] = self._current_i
+        stats_dict["is_last"] = is_last
         self._stats.append(stats_dict)
 
     def depends_on(self) -> list:
@@ -65,12 +68,12 @@ class TrainingSetAnalyser(AnalyserBB):
         super().__init__(*args, **kwargs)
         self._histogram = Histogram()
 
-
     def _add_input(self, inp):
         if inp is None:
             # TODO
             return
         self._histogram.add(inp)
+
     def _make_stats(self):
         uniq = self._histogram.unique_elements()
         return {
@@ -78,7 +81,7 @@ class TrainingSetAnalyser(AnalyserBB):
             # "stdev": statistics.pstdev(self._data_list),
             "unique": uniq,
             "total": len(self._histogram),
-            "u/t": uniq/len(self._histogram),
+            "u/t": uniq / len(self._histogram),
             "entropy": self._histogram.entropy(base=e),
             "simpson_index": self._histogram.simpson_index()
         }
