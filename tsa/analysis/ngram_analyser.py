@@ -84,9 +84,9 @@ class NgramAnalyser(AnalyserBB):
             gini = gini_coeff(counts)
             stats.append({
                 "ngram_size": ngram_size,
-                "unique": unique,
+                "unique_ngrams": unique,
                 "total": total,
-                "u/t": unique / total,
+                "unique_ngrams/total": unique / total,
                 "entropy": entropy,
                 "conditional_entropy": cond_entropy,
                 "simpson_index": simpson_index,
