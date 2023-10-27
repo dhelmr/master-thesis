@@ -12,8 +12,7 @@ class NgramAnalyserTest(unittest.TestCase):
         text = "abcabcaabbacadd"
         for ngram in make_ngrams(text, size=5):
             analyser._add_ngram(ngram)
-        stats = analyser._make_stats()
-        by_ngram_size = {stat["ngram_size"]: stat for stat in stats}
+        by_ngram_size = self._get_stats_by_ngram_size(analyser)
         self.assertSetEqual(set(by_ngram_size.keys()), {1, 2, 3, 4, 5})
         self.assertEqual(by_ngram_size[1]["density"], 1)
         self.assertEqual(by_ngram_size[1]["unique_ngrams"], 4)  # a,b,c
@@ -38,6 +37,29 @@ class NgramAnalyserTest(unittest.TestCase):
                                places=5)  # entropy/max entropy for n=2 (induced by alphabet size): 2.0692/log(4^2)
         self.assertAlmostEqual(by_ngram_size[2]["unique_ngrams/total"], 0.6428, places=2)
         self.assertAlmostEqual(by_ngram_size[2]["conditional_entropy"], 0.87905, places=4)
+
+    def test_multiple_traces(self):
+        analyser = NgramAnalyser(None)
+        traces = [
+            "abcdecdabacba",
+            "deaaaaaaaaaaa",
+            "aaaaaaaaaaaaa",
+            "aaaaaaaaaaaaa",
+            "bbbbaaaaaaaae"
+        ]
+        for i, trace in enumerate(traces):
+            for ngram in make_ngrams(trace, size=5):
+                analyser._add_ngram(ngram, trace_id=i)
+        by_ngram_size = self._get_stats_by_ngram_size(analyser)
+        self.assertEqual(by_ngram_size[1]["unique_ngrams"], 5)
+        self.assertEqual(by_ngram_size[1]["unique_syscalls"], 5)
+        self.assertEqual(by_ngram_size[2]["unique_syscalls"], 5)
+        self.assertEqual(by_ngram_size[5]["unique_syscalls"], 5)
+
+    def _get_stats_by_ngram_size(self, analyser):
+        stats = analyser._make_stats()
+        by_ngram_size = {stat["ngram_size"]: stat for stat in stats}
+        return by_ngram_size
 
 def make_ngrams(text, size: int):
     ngrams = []

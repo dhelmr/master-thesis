@@ -4,6 +4,7 @@ import numpy as np
 from numpy import e
 
 from tsa.analysis.analyser import AnalyserBB
+from tsa.ngram_thread_matrix import process_thread_id
 from tsa.utils import gini_coeff
 
 
@@ -12,28 +13,28 @@ class NgramAnalyser(AnalyserBB):
         super().__init__(*args, **kwargs)
         self.tree = NgramTreeNode()
         self.len = -1
-        # keep track of last added n-gram because the tree won't return its sub-sequences
-        self._last_ngram = None
+        # keep track of last added n-grams per trace (=thread) because the tree won't return its sub-sequences
+        self._last_ngrams = {}
 
     def _add_input(self, syscall, inp):
         if inp is None:
             # TODO
             return
-        self._add_ngram(tuple(inp))
+        self._add_ngram(tuple(inp), trace_id=process_thread_id(syscall))
 
-    def _add_ngram(self, ngram):
+    def _add_ngram(self, ngram, trace_id=-1):
         if self.len == -1:
             self.len = len(ngram)
         elif self.len != len(ngram):
             raise ValueError("Unequal ngram size")
-        self._last_ngram = ngram
+        self._last_ngrams[trace_id] = ngram
         self.tree.add_ngram(ngram)
 
     def _iter_ngrams(self, ngram_size):
         # count the sub_ngrams for the last added n-gram because they are not covered in the tree
         sub_ngrams = {}
-        if self._last_ngram is not None and len(self._last_ngram) > ngram_size:
-            sub_ngrams = count_ngrams(self._last_ngram[1:], ngram_size)
+        for last_ngram in self._last_ngrams.values():
+            sub_ngrams = count_ngrams(last_ngram[1:], ngram_size, count_dict=sub_ngrams)
         for ngram, count in self.tree.iter_length(ngram_size):
             ngram = tuple(ngram)
             if ngram in sub_ngrams:
@@ -97,15 +98,14 @@ class NgramAnalyser(AnalyserBB):
         return stats
 
 
-def count_ngrams(sequence, size: int):
-    ngrams = {}
+def count_ngrams(sequence, size: int, count_dict):
     for i in range(len(sequence) - size + 1):
         subsequence = sequence[i:i + size]
         ngram = tuple([t for t in subsequence])
-        if ngram not in ngrams:
-            ngrams[ngram] = 0
-        ngrams[ngram] += 1
-    return ngrams
+        if ngram not in count_dict:
+            count_dict[ngram] = 0
+        count_dict[ngram] += 1
+    return count_dict
 
 
 class NgramTreeNode:
