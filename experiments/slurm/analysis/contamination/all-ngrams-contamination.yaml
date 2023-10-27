@@ -1,0 +1,76 @@
+mode: analysis
+scenarios:
+ - LID-DS-2019/CVE-2017-7529
+ - LID-DS-2019/CVE-2019-5418
+ - LID-DS-2019/CVE-2012-2122
+ - LID-DS-2019/CVE-2014-0160
+ - LID-DS-2019/CVE-2018-3760
+ - LID-DS-2019/EPS_CWE-434
+ - LID-DS-2019/PHP_CWE-434
+ - LID-DS-2019/SQL_Injection_CWE-89
+ - LID-DS-2019/ZipSlip
+ - LID-DS-2019/SQL_Injection_CWE-89
+ - LID-DS-2021/Bruteforce_CWE-307
+ - LID-DS-2021/CVE-2012-2122
+ - LID-DS-2021/CVE-2014-0160
+ - LID-DS-2021/CVE-2017-12635_6
+ - LID-DS-2021/CVE-2017-7529
+ - LID-DS-2021/CVE-2018-3760
+ - LID-DS-2021/CVE-2019-5418
+ - LID-DS-2021/CVE-2020-13942
+ - LID-DS-2021/CVE-2020-23839
+ - LID-DS-2021/CVE-2020-9484
+ - LID-DS-2021/CWE-89-SQL-injection
+ - LID-DS-2021/EPS_CWE-434
+ - LID-DS-2021/Juice-Shop
+ - LID-DS-2021/PHP_CWE-434
+ - LID-DS-2021/ZipSlip
+ids:
+  - name: Ngram
+    args:
+      thread_aware: true
+      ngram_length: 25
+  - name: NgramAnalyser
+    args:
+      fixed_stops: # make very small intervals in the beginning (to analyse behavior there and for very small experiments)
+        - 1000
+        - 5000
+        - 10000
+        - 25000
+        - 50000
+        - 75000
+        - 100000
+        - 150000
+        - 200000
+        - 250000
+        - 300000
+        - 350000
+        - 400000
+        - 450000
+        - 600000
+        - 750000
+        - 1250000
+        - 1750000
+      update_interval: 500000 # afterwads, stop after each 500.000 system calls
+dataloader:
+  base:
+    cont_ratio: 0.2
+  permutation_i:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+  num_attacks:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
