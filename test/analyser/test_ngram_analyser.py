@@ -41,11 +41,12 @@ class NgramAnalyserTest(unittest.TestCase):
     def test_multiple_traces(self):
         analyser = NgramAnalyser(None)
         traces = [
-            "abcdecdabacba",
-            "deaaaaaaaaaaa",
+            "abcdccdabacba",
+            "ddaaaaaaaaaaa",
             "aaaaaaaaaaaaa",
             "aaaaaaaaaaaaa",
-            "bbbbaaaaaaaae"
+            "bbbbaaaaaaaae",
+            "aaaaaaaaaaaaa",
         ]
         for i, trace in enumerate(traces):
             for ngram in make_ngrams(trace, size=5):
