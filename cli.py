@@ -12,6 +12,7 @@ from tsa.cli.tsa_cv import TSACrossValidateSubCommand
 from tsa.cli.tsa_dl import TSADownloaderSubCommand
 from tsa.cli.tsa_fs import TSAFsSubCommand
 from tsa.cli.tsa_ruleminer import TSARuleMinerSubCommand
+from tsa.cli.tsa_stats import TSAStatsSubCommand
 
 commands = [RunSubCommand(),
             CheckSubCommand(),
@@ -23,7 +24,8 @@ commands = [RunSubCommand(),
             TSAAugmentSubCommand(),
             TSAFsSubCommand(),
             TSARuleMinerSubCommand(),
-            TSACorrelateSubCommand()
+            TSACorrelateSubCommand(),
+            TSAStatsSubCommand()
             ]
 
 if __name__ == '__main__':

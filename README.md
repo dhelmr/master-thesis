@@ -1,3 +1,19 @@
+
+## Create csv file containing training set statistics and performance metrics
+
+This assumes that the experiments in `experiments/slurm/analysis/all-ngrams.yaml` and `experiments/slurm/analysis/stide/*` are already completed in mlflow. 
+
+```sh
+# set EXPERIMENT_PREFIX according to mlflow tracking server
+export EXPERIMENT_PREFIX="..."
+# download training set statistics
+python cli.py tsa-dl-e $EXPERIMENT_PREFIX/analysis-all-ngrams.yaml --config experiments/slurm/analysis/all-ngrams.yaml -o test-all-ngrams.csv
+# combine f1/prec/recall performance stats with training set statistics
+python cli.py tsa-combine --statistics-csv test-all-ngrams.csv -e $EXPERIMENT_PREFIX/analysis-stide-max_syscalls.search.yaml -o test-perf-all-ngrams.csv 
+```
+
+---
+
 # LID-DS (Leipzig Intrusion Detection - Data Set)
 
 ![LID-DS](https://raw.githubusercontent.com/LID-DS/LID-DS/master/lidds-logo-300.png)

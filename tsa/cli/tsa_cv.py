@@ -21,8 +21,8 @@ PREDICTORS = {
 }
 
 NON_FEATURE_COLS = [
-    "syscalls", "run_id", "iteration", "parameter_cfg_id", "num_attacks", "permutation_id", "scenario", "f1_cfa",
-    "precision_with_cfa", "recall", "detection_rate"
+    "syscalls", "run_id", "iteration", "parameter_cfg_id", "num_attacks", "permutation_i", "scenario", "f1_cfa",
+    "precision_with_cfa", "recall", "detection_rate", "is_last"
 ]
 
 class TSACrossValidateSubCommand(SubCommand):
