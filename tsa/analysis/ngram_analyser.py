@@ -66,7 +66,8 @@ class NgramAnalyser(AnalyserBB):
             if ngram_size == 1:
                 # the alphabet size is the number of unique system calls (= 1-grams)
                 alphabet_size = unique
-            density = unique / math.pow(alphabet_size, ngram_size)
+            n_possible_ngrams = math.pow(alphabet_size, ngram_size)
+            density = unique / n_possible_ngrams
             counts = np.array(counts)
             rev_cond_probs = np.array(rev_cond_probs)
             norm_counts = np.array(counts) / total
@@ -75,7 +76,8 @@ class NgramAnalyser(AnalyserBB):
                 cond_entropy = (norm_counts * np.log(rev_cond_probs)).sum()
             else:
                 cond_entropy = math.nan
-            variability = entropy / np.log(unique)
+            variability = entropy / np.log(n_possible_ngrams)
+            unique_norm_entropy = entropy / np.log(unique)
             simpson_index = np.sum((counts * (counts - 1))) / (total * (total - 1))
             gini = gini_coeff(counts)
             stats.append({
@@ -88,7 +90,9 @@ class NgramAnalyser(AnalyserBB):
                 "simpson_index": simpson_index,
                 "gini": gini,
                 "density": density,
-                "variability": variability
+                "variability": variability,
+                "normalized_entropy": unique_norm_entropy,
+                "unique_syscalls": alphabet_size
             })
         return stats
 
