@@ -12,13 +12,16 @@ from tsa.histogram import Histogram
 
 
 class AnalyserBB(BuildingBlock):
-    def __init__(self, input_bb: BuildingBlock, update_interval=1000):
+    def __init__(self, input_bb: BuildingBlock, update_interval=1000, fixed_stops=None):
         super().__init__()
+        if fixed_stops is None:
+            fixed_stops = set()
         self._input = input_bb
         self._dependency_list = [self._input]
         self._update_interval = update_interval
         self._current_i = 0
         self._stats = []
+        self._fixed_stops = set(fixed_stops)
 
     def _calculate(self, syscall: Syscall):
         return self._input.get_result(syscall)
@@ -31,7 +34,8 @@ class AnalyserBB(BuildingBlock):
         inp = self._input.get_result(syscall)
         self._add_input(syscall, inp)
         self._current_i += 1
-        if self._update_interval is not None and self._current_i % self._update_interval == 0:
+        if self._current_i in self._fixed_stops or \
+                (self._update_interval is not None and self._current_i % self._update_interval == 0):
             self.__update_stats()
 
     def fit(self):
