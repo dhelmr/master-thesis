@@ -16,10 +16,10 @@ class MicroSTIDEs(BuildingBlock):
         # parameter
         self._input = input
 
-        # internal data
+        # internal data for training
         self._n_models = n_models
         self._normal_models = [set() for _ in range(n_models)]
-        self._trace_ids = {}
+        self._trace_ids = {} # assigns trace_ids of the training set to model_ids
         self._models_per_trace = models_per_trace
 
         self._stream_sums = [deque(maxlen=stream_sum_window_len) for _ in range(n_models)]
