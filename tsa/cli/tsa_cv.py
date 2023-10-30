@@ -14,10 +14,12 @@ from tsa.experiment_checker import ExperimentChecker
 from tsa.perf_pred.cv import CV, PerformanceData
 from tsa.perf_pred.decision_tree import DecisionTree
 from tsa.perf_pred.heuristics import BaselineRandom, BaselineAlways0, BaselineAlways1, BaselineMajorityClass, Heuristic1, Heuristic2
+from tsa.perf_pred.logistic_regression import LogisticRegression
 
 PREDICTORS = {
     cls.__name__: cls for cls in
-    [Heuristic1, Heuristic2, BaselineRandom, BaselineAlways1, BaselineAlways0, BaselineMajorityClass, DecisionTree]
+    [Heuristic1, Heuristic2, BaselineRandom, BaselineAlways1, BaselineAlways0, BaselineMajorityClass, DecisionTree,
+     LogisticRegression]
 }
 
 NON_FEATURE_COLS = [
@@ -67,18 +69,18 @@ def print_results(df: pandas.DataFrame, limit=None, cols=None):
     if cols is None:
         cols = ["mcc", "precision", "f1_score", "balanced_accuracy", "predictor"]
     df = df.drop(columns=[c for c in df.columns if c not in cols])
-    df.sort_values(by="precision", inplace=True)
+    df.sort_values(by="precision", inplace=True, ascending=False)
     if limit is not None:
         df = df.iloc[:limit]
     print(df)
 
-def load_data(path: str, scenario_col, feature_cols: Optional[List[str]]) -> PerformanceData:
+def load_data(path: str, scenario_col, feature_cols: Optional[List[str]], skip_features=[]) -> PerformanceData:
     df = pandas.read_csv(path)
     drop_cols = [c for c in df.columns if str(c).startswith("Unnamed")]
     df = df.drop(columns=drop_cols)
     if feature_cols is None:
         # all columns without a "." and not in above list are considered feature cols
-        feature_cols = [c for c in df.columns if str(c) not in NON_FEATURE_COLS and "." not in str(c)]
+        feature_cols = [c for c in df.columns if str(c) not in NON_FEATURE_COLS and str(c) not in skip_features and "." not in str(c)]
         print("Selected features:", feature_cols)
     for f in feature_cols:
         if f not in df.columns:

@@ -18,10 +18,11 @@ from tsa.experiment_checker import ExperimentChecker
 from tsa.perf_pred.cv import CV, PerformanceData
 from tsa.perf_pred.decision_tree import DecisionTree
 from tsa.perf_pred.heuristics import BaselineRandom, BaselineAlways0, BaselineAlways1, BaselineMajorityClass, Heuristic1, Heuristic2
+from tsa.perf_pred.logistic_regression import LogisticRegression
 
 PREDICTORS = {
     cls.__name__: cls for cls in
-    [Heuristic1, Heuristic2, BaselineRandom, BaselineAlways1, BaselineAlways0, BaselineMajorityClass, DecisionTree]
+    [Heuristic1, Heuristic2, BaselineRandom, BaselineAlways1, BaselineAlways0, BaselineMajorityClass, DecisionTree, LogisticRegression]
 }
 
 NON_FEATURE_COLS = [

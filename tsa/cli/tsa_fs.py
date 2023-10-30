@@ -86,12 +86,13 @@ class TSAFsSubCommand(SubCommand):
         parser.add_argument("--target", default="f1_cfa")
         parser.add_argument("--threshold", default=0.8, type=float)
         parser.add_argument("--features", "-f", required=False, nargs="+", default=None)
+        parser.add_argument("--skip-features", "-s", required=False, nargs="+", default=[])
         parser.add_argument("--scenario-column", default="scenario")
         parser.add_argument("--out", "-o", required=True)
         parser.add_argument("--mode", "-m", choices=FEATURE_SELECTORS.keys(), default="forward")
 
     def exec(self, args, parser, unknown_args):
-        data = load_data(args.input, args.scenario_column, args.features)
+        data = load_data(args.input, args.scenario_column, args.features, args.skip_features)
         predictor = PREDICTORS[args.predictor](unknown_args)
         selector = FEATURE_SELECTORS[args.mode](data)
 

@@ -11,6 +11,7 @@ from tsa.cli.tsa_correlate import TSACorrelateSubCommand
 from tsa.cli.tsa_cv import TSACrossValidateSubCommand
 from tsa.cli.tsa_dl import TSADownloaderSubCommand
 from tsa.cli.tsa_fs import TSAFsSubCommand
+from tsa.cli.tsa_ngram_auc import TSANgramAUCSubCommand
 from tsa.cli.tsa_ruleminer import TSARuleMinerSubCommand
 from tsa.cli.tsa_stats import TSAStatsSubCommand
 
@@ -25,7 +26,8 @@ commands = [RunSubCommand(),
             TSAFsSubCommand(),
             TSARuleMinerSubCommand(),
             TSACorrelateSubCommand(),
-            TSAStatsSubCommand()
+            TSAStatsSubCommand(),
+            TSANgramAUCSubCommand()
             ]
 
 if __name__ == '__main__':
