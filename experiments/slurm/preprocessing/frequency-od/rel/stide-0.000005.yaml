@@ -31,7 +31,8 @@ ids:
       ngram_length: 5
   - name: FrequencyOD
     args:
-      threshold: 15
+      relative: true
+      threshold: 0.000005 # = 0.0005%
   - name: Stide
   - name: StreamSum
     args:
@@ -53,4 +54,3 @@ dataloader:
     - 3
     - 5
     - 10
-id: tstide-stide-t8.yaml # note: this id was wrongly set in the experiments; however this does not affect the results
