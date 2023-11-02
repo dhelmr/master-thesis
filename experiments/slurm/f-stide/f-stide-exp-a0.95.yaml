@@ -31,8 +31,8 @@ ids:
       ngram_length: 5
   - name: FrequencySTIDE
     args:
-      alpha: 20
-      anomaly_fn: cos
+      anomaly_fn: exponential
+      alpha: 0.95
   - name: StreamSum
     args:
       thread_aware: False
@@ -53,3 +53,4 @@ dataloader:
     - 3
     - 5
     - 10
+
