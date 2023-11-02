@@ -1,7 +1,7 @@
 import abc
 import dataclasses
 import itertools
-from typing import List, Iterable, Any
+from typing import List, Iterable, Any, Dict
 
 import numpy
 import numpy as np
@@ -16,8 +16,10 @@ class PerformancePredictor(abc.ABC):
 
     def __init__(self, cli_args):
         pass
+
     def reset(self):
         pass
+
     @abc.abstractmethod
     def train(self, train_X: pandas.DataFrame, train_y: numpy.ndarray):
         pass
@@ -134,11 +136,26 @@ class CV:
         df = pandas.DataFrame(all_metrics)
         # todo?
         df.fillna(value=0, inplace=True)
-        stats = df.mean(numeric_only=True)
-        return stats
+        mean_stats = df.mean(numeric_only=True)
+        var_stats = df.var(numeric_only=True)
+        min_stats = df.min(numeric_only=True)
+        max_stats = df.max(numeric_only=True)
+        range_stats = max_stats - min_stats
+        stats = pandas.concat([mean_stats, var_stats, min_stats, max_stats, range_stats], axis=1).rename(columns={0: "mean", 1: "var", 2: "min", 3: "max", 4: "range"})
+        return unpack_dict(stats.to_dict())
 
     def _iter_cv_splits(self, target_var: str, threshold: float) -> Iterable[TrainTestSplit]:
         scenarios = self.data.get_scenarios()
         for val_scenarios in itertools.combinations(scenarios, self.cv_leave_out):
             split = self.data.get_split(target_var, val_scenarios, threshold)
             yield split
+
+def unpack_dict(d: Dict[str, Any], key_prefix="", to_dict = None):
+    if to_dict is None:
+        to_dict = {}
+    for k in d.keys():
+        if isinstance(d[k], dict):
+            unpack_dict(d[k], key_prefix=f"{key_prefix}{k}.", to_dict=to_dict)
+        else:
+            to_dict[f"{key_prefix}{k}"] = d[k]
+    return to_dict

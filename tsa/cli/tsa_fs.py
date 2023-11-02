@@ -20,7 +20,7 @@ FeatureSelection = List[str]
 
 class ForwardSelector:
 
-    def __init__(self, all_data: PerformanceData, selection_metric="mcc", total=5):
+    def __init__(self, all_data: PerformanceData, selection_metric="mean.f1_score", total=5):
         self.all_data = all_data
         self.all_features = all_data.feature_cols()
         self._selection_metric = selection_metric
@@ -109,7 +109,7 @@ class TSAFsSubCommand(SubCommand):
                     predictor=predictor,
                     cv_leave_out=args.leave_out
                 )
-                stats = cv.run(args.target, args.threshold).to_dict()
+                stats = cv.run(args.target, args.threshold)
                 results.append((features, stats,))
                 stats["predictor"] = args.predictor
                 stats["threshold"] = args.threshold
@@ -120,11 +120,12 @@ class TSAFsSubCommand(SubCommand):
             round_results_df = pd.DataFrame([
                 stats for _, stats in results
             ])
-            print_results(round_results_df, limit=3, cols=["mcc", "f1_score", "precision", "features"])
+            print(round_results_df)
+            print_results(round_results_df, limit=3, cols=["mean.mcc", "range.f1_score", "mean.f1_score", "mean.precision", "features"])
 
             next_features = selector.next(results)
             if next_features is None:
                 break
         df = pd.DataFrame(all_stats)
         df.to_csv(args.out)
-        print_results(df, cols=["mcc", "f1_score", "precision", "features"])
+        print_results(df, cols=["mean.mcc", "mean.f1_score","var.f1_score", "mean.precision", "range.precision", "features"])

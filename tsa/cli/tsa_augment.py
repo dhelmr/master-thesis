@@ -49,8 +49,6 @@ class TimeSeries:
             slopes.append(slope)
         return Series(slopes)
 
-
-
 class FeatureCombine:
     def __init__(self):
         pass
@@ -60,11 +58,17 @@ class FeatureCombine:
             for f2 in data.feature_cols():
                 data.df[f"{f1}/{f2}"] = data.df[f1] / data.df[f2]
                 data.df[f"{f1}*{f2}"] = data.df[f1] * data.df[f2]
-            data.df[f"log-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x)) if x != 0 else -100)
+            data.df[f"loge-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x)) if x != 0 else -100)
+            data.df[f"log2-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x), 2) if x != 0 else -100)
+            data.df[f"log10-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x), 10) if x != 0 else -100)
             # math.log(0.0000000000000000000000000000000000000000001) ~= -100
             data.df[f"sqrt-{f1}"] = data.df[f1].apply(lambda x: math.sqrt(abs(x)))
             data.df[f"pow2-{f1}"] = data.df[f1].apply(lambda x: math.pow(x,2))
             data.df[f"abs-{f1}"] = data.df[f1].apply(lambda x: abs(x))
+        cols_before = list(data.df.columns)
+        data.df = data.df.dropna(axis=1, how='any')
+        dropped_cols = [c for c in cols_before if str(c) not in set(data.df.columns)]
+        print("Dropped the following columns because of nan values:", dropped_cols)
         return data.df
 
 AUGMENTORS = {

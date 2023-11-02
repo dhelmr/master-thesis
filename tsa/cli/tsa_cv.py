@@ -2,7 +2,7 @@ import os
 import sys
 import tempfile
 from argparse import ArgumentParser
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 import mlflow
 import pandas
@@ -57,7 +57,7 @@ class TSACrossValidateSubCommand(SubCommand):
                 predictor=predictor,
                 cv_leave_out=args.leave_out
             )
-            stats = cv.run(args.target, args.threshold).to_dict()
+            stats = cv.run(args.target, args.threshold)
             stats["predictor"] = predictor_name
             stats["threshold"] = args.threshold
             all_stats.append(stats)
@@ -67,9 +67,9 @@ class TSACrossValidateSubCommand(SubCommand):
 
 def print_results(df: pandas.DataFrame, limit=None, cols=None):
     if cols is None:
-        cols = ["mcc", "precision", "f1_score", "balanced_accuracy", "predictor"]
+        cols = ["mean.mcc", "var.mcc", "mean.precision", "var.precision", "mean.f1_score", "var.f1_score", "mean.balanced_accuracy", "predictor"]
     df = df.drop(columns=[c for c in df.columns if c not in cols])
-    df.sort_values(by="precision", inplace=True, ascending=False)
+    df.sort_values(by="mean.precision", inplace=True, ascending=False)
     if limit is not None:
         df = df.iloc[:limit]
     print(df)
