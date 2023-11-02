@@ -29,10 +29,17 @@ ids:
     args:
       thread_aware: true
       ngram_length: 5
-  - name: TfidfSTIDE
+  - name: NgramThreadEntropy
     args:
-      unseen_factor: 2
-      aggregation: mean
+      anomaly_fn: homographic
+      alpha: 5
+      thread_anomaly_fn: homographic
+      thread_anomaly_fn_alpha: 5
+      combine: arithmetic
+      features:
+        - ngram_frequency
+        - thread_frequency
+        - normalized_entropy
   - name: StreamSum
     args:
       thread_aware: False
@@ -54,3 +61,4 @@ dataloader:
     - 5
     - 10
 
+id: ngram-thread-freq.yaml

@@ -32,7 +32,7 @@ ids:
   - name: NgramThreadEntropy
     args:
       thread_anomaly_fn: homographic
-      thread_anomaly_fn_alpha: 2
+      thread_anomaly_fn_alpha: 1
       combine: arithmetic
       features:
         - thread_frequency
@@ -56,4 +56,3 @@ dataloader:
     - 3
     - 5
     - 10
-

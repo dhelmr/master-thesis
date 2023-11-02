@@ -31,15 +31,11 @@ ids:
       ngram_length: 5
   - name: NgramThreadEntropy
     args:
-      anomaly_fn: homographic
-      alpha: 5
       thread_anomaly_fn: homographic
-      thread_anomaly_fn_alpha: 5
+      thread_anomaly_fn_alpha: 2
       combine: arithmetic
       features:
-        - ngram_frequency
         - thread_frequency
-        - normalized_entropy
   - name: StreamSum
     args:
       thread_aware: False
@@ -61,3 +57,4 @@ dataloader:
     - 5
     - 10
 
+id: thread-freq.yaml
