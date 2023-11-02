@@ -20,6 +20,7 @@ from tsa.NgramThreadDistance import NgramThreadDistance
 from tsa.NgramThreadEntropy import NgramThreadEntropy
 from tsa.analysis.analyser import TrainingSetAnalyser
 from tsa.analysis.cluster_visualization_analyser import ClusterVisualize
+from tsa.analysis.data_drift_analyser import DataDriftAnalyser
 from tsa.analysis.frequency_distribution import FrequencyDistribution
 from tsa.analysis.ngram_analyser import NgramAnalyser
 from tsa.analysis.continuous_anaylser import ContinuousTrainingSetAnalyser
@@ -55,7 +56,7 @@ BUILDING_BLOCKS = {cls.__name__: cls for cls in
                     PCA_BB, W2VConcat, TupleBB, TrainingSetFilter, FrequencyEncoding, FrequencySTIDE,
                     NgramFrequencyAppender, ThreadClusteringOD, NgramThreadEntropy, ScoreMultiplication, NgramThreadEmbeddingBB,
                     NgramThreadAnalyser, NgramThreadDistance, ClusterVisualize, TfidfSTIDE, FrequencyDistribution, MicroSTIDEs,
-                    PercentileThreshold]}
+                    PercentileThreshold, DataDriftAnalyser]}
 BuildingBlockCfg = dict
 
 

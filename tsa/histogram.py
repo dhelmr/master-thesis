@@ -192,3 +192,10 @@ class Histogram:
         bhattacharyya_coef = self.bhattacharyya_coef(hist2)
 
         return math.sqrt(1 - bhattacharyya_coef)
+
+    def copy(self) -> "Histogram":
+        copy_hist = Histogram()
+        copy_hist._counts = self._counts.copy()
+        copy_hist._size = self._size
+        copy_hist._unique_elements = self._unique_elements
+        return copy_hist

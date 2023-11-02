@@ -5,14 +5,14 @@ import numpy as np
 import pandas
 from numpy import e
 
-from algorithms.building_block import BuildingBlock
+from algorithms.building_block import BuildingBlock, IDSPhase
 from dataloader.syscall import Syscall
 
 from tsa.histogram import Histogram
 
 
 class AnalyserBB(BuildingBlock):
-    def __init__(self, input_bb: BuildingBlock, update_interval=1000, fixed_stops=None):
+    def __init__(self, input_bb: BuildingBlock, update_interval=1000, fixed_stops=None, test_phase: bool = False):
         super().__init__()
         if fixed_stops is None:
             fixed_stops = set()
@@ -22,13 +22,20 @@ class AnalyserBB(BuildingBlock):
         self._current_i = 0
         self._stats = []
         self._fixed_stops = set(fixed_stops)
+        self._test_phase = test_phase
 
     def _calculate(self, syscall: Syscall):
-        return self._input.get_result(syscall)
+        inp = self._input.get_result(syscall)
+        if self._test_phase and self._ids_phase == IDSPhase.TEST:
+            self._add_test_input(syscall, inp)
+        return inp
 
     @abc.abstractmethod
     def _add_input(self, syscall, inp):
         raise NotImplementedError()
+
+    def _add_test_input(self, syscall, inp):
+        pass
 
     def train_on(self, syscall: Syscall):
         inp = self._input.get_result(syscall)
@@ -64,6 +71,10 @@ class AnalyserBB(BuildingBlock):
     def get_stats(self):
         df = pandas.DataFrame(self._stats)
         return df
+
+    @property
+    def test_phase(self):
+        return self._test_phase
 
 
 class TrainingSetAnalyser(AnalyserBB):
