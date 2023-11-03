@@ -44,10 +44,16 @@ class TSAStatsSubCommand(SubCommand):
                 stat[f"{t}-max"] = sc_data[t].max()
                 stat[f"{t}-mean"] = sc_data[t].mean()
                 stat[f"{t}-range"] = stat[f"{t}-max"] - stat[f"{t}-min"]
+                threshold_values = sc_data[t].apply(lambda x: 1 if x>args.threshold else 0).tolist()
+                stat[f"{t}>{args.threshold}"] = sum(threshold_values)
+                stat[f"{t}<={args.threshold}"] = len(threshold_values) - sum(threshold_values)
             stats.append(stat)
         stats = pandas.DataFrame(stats)
         stats.sort_values(by="unique_timepoints", inplace=True)
         print(stats)
         print("Scenarios:", len(data.get_scenarios()))
+        print("\n======================================")
+        print("avg values (across scenarios):")
+        print(stats.mean())
 
 
