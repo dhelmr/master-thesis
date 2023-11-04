@@ -22,32 +22,21 @@ class TimeSeries:
 
     def augment(self, data: PerformanceData) -> pandas.DataFrame:
         dfs = []
-        for sc in data.get_scenarios():
-            df = data.get_scenario_data(sc)
+        for sc in tqdm(data.get_scenarios()):
+            df = data.get_scenario_data(sc).copy()
             df.sort_values(by=data.syscalls_col, inplace=True)
             df.drop_duplicates(ignore_index=True, inplace=True, subset=[data.syscalls_col, data.scenario_col])
             for f in data.feature_cols():
-                col_name = f"slope-{f}"
-                df[col_name] = self._calc_slope(df[data.syscalls_col], df[f])
+                slope = self._calc_slope(df[data.syscalls_col], df[f])
+                df[f"roc-{f}"] = slope
+                df[f"roc2-{f}"] = self._calc_slope(df[data.syscalls_col],slope)
             df = df.dropna(how="any")
             dfs.append(df)
         augmented_df = pandas.concat(dfs)
         return augmented_df
 
     def _calc_slope(self, x: Series, y: Series):
-        x = x.tolist()
-        y = y.tolist()
-        slopes = []
-        for i in range(len(y)):
-            if i == 0:
-                slopes.append(self.unknown_slope)
-                continue
-            print(x)
-            x_diff = x[i] - x[i-1]
-            y_diff = y[i] - y[i - 1]
-            slope = y_diff / x_diff
-            slopes.append(slope)
-        return Series(slopes)
+        return y.diff() / x.diff()
 
 class FeatureCombine:
     def __init__(self):
@@ -63,13 +52,14 @@ class FeatureCombine:
             data.df[f"log10-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x), 10) if x != 0 else -100)
             # math.log(0.0000000000000000000000000000000000000000001) ~= -100
             data.df[f"sqrt-{f1}"] = data.df[f1].apply(lambda x: math.sqrt(abs(x)))
-            data.df[f"pow2-{f1}"] = data.df[f1].apply(lambda x: math.pow(x,2))
+            data.df[f"pow2-{f1}"] = data.df[f1].apply(lambda x: math.pow(x, 2))
             data.df[f"abs-{f1}"] = data.df[f1].apply(lambda x: abs(x))
         cols_before = list(data.df.columns)
         data.df = data.df.dropna(axis=1, how='any')
         dropped_cols = [c for c in cols_before if str(c) not in set(data.df.columns)]
         print("Dropped the following columns because of nan values:", dropped_cols)
         return data.df
+
 
 AUGMENTORS = {
     cls.__name__: cls for cls in [TimeSeries, FeatureCombine]
