@@ -41,8 +41,6 @@ class EvalSubCommand(SubCommand):
         parser.add_argument("--query", "-q", default=None, help="Filter result dataframes using a pandas query")
         parser.add_argument("--plot-y", default="metrics.ids.f1_cfa")
         parser.add_argument("--names", default=None, nargs="+", type=str)
-        parser.add_argument("--label-x", default=None)
-        parser.add_argument("--label-y", default=None)
         parser.add_argument("--artifacts-dir", default=None, type=str,
                             help="Store artifacts to a directory (created if not exists)")
 
@@ -91,33 +89,23 @@ class EvalSubCommand(SubCommand):
             # print(group_by)
             # print("===========================\n")
         merged = pd.concat(dfs)
-        fig = px.line(merged,
-                      x="params.num_attacks",
-                      y=args.plot_y,
-                      color="Experiment",
-                      line_dash="Experiment",
-                      line_dash_sequence=["dot"],
-                      markers=True)
-        fig.update_layout(
-            xaxis_title=args.label_x,
-            yaxis_title=args.label_y
-        )
         robustness_scores_df = pd.DataFrame(robustness_values)
         print(robustness_scores_df)
         if args.artifacts_dir is not None:
-            image_path = os.path.join(args.artifacts_dir, f"num_attacksX{args.plot_y}.svg")
-            fig.write_image(image_path)
+            for metric in METRIC_LABELS.keys():
+                image_path = os.path.join(args.artifacts_dir, f"{metric}.svg")
+                self.make_metric_fig(merged, metric=metric, img_path=image_path)
             r_transposed = robustness_scores_df.transpose()
             r_transposed["experiment"] = r_transposed.index
             r_transposed.to_csv(
                 path_or_buf=os.path.join(args.artifacts_dir, f"robustness-measures.csv")
             )
             self.make_robustness_fig(r_transposed,
-                                             metrics=["metrics.ids.f1_cfa",
-                                                      "metrics.ids.precision_with_cfa",
-                                                      "metrics.ids.detection_rate"],
-                                             img_path=os.path.join(args.artifacts_dir, f"auc.svg"),
-                                             metrics_prefix="auc")
+                                     metrics=["metrics.ids.f1_cfa",
+                                              "metrics.ids.precision_with_cfa",
+                                              "metrics.ids.detection_rate"],
+                                     img_path=os.path.join(args.artifacts_dir, f"auc.svg"),
+                                     metrics_prefix="auc")
             self.make_robustness_fig(r_transposed,
                                      metrics=["metrics.ids.f1_cfa",
                                               "metrics.ids.precision_with_cfa",
@@ -144,13 +132,31 @@ class EvalSubCommand(SubCommand):
             value_name="value"
         )
         robustness_df["metric"] = robustness_df["metric"].apply(
-            lambda metric: f"{metrics_prefix} {METRIC_LABELS[metric[len(metrics_prefix)+1:]]}"
+            lambda metric: f"{metrics_prefix} {METRIC_LABELS[metric[len(metrics_prefix) + 1:]]}"
         )
         print(robustness_df)
         # for metric in ["metrics.ids.f1_cfa", "metrics.ids.detection_rate", "metrics.ids.precision_with_cfa"]:
         r_fig = px.bar(robustness_df, x="experiment", y="value", color="metric", barmode="group")
         # r_fig.update_layout(yaxis_title=f"AUC of {METRIC_LABELS[metric]}")
         r_fig.write_image(img_path)
+
+    def make_metric_fig(self, df: pandas.DataFrame, metric: str, img_path):
+        fig = px.line(df,
+                      x="params.num_attacks",
+                      y=metric,
+                      color="Experiment",
+                      line_dash="Experiment",
+                      line_dash_sequence=["dot"],
+                      markers=True)
+        if metric not in ["metrics.ids.consecutive_false_positives_normal",
+                          "metrics.ids.consecutive_false_positives_exploits"]:
+            fig.update_layout(yaxis=dict(range=[0, 1]))
+        fig.update_layout(
+            yaxis_title=METRIC_LABELS[metric],
+            xaxis_title="Number of Attacks"
+        )
+        fig.write_image(img_path)
+
     def _get_results(self, checker, exp_name, cache, allow_unfinished):
         if cache is None:
             runs, _ = checker.get_runs_df(no_finished_check=allow_unfinished)
