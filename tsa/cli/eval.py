@@ -1,4 +1,5 @@
 import argparse
+import os.path
 
 import pandas as pd
 import plotly.express as px
@@ -33,8 +34,14 @@ class EvalSubCommand(SubCommand):
         parser.add_argument("--names", default=None, nargs="+", type=str)
         parser.add_argument("--label-x", default=None)
         parser.add_argument("--label-y", default=None)
+        parser.add_argument("--artifacts-dir", default=None, type=str, help="Store artifacts to a directory (created if not exists)")
 
     def exec(self, args, parser, unknown_args):
+        if args.artifacts_dir is not None and not os.path.exists(args.artifacts_dir):
+            print("Create artifacts dir", args.artifacts_dir)
+            os.mkdir(args.artifacts_dir)
+        if args.artifacts_dir is not None and not os.path.isdir(args.artifacts_dir):
+            raise FileExistsError("Is not a directory: %s" % args.artifacts_dir)
         pd.options.plotting.backend = "plotly"
         converter = ExperimentNameConversion()
         if args.cache is not None:
@@ -67,9 +74,9 @@ class EvalSubCommand(SubCommand):
                                                 ).groupby("params.num_attacks").mean(numeric_only=False).reset_index()
             robustness_values[name] = self._calc_robustness_scores(aggregated)
             aggregated.sort_values(by=["params.num_attacks"], inplace=True)
-            aggregated["Experiment Name"] = name
+            aggregated["Experiment"] = name
             if args.names is not None and args.names[i] != "-":
-                aggregated["Experiment Name"] = args.names[i]
+                aggregated["Experiment"] = args.names[i]
 
             dfs.append(aggregated)
             # print(group_by)
@@ -78,8 +85,8 @@ class EvalSubCommand(SubCommand):
         fig = px.line(merged,
                       x="params.num_attacks",
                       y=args.plot_y,
-                      color="Experiment Name",
-                      line_dash="Experiment Name",
+                      color="Experiment",
+                      line_dash="Experiment",
                       line_dash_sequence=["dot"],
                       markers=True)
         fig.update_layout(
@@ -89,6 +96,12 @@ class EvalSubCommand(SubCommand):
         fig.show()
         robustness_scores_df = pd.DataFrame(robustness_values)
         print(robustness_scores_df)
+        if args.artifacts_dir is not None:
+            image_path = os.path.join(args.artifacts_dir, f"num_attacksX{args.plot_y}.svg")
+            fig.write_image(image_path)
+            robustness_scores_df.transpose().to_csv(
+                path_or_buf=os.path.join(args.artifacts_dir, f"robustness-measures.csv")
+            )
 
     def _get_results(self, checker, exp_name, cache, allow_unfinished):
         if cache is None:
