@@ -135,18 +135,18 @@ class EvalSubCommand(SubCommand):
                 metrics_sums[m] += df.query(f"`{num_attack_col}` == {num_attacks}")[m].iloc[0]
             weight_sum += 1
 
-        metrics_means = {m: metrics_sums[m] / weight_sum for m in metrics}
+        # metrics_means = {m: metrics_sums[m] / weight_sum for m in metrics}
 
         clean_data_metrics = {m: df.query(f"`{num_attack_col}` == 0")[m].iloc[0] for m in metrics}
-        relative_robustness_score = {m: metrics_means[m] / clean_data_metrics[m] for m in metrics}
         auc_metrics_w0 = {m: self._calc_auc_metrics(df, num_attack_col, m) for m in metrics}
-        auc_metrics_geq1 = {m: self._calc_auc_metrics(df.query(f"`{num_attack_col}` != 0"), num_attack_col, m) for m in
-                            metrics}
+        #auc_metrics_geq1 = {m: self._calc_auc_metrics(df.query(f"`{num_attack_col}` != 0"), num_attack_col, m) for m in
+        #                    metrics}
+        relative_robustness_score = {m: auc_metrics_w0[m] / clean_data_metrics[m] for m in metrics}
 
         # write the scores into a single dict
         scores = {}
-        for prefix, scores_dict in [("mean", metrics_means), ("relative", relative_robustness_score),
-                                    ("auc_w0", auc_metrics_w0), ("auc_geq1", auc_metrics_geq1)]:
+        for prefix, scores_dict in [("auc", auc_metrics_w0), ("relative", relative_robustness_score)]:
+                                    #("mean", auc_metrics_w0), ("auc_geq1", auc_metrics_geq1)]:
             for key, metric_value in scores_dict.items():
                 scores[f"{prefix}.{key}"] = metric_value
         return scores
