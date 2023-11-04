@@ -1,6 +1,7 @@
 import argparse
 import os.path
 
+import pandas
 import pandas as pd
 import plotly.express as px
 from pandas import DataFrame
@@ -19,6 +20,14 @@ NUM_ATTACK_WEIGHTS = {  # TODO!
     10: 1
 }
 
+METRIC_LABELS = {
+    "metrics.ids.f1_cfa": "f1-score",
+    "metrics.ids.precision_with_cfa": "precision",
+    "metrics.ids.detection_rate": "detection rate",
+    "metrics.ids.consecutive_false_positives_normal": "cfp-normal",
+    "metrics.ids.consecutive_false_positives_exploits": "cfp-exploits"
+}
+
 
 class EvalSubCommand(SubCommand):
     def __init__(self):
@@ -34,7 +43,8 @@ class EvalSubCommand(SubCommand):
         parser.add_argument("--names", default=None, nargs="+", type=str)
         parser.add_argument("--label-x", default=None)
         parser.add_argument("--label-y", default=None)
-        parser.add_argument("--artifacts-dir", default=None, type=str, help="Store artifacts to a directory (created if not exists)")
+        parser.add_argument("--artifacts-dir", default=None, type=str,
+                            help="Store artifacts to a directory (created if not exists)")
 
     def exec(self, args, parser, unknown_args):
         if args.artifacts_dir is not None and not os.path.exists(args.artifacts_dir):
@@ -69,14 +79,13 @@ class EvalSubCommand(SubCommand):
                                                        "metrics.ids.detection_rate",
                                                        "metrics.ids.consecutive_false_positives_normal",
                                                        "metrics.ids.consecutive_false_positives_exploits",
-                                                       "experiment_name",
-                                                       "metrics.ids.recall"]
+                                                       "experiment_name"]
                                                 ).groupby("params.num_attacks").mean(numeric_only=False).reset_index()
+            if args.names is not None and args.names[i] != "-":
+                name = args.names[i]
             robustness_values[name] = self._calc_robustness_scores(aggregated)
             aggregated.sort_values(by=["params.num_attacks"], inplace=True)
             aggregated["Experiment"] = name
-            if args.names is not None and args.names[i] != "-":
-                aggregated["Experiment"] = args.names[i]
 
             dfs.append(aggregated)
             # print(group_by)
@@ -90,19 +99,58 @@ class EvalSubCommand(SubCommand):
                       line_dash_sequence=["dot"],
                       markers=True)
         fig.update_layout(
-            xaxis_title = args.label_x,
-            yaxis_title = args.label_y
+            xaxis_title=args.label_x,
+            yaxis_title=args.label_y
         )
-        fig.show()
         robustness_scores_df = pd.DataFrame(robustness_values)
         print(robustness_scores_df)
         if args.artifacts_dir is not None:
             image_path = os.path.join(args.artifacts_dir, f"num_attacksX{args.plot_y}.svg")
             fig.write_image(image_path)
-            robustness_scores_df.transpose().to_csv(
+            r_transposed = robustness_scores_df.transpose()
+            r_transposed["experiment"] = r_transposed.index
+            r_transposed.to_csv(
                 path_or_buf=os.path.join(args.artifacts_dir, f"robustness-measures.csv")
             )
+            self.make_robustness_fig(r_transposed,
+                                             metrics=["metrics.ids.f1_cfa",
+                                                      "metrics.ids.precision_with_cfa",
+                                                      "metrics.ids.detection_rate"],
+                                             img_path=os.path.join(args.artifacts_dir, f"auc.svg"),
+                                             metrics_prefix="auc")
+            self.make_robustness_fig(r_transposed,
+                                     metrics=["metrics.ids.f1_cfa",
+                                              "metrics.ids.precision_with_cfa",
+                                              "metrics.ids.detection_rate"],
+                                     img_path=os.path.join(args.artifacts_dir, f"relative.svg"),
+                                     metrics_prefix="relative")
+            self.make_robustness_fig(r_transposed,
+                                     metrics=["metrics.ids.consecutive_false_positives_normal",
+                                              "metrics.ids.consecutive_false_positives_exploits"],
+                                     img_path=os.path.join(args.artifacts_dir, f"auc-cfp.svg"),
+                                     metrics_prefix="auc")
+            self.make_robustness_fig(r_transposed,
+                                     metrics=["metrics.ids.consecutive_false_positives_normal",
+                                              "metrics.ids.consecutive_false_positives_exploits"],
+                                     img_path=os.path.join(args.artifacts_dir, f"relative-cfp.svg"),
+                                     metrics_prefix="relative")
 
+    def make_robustness_fig(self, robustness_df: pandas.DataFrame, metrics_prefix, metrics, img_path):
+        robustness_df = robustness_df.drop(columns=[c for c in robustness_df.columns if c not in
+                                                    [f"{metrics_prefix}.{m}" for m in metrics] + ["experiment"]])
+        robustness_df = robustness_df.melt(
+            id_vars=["experiment"],
+            var_name="metric",
+            value_name="value"
+        )
+        robustness_df["metric"] = robustness_df["metric"].apply(
+            lambda metric: f"{metrics_prefix} {METRIC_LABELS[metric[len(metrics_prefix)+1:]]}"
+        )
+        print(robustness_df)
+        # for metric in ["metrics.ids.f1_cfa", "metrics.ids.detection_rate", "metrics.ids.precision_with_cfa"]:
+        r_fig = px.bar(robustness_df, x="experiment", y="value", color="metric", barmode="group")
+        # r_fig.update_layout(yaxis_title=f"AUC of {METRIC_LABELS[metric]}")
+        r_fig.write_image(img_path)
     def _get_results(self, checker, exp_name, cache, allow_unfinished):
         if cache is None:
             runs, _ = checker.get_runs_df(no_finished_check=allow_unfinished)
@@ -139,14 +187,14 @@ class EvalSubCommand(SubCommand):
 
         clean_data_metrics = {m: df.query(f"`{num_attack_col}` == 0")[m].iloc[0] for m in metrics}
         auc_metrics_w0 = {m: self._calc_auc_metrics(df, num_attack_col, m) for m in metrics}
-        #auc_metrics_geq1 = {m: self._calc_auc_metrics(df.query(f"`{num_attack_col}` != 0"), num_attack_col, m) for m in
+        # auc_metrics_geq1 = {m: self._calc_auc_metrics(df.query(f"`{num_attack_col}` != 0"), num_attack_col, m) for m in
         #                    metrics}
         relative_robustness_score = {m: auc_metrics_w0[m] / clean_data_metrics[m] for m in metrics}
 
         # write the scores into a single dict
         scores = {}
         for prefix, scores_dict in [("auc", auc_metrics_w0), ("relative", relative_robustness_score)]:
-                                    #("mean", auc_metrics_w0), ("auc_geq1", auc_metrics_geq1)]:
+            # ("mean", auc_metrics_w0), ("auc_geq1", auc_metrics_geq1)]:
             for key, metric_value in scores_dict.items():
                 scores[f"{prefix}.{key}"] = metric_value
         return scores
@@ -156,12 +204,13 @@ class EvalSubCommand(SubCommand):
         Y = [df.query(f"`{x_col_name}` == {x}")[metric_name].iloc[0] for x in X]
         return calc_area_under_curve(X, Y)
 
+
 def calc_area_under_curve(X, Y):
     if len(X) != len(Y):
         raise ValueError("uneven length of X and Y: %s != %s" % (len(X), len(Y)))
     sum = 0
     for k in range(len(X) - 1):
-        if X[k] > X[k+1]:
-            raise ValueError("X is not sorted! X[%s] = %s > X[%s] = %s" % (k, X[k], k+1, X[k+1]))
+        if X[k] > X[k + 1]:
+            raise ValueError("X is not sorted! X[%s] = %s > X[%s] = %s" % (k, X[k], k + 1, X[k + 1]))
         sum += (Y[k] + Y[k + 1]) / 2 * (X[k + 1] - X[k])
     return sum / (X[-1] - X[0])
