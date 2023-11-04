@@ -29,7 +29,7 @@ ids:
   - name: Ngram
     args:
       thread_aware: true
-      ngram_length: 3
+      ngram_length: 2
   - name: NgramThreadAnalyser
     args:
       fixed_stops:
