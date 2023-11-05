@@ -47,6 +47,8 @@ class FeatureCombine:
             for f2 in data.feature_cols():
                 data.df[f"{f1}/{f2}"] = data.df[f1] / data.df[f2]
                 data.df[f"{f1}*{f2}"] = data.df[f1] * data.df[f2]
+                data.df[f"{f1}-minus-{f2}"] = data.df[f1] - data.df[f2]
+                data.df[f"{f1}-plus-{f2}"] = data.df[f1] + data.df[f2]
             data.df[f"loge-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x)) if x != 0 else -100)
             data.df[f"log2-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x), 2) if x != 0 else -100)
             data.df[f"log10-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x), 10) if x != 0 else -100)
