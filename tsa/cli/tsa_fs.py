@@ -20,7 +20,7 @@ FeatureSelection = List[str]
 
 class ForwardSelector:
 
-    def __init__(self, all_data: PerformanceData, selection_metric="mean.f1_score", total=5):
+    def __init__(self, all_data: PerformanceData, selection_metric="mean.f1_score", total=8):
         self.all_data = all_data
         self.all_features = all_data.feature_cols()
         self._selection_metric = selection_metric
@@ -113,7 +113,7 @@ class TSAFsSubCommand(SubCommand):
                 results.append((features, stats,))
                 stats["predictor"] = args.predictor
                 stats["threshold"] = args.threshold
-                stats["features"] = str(features)
+                stats["features"] = ";".join(features)
                 all_stats.append(stats)
 
             print("Best round results:")
