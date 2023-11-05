@@ -20,7 +20,7 @@ FeatureSelection = List[str]
 
 class ForwardSelector:
 
-    def __init__(self, all_data: PerformanceData, selection_metric="mean.f1_score", total=8):
+    def __init__(self, all_data: PerformanceData, selection_metric="mean.f1_score", total=5):
         self.all_data = all_data
         self.all_features = all_data.feature_cols()
         self._selection_metric = selection_metric
