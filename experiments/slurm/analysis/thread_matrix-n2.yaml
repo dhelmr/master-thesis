@@ -90,7 +90,7 @@ ids:
         - 80000000
         - 90000000
         - 100000000
-      update_interval: None
+      update_interval: null
 dataloader:
   base:
     cont_ratio: 0.2
