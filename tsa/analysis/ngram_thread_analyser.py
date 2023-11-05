@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from scipy.spatial.distance import pdist
 from sklearn.decomposition import PCA
@@ -86,9 +88,9 @@ class NgramThreadAnalyser(AnalyserBB):
         stats.update({
             "%s_mean" % prefix: m,
             "%s_var" % prefix: v,
-            "%s_min" % prefix: np.min(items),
-            "%s_max" % prefix: np.max(items),
-            "%s_median" % prefix: np.median(items),
+            "%s_min" % prefix: np.min(items) if len(items) > 0 else math.nan,
+            "%s_max" % prefix: np.max(items) if len(items) > 0 else math.nan,
+            "%s_median" % prefix: np.median(items) if len(items) > 0 else math.nan,
             "%s_iod" % prefix: v / m
         })
 
