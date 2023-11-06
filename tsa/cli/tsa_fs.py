@@ -43,7 +43,11 @@ class ForwardSelector:
             return None
         next_features = []
         for f in self.all_features:
+            if f in best_last_round:
+                continue
             next_features.append(best_last_round + [f])
+        if len(next_features) == 0:
+            return None
         return next_features
 
     def total_rounds(self):
