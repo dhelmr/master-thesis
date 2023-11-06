@@ -43,19 +43,22 @@ class FeatureCombine:
         pass
 
     def augment(self, data: PerformanceData) -> pandas.DataFrame:
+        processed_comb_features = set()
         for f1 in tqdm(data.feature_cols()):
             for f2 in data.feature_cols():
-                data.df[f"{f1}/{f2}"] = data.df[f1] / data.df[f2]
-                data.df[f"{f1}*{f2}"] = data.df[f1] * data.df[f2]
-                data.df[f"{f1}-minus-{f2}"] = data.df[f1] - data.df[f2]
-                data.df[f"{f1}-plus-{f2}"] = data.df[f1] + data.df[f2]
-            data.df[f"loge-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x)) if x != 0 else -100)
-            data.df[f"log2-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x), 2) if x != 0 else -100)
-            data.df[f"log10-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x), 10) if x != 0 else -100)
+                if (f2, f1) not in processed_comb_features:
+                    data.df[f"{f1}*{f2}"] = data.df[f1] * data.df[f2]
+                    data.df[f"{f1}/{f2}"] = data.df[f1] / data.df[f2]
+                    processed_comb_features.add((f1,f2))
+                #data.df[f"{f1}-minus-{f2}"] = data.df[f1] - data.df[f2]
+                #data.df[f"{f1}-plus-{f2}"] = data.df[f1] + data.df[f2]
+            data.df[f"log-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x)) if x != 0 else -100)
+            #data.df[f"log2-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x), 2) if x != 0 else -100)
+            #data.df[f"log10-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x), 10) if x != 0 else -100)
             # math.log(0.0000000000000000000000000000000000000000001) ~= -100
             data.df[f"sqrt-{f1}"] = data.df[f1].apply(lambda x: math.sqrt(abs(x)))
-            data.df[f"pow2-{f1}"] = data.df[f1].apply(lambda x: math.pow(x, 2))
-            data.df[f"abs-{f1}"] = data.df[f1].apply(lambda x: abs(x))
+            #data.df[f"pow2-{f1}"] = data.df[f1].apply(lambda x: math.pow(x, 2))
+            #data.df[f"abs-{f1}"] = data.df[f1].apply(lambda x: abs(x))
         cols_before = list(data.df.columns)
         data.df = data.df.dropna(axis=1, how='any')
         dropped_cols = [c for c in cols_before if str(c) not in set(data.df.columns)]
