@@ -7,7 +7,7 @@ import mlflow
 from mlflow.entities import RunStatus, Run
 from pandas import DataFrame
 
-from tsa.experiment import Experiment, RunConfig, IGNORE_SCENARIOS, CombinedScenario
+from tsa.experiment import Experiment, RunConfig, CombinedScenario
 
 
 @dataclasses.dataclass()
@@ -92,7 +92,7 @@ class ExperimentChecker:
                 print("Skip run %s, error is: %s" % (r.info.run_id, e))
                 skipped.append(r)
                 continue
-            if run_cfg.scenario in IGNORE_SCENARIOS:
+            if run_cfg.scenario in self.experiment.ignore_scenarios:
                 continue
             counts = counts_by_status[status]
             if run_cfg.iteration not in counts:
@@ -209,7 +209,7 @@ class ExperimentChecker:
                 raise RuntimeError("Experiment is not finished.")
         exp = mlflow.get_experiment_by_name(self.experiment.mlflow_name)
         runs = mlflow.search_runs(experiment_ids=[exp.experiment_id])
-        runs = runs.loc[~runs["params.dataloader.scenario"].isin(IGNORE_SCENARIOS)]
+        runs = runs.loc[~runs["params.dataloader.scenario"].isin(self.experiment.ignore_scenarios)]
         return runs, stats.is_finished()
 
 

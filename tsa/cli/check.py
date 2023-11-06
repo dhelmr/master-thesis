@@ -67,6 +67,7 @@ class CheckSubCommand(SubCommand):
         count_not_ok = 0
         for checker in checkers:
             print("===> parameter_cfg_id: %s" % checker.experiment.parameter_cfg_id)
+            print("Ignore scenarios:", checker.experiment.ignore_scenarios)
             if args.remove_stale:
                 self._remove_stale(args, checker)
             elif args.remove_duplicate:

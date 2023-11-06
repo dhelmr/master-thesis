@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import os.path
 
 import pandas
@@ -8,17 +9,8 @@ from pandas import DataFrame
 
 from tsa.cli.check import load_exp_from_parser
 from tsa.cli.run import SubCommand
-from tsa.experiment import IGNORE_SCENARIOS
 from tsa.mlflow.experiment_name_conversion import ExperimentNameConversion, MlflowResultsCache
-
-NUM_ATTACK_WEIGHTS = {  # TODO!
-    0: 0,
-    1: 1,
-    2: 1,
-    3: 1,
-    5: 1,
-    10: 1
-}
+from tsa.utils import md5
 
 METRIC_LABELS = {
     "metrics.ids.f1_cfa": "f1-score",
@@ -61,13 +53,14 @@ class EvalSubCommand(SubCommand):
             exp_name = converter.infer_exp_name(cfg_path)
             checker = load_exp_from_parser(cfg_path, exp_name)
             checkers.append(checker)
+        self.union_ignore_scenarios(checkers)
         robustness_values = {}
         dfs = []
         for i, checker in enumerate(checkers):
             name = converter.get_rel_exp_name(checker.experiment.mlflow_name)
             print(checker.experiment.mlflow_name)
             runs = self._get_results(checker, name, cache, args.allow_unfinished)
-            runs = runs.loc[~runs["params.dataloader.scenario"].isin(IGNORE_SCENARIOS)]
+            runs = runs.loc[~runs["params.dataloader.scenario"].isin(checker.experiment.ignore_scenarios)]
             runs["params.num_attacks"] = pd.to_numeric(runs["params.num_attacks"])
             if args.query is not None:
                 runs = runs.query(args.query, engine="python")
@@ -162,11 +155,12 @@ class EvalSubCommand(SubCommand):
             runs, _ = checker.get_runs_df(no_finished_check=allow_unfinished)
             return runs
 
-        from_cache = cache.get_cached_result(exp_name)
+        cache_key = exp_name + md5(checker.experiment.ignore_scenarios, checker.experiment.parameter_cfg)
+        from_cache = cache.get_cached_result(cache_key)
         if from_cache is None:
             runs, is_finished = checker.get_runs_df(no_finished_check=allow_unfinished)
             if is_finished:
-                cache.cache(exp_name, runs)
+                cache.cache(cache_key, runs)
         else:
             runs = from_cache.df
             print("from cache", from_cache.timestamp)
@@ -209,6 +203,19 @@ class EvalSubCommand(SubCommand):
         X = sorted(pd.unique(df[x_col_name]))
         Y = [df.query(f"`{x_col_name}` == {x}")[metric_name].iloc[0] for x in X]
         return calc_area_under_curve(X, Y)
+
+    def union_ignore_scenarios(self, checkers):
+        # make the ignore_scenario lists equal for all experiments to ensure a fair comparison
+        all_ignore_scenarios = []
+        for checker in checkers:
+            for sc in checker.experiment.ignore_scenarios:
+                if sc not in all_ignore_scenarios:
+                    all_ignore_scenarios.append(sc)
+        for checker in checkers:
+            for sc in all_ignore_scenarios:
+                if sc not in checker.experiment.ignore_scenarios:
+                    print("[%s] Ignore scenario %s" % (checker.experiment.parameter_cfg_id, sc))
+                    checker.experiment.ignore_scenarios.append(sc)
 
 
 def calc_area_under_curve(X, Y):

@@ -51,8 +51,6 @@ class RunConfig:
 
 
 IGNORE_SCENARIOS = ["LID-DS-2021/CVE-2017-12635_6"]
-print("Ignore scenarios:", IGNORE_SCENARIOS)
-
 
 class Experiment:
     def __init__(self, parameter_cfg, mlflow: MlflowClient, mlflow_name):
@@ -62,6 +60,13 @@ class Experiment:
         self.scenarios = self._get_param("scenarios", exp_type=list)
         self.mlflow_name = mlflow_name
         self.parameter_cfg_id = self._get_param("id", exp_type=str)
+
+        # some scenarios should be ignored even if some runs for them are already present
+        # this is why they cannot simply be removed from the experiment, but rather are stored in this list
+        self.ignore_scenarios = self._get_param("ignore_scenarios", exp_type=list, default=[])
+        for sc in IGNORE_SCENARIOS:
+            if sc not in self.ignore_scenarios:
+                self.ignore_scenarios.append(sc)
 
     def run_configurations(self) -> List[RunConfig]:
         configs = []
@@ -88,7 +93,7 @@ class Experiment:
                 permutation_i=permutation_i
             )
 
-            if scenario not in IGNORE_SCENARIOS:
+            if scenario not in self.ignore_scenarios:
                 configs.append(cfg)
             iteration += 1
         return configs

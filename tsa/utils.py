@@ -1,3 +1,4 @@
+import hashlib
 import itertools
 import math
 import os
@@ -93,3 +94,12 @@ def gini_coeff(x):
     cumx = np.cumsum(sorted_x, dtype=float)
     # The above formula, with all weights equal to 1 simplifies to:
     return (n + 1 - 2 * np.sum(cumx) / cumx[-1]) / n
+
+def md5(*args):
+    """
+    Compute an md5-hash of some python objects. The hash is calculated based on the string representation of the objects.
+    This should only be used for applications where security does not matter.
+    In this project, it is used for computing cache keys
+    """
+    hashcodes = ".".join([str(a) for a in args])
+    return hashlib.md5(hashcodes.encode()).hexdigest()
