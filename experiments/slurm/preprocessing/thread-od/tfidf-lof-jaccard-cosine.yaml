@@ -23,6 +23,12 @@ scenarios:
  - LID-DS-2021/Juice-Shop
  - LID-DS-2021/PHP_CWE-434
  - LID-DS-2021/ZipSlip
+ignore_scenarios:
+  - LID-DS-2019/ZipSlip
+  - LID-DS-2021/ZipSlip
+  - LID-DS-2021/Juice-Shop
+  - LID-DS-2021/EPS_CWE-434
+  - LID-DS-2021/CVE-2020-13942
 ids:
   - name: IntEmbedding
   - name: Ngram
