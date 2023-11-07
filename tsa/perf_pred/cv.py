@@ -28,7 +28,7 @@ class PerformancePredictor(abc.ABC):
     def predict(self, test_X: pandas.DataFrame) -> numpy.ndarray:
         pass
 
-    def extract_rules(self):
+    def extract_rules(self, out_path: str, class_names=["0", "1"]):
         pass
 
 

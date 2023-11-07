@@ -61,4 +61,7 @@ class TSARuleMinerSubCommand(SubCommand):
         metrics = cm.calc_unweighted_measurements()
 
         pprint.pprint(metrics)
-        print(predictor.extract_rules())
+        class_names = [f"{args.target}<={args.threshold}", f"{args.target}>{args.threshold}"]
+        if args.reverse_classes:
+            class_names = [f"{args.target}>{args.threshold}", f"{args.target}<={args.threshold}"]
+        print(predictor.extract_rules(args.out, class_names))

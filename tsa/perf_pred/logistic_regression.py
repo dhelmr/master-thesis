@@ -1,4 +1,5 @@
 import argparse
+import tempfile
 
 import matplotlib.pyplot as plt
 import numpy
@@ -40,5 +41,6 @@ class LogisticRegression(PerformancePredictor):
         # self.prepr_pl = Pipeline([])
         self.feature_names = []
 
-    def extract_rules(self):
+    def extract_rules(self, out_path: str, class_names = ["0", "1"]):
         return "%s intercept: %s" % ((list(zip(self.feature_names, self.clf.coef_.tolist()[0]))), self.clf.intercept_)
+
