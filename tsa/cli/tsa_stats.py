@@ -27,6 +27,7 @@ class TSAStatsSubCommand(SubCommand):
         parser.add_argument("--targets", default=["f1_cfa", "precision_with_cfa", "detection_rate"], nargs="+")
         parser.add_argument("--threshold", default=0.8, type=float)
         parser.add_argument("--scenario-column", default="scenario")
+        parser.add_argument("--output", "-o", required=False, help="Output stats csv file")
 
     def exec(self, args, parser, unknown_args):
         data = load_data(args.input, args.scenario_column, args.features)
@@ -51,6 +52,8 @@ class TSAStatsSubCommand(SubCommand):
         stats = pandas.DataFrame(stats)
         stats.sort_values(by="unique_timepoints", inplace=True)
         print(stats)
+        if args.output is not None:
+            stats.to_csv(args.output, index=False)
         print("Scenarios:", len(data.get_scenarios()))
         print("\n======================================")
         print("avg values (across scenarios):")

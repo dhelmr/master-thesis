@@ -30,7 +30,7 @@ class TimeSeries:
                 slope = self._calc_slope(df[data.syscalls_col], df[f])
                 df[f"roc-{f}"] = slope
                 df[f"roc2-{f}"] = self._calc_slope(df[data.syscalls_col],slope)
-            df = df.dropna(how="any")
+            #df = df.dropna(how="any")
             dfs.append(df)
         augmented_df = pandas.concat(dfs)
         return augmented_df
