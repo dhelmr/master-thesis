@@ -1,4 +1,13 @@
 scenarios:
+ - LID-DS-2019/CVE-2017-7529
+ - LID-DS-2019/CVE-2019-5418
+ - LID-DS-2019/CVE-2012-2122
+ - LID-DS-2019/CVE-2014-0160
+ - LID-DS-2019/CVE-2018-3760
+ - LID-DS-2019/EPS_CWE-434
+ - LID-DS-2019/PHP_CWE-434
+ - LID-DS-2019/SQL_Injection_CWE-89
+ - LID-DS-2019/ZipSlip
  - LID-DS-2021/Bruteforce_CWE-307
  - LID-DS-2021/CVE-2012-2122
  - LID-DS-2021/CVE-2014-0160
@@ -18,20 +27,19 @@ ids:
   - name: IntEmbedding
   - name: CacheableW2V
     args:
-      window_size: 5
+      window_size: 9
       epochs: 200
       vector_size: 11
     cache_key: true
   - name: Ngram
     args:
       thread_aware: true
-      ngram_length: 5
+      ngram_length: 9
   - name: NgramFrequencyAppender
     args:
-      features:
-        - ngram_frequency
-        - thread_frequency
       anomaly_fn: max-scaled
+      features:
+        - thread_frequency
   - name: Som
     args:
      epochs: 100
