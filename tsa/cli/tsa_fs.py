@@ -91,6 +91,7 @@ class TSAFsSubCommand(SubCommand):
         parser.add_argument("--threshold", default=0.8, type=float)
         parser.add_argument("--features", "-f", required=False, nargs="+", default=None)
         parser.add_argument("--skip-features", "-s", required=False, nargs="+", default=[])
+        parser.add_argument("--reverse-classes", default=False, action="store_true")
         parser.add_argument("--scenario-column", default="scenario")
         parser.add_argument("--out", "-o", required=True)
         parser.add_argument("--mode", "-m", choices=FEATURE_SELECTORS.keys(), default="forward")
@@ -113,7 +114,7 @@ class TSAFsSubCommand(SubCommand):
                     predictor=predictor,
                     cv_leave_out=args.leave_out
                 )
-                stats = cv.run(args.target, args.threshold)
+                stats = cv.run(args.target, args.threshold, args.reverse_classes)
                 results.append((features, stats,))
                 stats["predictor"] = args.predictor
                 stats["threshold"] = args.threshold

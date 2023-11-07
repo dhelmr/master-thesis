@@ -60,7 +60,7 @@ class FeatureCombine:
             #data.df[f"pow2-{f1}"] = data.df[f1].apply(lambda x: math.pow(x, 2))
             #data.df[f"abs-{f1}"] = data.df[f1].apply(lambda x: abs(x))
         cols_before = list(data.df.columns)
-        data.df = data.df.dropna(axis=1, how='any')
+        # data.df = data.df.dropna(axis=1, how='any')
         dropped_cols = [c for c in cols_before if str(c) not in set(data.df.columns)]
         print("Dropped the following columns because of nan values:", dropped_cols)
         return data.df

@@ -45,13 +45,14 @@ class TSARuleMinerSubCommand(SubCommand):
         parser.add_argument("--features", "-f", required=True, nargs="+", default=None)
         parser.add_argument("--target", default="f1_cfa")
         parser.add_argument("--threshold", default=0.8, type=float)
+        parser.add_argument("--reverse-classes", default=False, action="store_true")
         parser.add_argument("--scenario-column", default="scenario")
         parser.add_argument("--out", "-o", required=True)
 
     def exec(self, args, parser, unknown_args):
         data = load_data(args.input, args.scenario_column, args.features)
 
-        split = data.get_split(args.target, [], args.threshold)
+        split = data.get_split(args.target, [], args.threshold, args.reverse_classes)
         predictor_name = args.predictor
         predictor = PREDICTORS[predictor_name](unknown_args)
         predictor.train(split.train_X, split.train_y)

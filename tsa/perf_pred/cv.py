@@ -64,7 +64,7 @@ class PerformanceData:
     def get_scenario_data(self, sc_name: str) -> pandas.DataFrame:
         return self.df.loc[self.df[self.scenario_col] == sc_name]
 
-    def get_split(self, target_var: str, test_scenarios: List[str], threshold: float) -> TrainTestSplit:
+    def get_split(self, target_var: str, test_scenarios: List[str], threshold: float, reverse_classes: bool) -> TrainTestSplit:
         all_scenarios = self.get_scenarios()
         # validate parameters
         for sc in test_scenarios:
@@ -78,7 +78,7 @@ class PerformanceData:
         train_X = train.filter(self._feature_cols)
         test_X = test.filter(self._feature_cols)
 
-        map_to_binary_class = lambda value: 1 if value > threshold else 0
+        map_to_binary_class = lambda value: 1 if (value > threshold and not reverse_classes) or (value <= threshold and reverse_classes) else 0
         train_y = train[target_var].apply(map_to_binary_class).to_numpy()
         test_y = test[target_var].apply(map_to_binary_class).to_numpy()
 
@@ -111,11 +111,11 @@ class CV:
         self.cv_leave_out = cv_leave_out
         self.predictor = predictor
 
-    def run(self, target_var: str, threshold: float) -> CVPerformance:
+    def run(self, target_var: str, threshold: float, reverse_classes: bool) -> CVPerformance:
         if target_var not in self.data.target_cols:
             raise ValueError("No target variable: %s" % target_var)
         all_metrics = []
-        for split in self._iter_cv_splits(target_var, threshold):
+        for split in self._iter_cv_splits(target_var, threshold, reverse_classes):
             # if np.all(split.test_y == 0) or np.all(split.test_y == 1):
             #    print("Skip split, only one class in test data (test scenarios=%s)" % (split.test_scenarios, ))
             #    continue
@@ -144,10 +144,10 @@ class CV:
         stats = pandas.concat([mean_stats, var_stats, min_stats, max_stats, range_stats], axis=1).rename(columns={0: "mean", 1: "var", 2: "min", 3: "max", 4: "range"})
         return unpack_dict(stats.to_dict())
 
-    def _iter_cv_splits(self, target_var: str, threshold: float) -> Iterable[TrainTestSplit]:
+    def _iter_cv_splits(self, target_var: str, threshold: float, reverse_classes: bool) -> Iterable[TrainTestSplit]:
         scenarios = self.data.get_scenarios()
         for val_scenarios in itertools.combinations(scenarios, self.cv_leave_out):
-            split = self.data.get_split(target_var, val_scenarios, threshold)
+            split = self.data.get_split(target_var, val_scenarios, threshold, reverse_classes)
             yield split
 
 def unpack_dict(d: Dict[str, Any], key_prefix="", to_dict = None):

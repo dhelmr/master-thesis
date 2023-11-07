@@ -7,6 +7,7 @@ from tsa.cli.run import RunSubCommand
 from tsa.cli.search import SearchSubCommand
 from tsa.cli.tsa_augment import TSAAugmentSubCommand
 from tsa.cli.tsa_combine import TSACombineSubCommand
+from tsa.cli.tsa_concat import TSAConcatSubCommand
 from tsa.cli.tsa_correlate import TSACorrelateSubCommand
 from tsa.cli.tsa_cv import TSACrossValidateSubCommand
 from tsa.cli.tsa_dl import TSADownloaderSubCommand
@@ -27,7 +28,8 @@ commands = [RunSubCommand(),
             TSARuleMinerSubCommand(),
             TSACorrelateSubCommand(),
             TSAStatsSubCommand(),
-            TSANgramAUCSubCommand()
+            TSANgramAUCSubCommand(),
+            TSAConcatSubCommand()
             ]
 
 if __name__ == '__main__':

@@ -44,6 +44,7 @@ class TSACrossValidateSubCommand(SubCommand):
         parser.add_argument("--features", "-f", required=False, nargs="+", default=None)
         parser.add_argument("--target", default="f1_cfa")
         parser.add_argument("--threshold", default=0.8, type=float)
+        parser.add_argument("--reverse-classes", default=False, action="store_true")
         parser.add_argument("--scenario-column", default="scenario")
         parser.add_argument("--out", "-o", required=True)
 
@@ -57,7 +58,7 @@ class TSACrossValidateSubCommand(SubCommand):
                 predictor=predictor,
                 cv_leave_out=args.leave_out
             )
-            stats = cv.run(args.target, args.threshold)
+            stats = cv.run(args.target, args.threshold, args.reverse_classes)
             stats["predictor"] = predictor_name
             stats["threshold"] = args.threshold
             all_stats.append(stats)
@@ -81,7 +82,7 @@ def load_data(path: str, scenario_col, feature_cols: Optional[List[str]], skip_f
     if feature_cols is None:
         # all columns without a "." and not in above list are considered feature cols
         feature_cols = [c for c in df.columns if str(c) not in NON_FEATURE_COLS and str(c) not in skip_features and "." not in str(c)]
-        print("Selected features:", feature_cols)
+        #print("Selected features:", feature_cols)
     for f in feature_cols:
         if f not in df.columns:
             raise ValueError("Feature Column is not available: %s" % f)
