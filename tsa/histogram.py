@@ -10,7 +10,6 @@ from tsa.utils import gini_coeff
 
 
 class Histogram:
-    # TODO: needs tests
     def __init__(self):
         self._counts = {}
         self._size = 0
@@ -57,14 +56,6 @@ class Histogram:
 
     def max_count(self):
         return max(self._counts.values())
-
-    def count_frequencies(self):
-        frequencies = {}
-        for count in self._counts.values():
-            if count not in frequencies:
-                frequencies[count] = 0
-            frequencies[count] += 1
-        return frequencies
 
     def remove_all(self, element):
         if element not in self._counts:
@@ -190,7 +181,6 @@ class Histogram:
 
     def hellinger_distance(self, hist2: "Histogram"):
         bhattacharyya_coef = self.bhattacharyya_coef(hist2)
-
         return math.sqrt(1 - bhattacharyya_coef)
 
     def copy(self) -> "Histogram":
