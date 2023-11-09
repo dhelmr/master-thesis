@@ -4,6 +4,7 @@ import tempfile
 
 import matplotlib.pyplot as plt
 import numpy
+import numpy as np
 import pandas
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
@@ -29,7 +30,7 @@ class DecisionTree(PerformancePredictor):
         self.reset()
 
     def train(self, train_X: pandas.DataFrame, train_y: numpy.ndarray):
-        train_X = train_X.fillna(0)
+        train_X = self._preprocess(train_X)
         train_set = train_X.values
         #X_train_scaled = self.prepr_pl.fit_transform(train_set)
         X_train_scaled = train_set
@@ -37,12 +38,15 @@ class DecisionTree(PerformancePredictor):
         self.clf.fit(X_train_scaled, train_y)
 
     def predict(self, test_X: pandas.DataFrame) -> numpy.ndarray:
-        test_X = test_X.fillna(0)
+        test_X = self._preprocess(test_X)
         #X_test_scaled = self.prepr_pl.transform(test_X.values)
         X_test_scaled = test_X.values
         preds = self.clf.predict(X_test_scaled)
         return preds
 
+    def _preprocess(self, df):
+        df = df.replace([np.inf, -np.inf], np.nan)
+        return df.fillna(0)
     def reset(self):
         self.clf = DecisionTreeClassifier(random_state=1, **self.clf_args)
         # self.prepr_pl = Pipeline([("min-max", MinMaxScaler())])
