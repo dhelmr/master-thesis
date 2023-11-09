@@ -94,7 +94,7 @@ class TSAFsSubCommand(SubCommand):
         parser.add_argument("--reverse-classes", default=False, action="store_true")
         parser.add_argument("--scenario-column", default="scenario")
         parser.add_argument("--out", "-o", required=True)
-        parser.add_argument("--verbose", required=False, type=bool, action="store_true")
+        # parser.add_argument("--verbose", required=False, type=bool, action="store_true")
         parser.add_argument("--mode", "-m", choices=FEATURE_SELECTORS.keys(), default="forward")
 
     def exec(self, args, parser, unknown_args):
