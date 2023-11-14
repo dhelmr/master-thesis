@@ -48,7 +48,7 @@ ids:
     args:
       thread_aware: true
       ngram_length: 5
-  - name: STIDE
+  - name: Stide
   - name: StreamSum
     args:
       thread_aware: False
