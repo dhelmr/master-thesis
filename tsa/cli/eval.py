@@ -13,11 +13,11 @@ from tsa.mlflow.experiment_name_conversion import ExperimentNameConversion, Mlfl
 from tsa.utils import md5
 
 METRIC_LABELS = {
-    "metrics.ids.f1_cfa": "f1-score",
-    "metrics.ids.precision_with_cfa": "precision",
-    "metrics.ids.detection_rate": "detection rate",
-    "metrics.ids.consecutive_false_positives_normal": "cfp-normal",
-    "metrics.ids.consecutive_false_positives_exploits": "cfp-exploits"
+    "metrics.ids.f1_cfa": "mean f1-score",
+    "metrics.ids.precision_with_cfa": "mean precision",
+    "metrics.ids.detection_rate": "mean detection rate",
+    "metrics.ids.consecutive_false_positives_normal": "mean cfp-normal",
+    "metrics.ids.consecutive_false_positives_exploits": "mean cfp-exploits"
 }
 
 
@@ -143,7 +143,10 @@ class EvalSubCommand(SubCommand):
                       markers=True)
         if metric not in ["metrics.ids.consecutive_false_positives_normal",
                           "metrics.ids.consecutive_false_positives_exploits"]:
-            fig.update_layout(yaxis=dict(range=[0, 1]))
+            fig.update_layout(
+                yaxis=dict(range=[0, 1])
+            )
+            fig.update_yaxes(gridwidth=0.5, griddash="dot", dtick=0.1)
         fig.update_layout(
             yaxis_title=METRIC_LABELS[metric],
             xaxis_title="Number of Attacks"

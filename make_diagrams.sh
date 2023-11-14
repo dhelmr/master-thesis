@@ -27,9 +27,9 @@ python cli.py eval --config experiments/slurm/preprocessing/thread-od/lof-jaccar
 
 # SOM experiments
 
-python cli.py eval --config experiments/slurm/som/sample-0.{5,7,9,95,99}.yaml experiments/slurm/baseline/som.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/som-sample --names 0.5 0.7 0.9 0.95 0.99 "SOM baseline"
+python cli.py eval --config experiments/slurm/som/sample-0.{5,7,9,95,99}.yaml experiments/slurm/baseline/som.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/som-sample --names b=0.5 b=0.7 b=0.9 b=0.95 b=0.99 "SOM baseline"
 
-python cli.py eval --config experiments/slurm/som/size0.{5,7,9}.yaml experiments/slurm/baseline/som.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/som-size --names 0.5 0.7 0.9 "SOM baseline"
+python cli.py eval --config experiments/slurm/som/size0.{5,7,9}.yaml experiments/slurm/baseline/som.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/som-size --names s=0.5 s=0.7 s=0.9 "SOM baseline"
 
 python cli.py eval --config experiments/slurm/frequency_append/som-{ngram,thread,ngram-thread}.yaml experiments/slurm/baseline/som.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/som-freq-append --names +ngram +thread +ngram+thread "SOM baseline"
 
