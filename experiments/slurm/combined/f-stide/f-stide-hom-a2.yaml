@@ -48,7 +48,10 @@ ids:
     args:
       thread_aware: true
       ngram_length: 5
-  - name: STIDE
+  - name: FrequencySTIDE
+    args:
+      alpha: 2
+      anomaly_fn: homographic
   - name: StreamSum
     args:
       thread_aware: False
