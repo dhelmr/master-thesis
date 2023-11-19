@@ -23,6 +23,12 @@ scenarios:
  - LID-DS-2021/Juice-Shop
  - LID-DS-2021/PHP_CWE-434
  - LID-DS-2021/ZipSlip
+ignore_scenarios:
+  - LID-DS-2019/ZipSlip
+  - LID-DS-2021/ZipSlip
+  - LID-DS-2021/Juice-Shop
+  - LID-DS-2021/EPS_CWE-434
+  - LID-DS-2021/CVE-2020-13942
 ids:
   - name: IntEmbedding
   - name: Ngram
@@ -35,6 +41,14 @@ ids:
       od_method: LocalOutlierFactor
       skip_mds: true # MDS is not needed for LOF, since it can use the distance matrix directly
       normalize_rows: true # normalization is needed for scipy 1.10.1
+    dependencies:
+      name: train_features
+      blocks:
+        - name: IntEmbedding
+        - name: Ngram
+          args:
+            thread_aware: true
+            ngram_length: 2
   - name: Stide
   - name: StreamSum
     args:
