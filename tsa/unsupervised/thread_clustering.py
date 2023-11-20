@@ -174,8 +174,8 @@ class ThreadClusteringOD(OutlierDetector):
         print("Calculate distance matrix...")
         distance_matrix = squareform(pdist(matrix, metric=self._distance))
         if self._fill_na:
-            distance_matrix = np.where(np.isnan(distance_matrix), 0, distance_matrix)
-            distance_matrix = np.where(np.isinf(distance_matrix), 0, distance_matrix)
+            distance_matrix = np.where(np.isnan(distance_matrix), 1, distance_matrix)
+            distance_matrix = np.where(np.isinf(distance_matrix), 1, distance_matrix)
 
 
         preds = self._do_outlier_detection(distance_matrix)
