@@ -5,6 +5,7 @@ from tsa.cli.check import CheckSubCommand
 from tsa.cli.eval import EvalSubCommand
 from tsa.cli.run import RunSubCommand
 from tsa.cli.search import SearchSubCommand
+from tsa.cli.tsa_add_suffix import TSAAddSuffixSubCommand
 from tsa.cli.tsa_augment import TSAAugmentSubCommand
 from tsa.cli.tsa_combine import TSACombineSubCommand
 from tsa.cli.tsa_concat import TSAConcatSubCommand
@@ -28,6 +29,7 @@ commands = [RunSubCommand(),
             TSAFsSubCommand(),
             TSARuleMinerSubCommand(),
             TSACorrelateSubCommand(),
+            TSAAddSuffixSubCommand(),
             TSAStatsSubCommand(),
             TSANgramAUCSubCommand(),
             TSAConcatSubCommand(),

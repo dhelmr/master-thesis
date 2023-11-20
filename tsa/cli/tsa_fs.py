@@ -99,7 +99,7 @@ class TSAFsSubCommand(SubCommand):
         parser.add_argument("--total", default=4, type=int, help="'Total' parameter for feature selector")
 
     def exec(self, args, parser, unknown_args):
-        data = load_data(args.input, args.scenario_column, args.features, args.skip_features)
+        data = load_data(args.input, args.scenario_column, args.features, args.skip_features+args.target)
         predictor = PREDICTORS[args.predictor](unknown_args)
         selector = FEATURE_SELECTORS[args.mode](data, total=args.total)
 

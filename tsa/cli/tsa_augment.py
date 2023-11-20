@@ -47,16 +47,16 @@ class FeatureCombine:
         for f1 in tqdm(data.feature_cols()):
             for f2 in data.feature_cols():
                 if (f2, f1) not in processed_comb_features:
-                    data.df[f"{f1}*{f2}"] = data.df[f1] * data.df[f2]
-                    data.df[f"{f1}/{f2}"] = data.df[f1] / data.df[f2]
+                    data.df[f"({f1})-times-({f2})"] = data.df[f1] * data.df[f2]
+                    data.df[f"({f1})/({f2})"] = data.df[f1] / data.df[f2]
                     processed_comb_features.add((f1,f2))
-                #data.df[f"{f1}-minus-{f2}"] = data.df[f1] - data.df[f2]
-                #data.df[f"{f1}-plus-{f2}"] = data.df[f1] + data.df[f2]
-            data.df[f"log-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x)) if x != 0 else -100)
+                    data.df[f"({f1})-minus-({f2})"] = data.df[f1] - data.df[f2]
+                    data.df[f"({f1})-plus-({f2})"] = data.df[f1] + data.df[f2]
+            data.df[f"log-({f1})"] = data.df[f1].apply(lambda x: math.log(abs(x)) if x != 0 else -100)
             #data.df[f"log2-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x), 2) if x != 0 else -100)
             #data.df[f"log10-{f1}"] = data.df[f1].apply(lambda x: math.log(abs(x), 10) if x != 0 else -100)
             # math.log(0.0000000000000000000000000000000000000000001) ~= -100
-            data.df[f"sqrt-{f1}"] = data.df[f1].apply(lambda x: math.sqrt(abs(x)))
+            data.df[f"sqrt-({f1})"] = data.df[f1].apply(lambda x: math.sqrt(abs(x)))
             #data.df[f"pow2-{f1}"] = data.df[f1].apply(lambda x: math.pow(x, 2))
             #data.df[f"abs-{f1}"] = data.df[f1].apply(lambda x: abs(x))
         cols_before = list(data.df.columns)
@@ -82,10 +82,11 @@ class TSAAugmentSubCommand(SubCommand):
                             help="input data file (training set statistics -> performance)")
         parser.add_argument("--scenario-column", default="scenario")
         parser.add_argument("--features", "-f", required=False, default=None, nargs="+")
+        parser.add_argument("--skip-features", "-s", required=False, default=[], nargs="+")
         parser.add_argument("--augmentor", "-a", required=True, choices=AUGMENTORS.keys())
 
     def exec(self, args, parser, unknown_args):
-        data = load_data(args.input, args.scenario_column, args.features)
+        data = load_data(args.input, args.scenario_column, args.features, args.skip_features)
         augmentor = AUGMENTORS[args.augmentor]()
         augmented = augmentor.augment(data)
         augmented.to_csv(args.output)
