@@ -70,7 +70,7 @@ class ThreadClusteringOD(OutlierDetector):
 
     def __init__(self, building_block, train_features=None, n_components=2, distance="jaccard-cosine", tf_idf=False,
                  skip_mds: bool = False, thread_based=True, normalize_rows=False, normalize_ord=1, metric_mds=True,
-                 plot_mds=False, od_method: str = "IsolationForest", od_kwargs=None, cache_key=None, **kwargs):
+                 plot_mds=False, od_method: str = "IsolationForest", fill_na=False, od_kwargs=None, cache_key=None, **kwargs):
         super().__init__(building_block, train_features, cache_key)
         if od_kwargs is None:
             od_kwargs = {}
@@ -94,6 +94,7 @@ class ThreadClusteringOD(OutlierDetector):
         self._thread_based = thread_based
         self._normalize_rows = normalize_rows
         self._normalize_ord = normalize_ord
+        self._fill_na = fill_na
         self._plot_mds = plot_mds
         self._cache_key = cache_key
         self._skip_training_data = self._cache_key is not None and os.path.exists(self._cache_key_to_path(self._cache_key))
@@ -172,6 +173,8 @@ class ThreadClusteringOD(OutlierDetector):
             matrix = matrix / norm
         print("Calculate distance matrix...")
         distance_matrix = squareform(pdist(matrix, metric=self._distance))
+        if self._fill_na:
+            distance_matrix = np.where(np.isnan(distance_matrix), np.nanmean(distance_matrix, axis=0), distance_matrix)
 
         preds = self._do_outlier_detection(distance_matrix)
         anomalous_entities = set()

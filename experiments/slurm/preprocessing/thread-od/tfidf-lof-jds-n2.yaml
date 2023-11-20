@@ -42,6 +42,7 @@ ids:
       skip_mds: true # MDS is not needed for LOF, since it can use the distance matrix directly
       normalize_rows: true # normalization is needed for scipy 1.10.1
       tf_idf: true
+      fill_na: true
     dependencies:
       name: train_features
       blocks:
