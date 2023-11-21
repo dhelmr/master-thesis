@@ -53,6 +53,7 @@ class ForwardSelector:
     def total_rounds(self):
         return self.total
 
+
 class AllCombinations:
     def __init__(self, all_data: PerformanceData, total=2):
         self.all_data = all_data
@@ -70,9 +71,10 @@ class AllCombinations:
     def total_rounds(self):
         return self.n_combinations
 
+
 FEATURE_SELECTORS = {
     "forward": ForwardSelector,
-    "all-2": AllCombinations # TODO find way to set params via cli
+    "all-2": AllCombinations  # TODO find way to set params via cli
 }
 
 
@@ -99,7 +101,10 @@ class TSAFsSubCommand(SubCommand):
         parser.add_argument("--total", default=4, type=int, help="'Total' parameter for feature selector")
 
     def exec(self, args, parser, unknown_args):
-        data = load_data(args.input, args.scenario_column, args.features, args.skip_features+args.target)
+        data = load_data(path=args.input,
+                         scenario_col=args.scenario_column,
+                         feature_cols=args.features,
+                         skip_features=args.skip_features + [args.target])
         predictor = PREDICTORS[args.predictor](unknown_args)
         selector = FEATURE_SELECTORS[args.mode](data, total=args.total)
 
@@ -131,11 +136,13 @@ class TSAFsSubCommand(SubCommand):
                 stats for _, stats in results
             ])
             print(round_results_df)
-            print_results(round_results_df, limit=3, cols=["mean.mcc", "range.f1_score", "mean.f1_score", "mean.precision", "features"])
+            print_results(round_results_df, limit=3,
+                          cols=["mean.mcc", "range.f1_score", "mean.f1_score", "mean.precision", "features"])
 
             next_features = selector.next(results)
             if next_features is None:
                 break
         df = pd.DataFrame(all_stats)
         df.to_csv(args.out)
-        print_results(df, cols=["mean.mcc", "mean.f1_score","var.f1_score", "mean.precision", "range.precision", "features"])
+        print_results(df, cols=["mean.mcc", "mean.f1_score", "var.f1_score", "mean.precision", "range.precision",
+                                "features"])
