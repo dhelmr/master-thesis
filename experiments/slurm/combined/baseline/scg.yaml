@@ -48,10 +48,7 @@ ids:
     args:
       thread_aware: true
       ngram_length: 5
-  - name: FrequencySTIDE
-    args:
-      anomaly_fn: exponential
-      alpha: 0.5
+  - name: SystemCallGraph
   - name: StreamSum
     args:
       thread_aware: False
@@ -72,4 +69,3 @@ dataloader:
     - 3
     - 5
     - 10
-id: stide.yaml

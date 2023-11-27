@@ -54,6 +54,7 @@ class TSAEvalFsSubCommand(SubCommand):
         fs_results = fs_results.query(args.query)
         fs_results.sort_values(by="mean.precision", ascending=False, inplace=True)
         for i, features in enumerate(fs_results[:5]["features"]):
+            print("Precision Gain:", fs_results.iloc[i]["gain.precision"])
             feature_set = features.split(";")
             print(feature_set)
             split = data.with_features(feature_set).get_split(args.target, [], args.threshold, args.reverse_classes)
