@@ -36,6 +36,16 @@ python cli.py eval --config experiments/slurm/som/size0.{5,7,9}.yaml experiments
 
 python cli.py eval --config experiments/slurm/frequency_append/som-{ngram,thread,ngram-thread}.yaml experiments/slurm/baseline/som.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/som-freq-append --names +ngram +thread +ngram+thread "SOM baseline"
 
-# SCG Accomodation
+# SOM combination
+python cli.py eval --config experiments/slurm/som/sample-{0.95,0.99}.yaml experiments/slurm/som/sample-{0.95,0.99}+thread-size0.7.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/som-combination --names "Only Sampling (b=0.95)" "Only Sampling (b=0.99)" "Combination I" "Combination II"
 
+# SCG Accomodation
 python cli.py eval --config experiments/slurm/baseline/scg{,-thread-wise-graphs}.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/scg --names "SCG baseline" thread-wise-graphs
+
+# Combination THread-OD + thread-f-stide
+
+python cli.py eval --config experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-cosine.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a2.yaml experiments/slurm/combination/stide/lof-cosine+thread-freq-homographic-a2.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/combination-stide-thread-od --names "Only Thread OD" "Only thread-f-stide" "Combination"
+
+# Combination THread-OD + SCG
+
+python cli.py eval --config experiments/slurm/baseline/scg{-thread-wise-graphs,}.yaml experiments/slurm/combination/scg/lof-cosine+scg-baseline.yaml  experiments/slurm/combination/scg/lof-cosine+thread-wise.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/combination-scg-thread-od --names "SCG baseline" "Only SCG with thread-wise graphs" "Thread-OD + SCG baseline" "Thread OD + SCG with thread-wise graphs"
