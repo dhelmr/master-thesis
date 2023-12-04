@@ -3,6 +3,13 @@
 MLFLOW_CACHE=${MLFLOW_CACHE:-results/mlflow_cache}
 ARTIFACTS_DIR=${ARTIFACTS_DIR:-results/test-artifacts}
 
+# baseline
+
+python cli.py eval --config experiments/slurm/baseline/{stide,som,scg}.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/baseline --names STIDE SOM SCG
+
+# combined scenarios
+
+python cli.py eval --config experiments/slurm/combined/baseline/{stide,som,scg}.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/baseline-combined-scenarios --names STIDE SOM SCG
 # f-STIDE
 
 python cli.py eval --config experiments/slurm/f-stide/f-stide-exp-a0.3.yaml experiments/slurm/f-stide/f-stide-exp-a0.5.yaml experiments/slurm/f-stide/f-stide-exp-a0.7.yaml experiments/slurm/f-stide/f-stide-exp-a0.9.yaml experiments/slurm/f-stide/f-stide-exp-a0.95.yaml experiments/slurm/f-stide/f-stide-homographic-a0.5.yaml experiments/slurm/f-stide/f-stide-homographic-a2.yaml experiments/slurm/f-stide/f-stide-homographic-a5.yaml experiments/slurm/f-stide/f-stide-max-scaled.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/f-stide --names exp-0.3 exp-0.5 exp-0.7 exp-0.9 exp-0.95 hom-0.5 hom-2 hom-5 linear
@@ -26,7 +33,7 @@ python cli.py eval --config experiments/slurm/preprocessing/thread-od/tfidf-lof-
 python cli.py eval --config experiments/slurm/preprocessing/thread-od/lof-jaccard-cosine-n1.yaml experiments/slurm/preprocessing/thread-od/lof-jaccard-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/lof-jaccard-cosine-n3.yaml experiments/slurm/baseline/stide.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/thread-od --names n=1 n=2 n=3 "baseline (stide)"
 
 # 
-python cli.py eval --config experiments/slurm/preprocessing/thread-od/lof-{binary-jaccard,jds}-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-hellinger-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jds-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-canberra-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-chebyshev-n2.yaml experiments/slurm/baseline/stide.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/thread-od-distances --names binary-hamming jds tfidf+cosine tfidf+jaccard-cosin tfidf+jaccard-hellinger tfidf+jds tfidf+canberra tfidf+chebyshev "baseline (stide)"
+python cli.py eval --config experiments/slurm/preprocessing/thread-od/lof-{binary-jaccard,jds}-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-hellinger-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jds-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-canberra-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-chebyshev-n2.yaml experiments/slurm/baseline/stide.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/thread-od-distances --names binary-hamming "jsd" tfidf+cosine tfidf+jaccard-cosin tfidf+jaccard-hellinger tfidf+jsd tfidf+canberra tfidf+chebyshev "baseline (stide)"
 
 # SOM experiments
 
