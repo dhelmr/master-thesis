@@ -28,18 +28,34 @@ class TSACorrelateSubCommand(SubCommand):
         parser.add_argument("--scenario-column", default="scenario")
         parser.add_argument("--only-above", default=0.2)
         parser.add_argument("-o", "--output", default=None, type=str)
+        parser.add_argument("--skip-features", "-s", required=False, default=[], nargs="+")
+        parser.add_argument("--scenario-mean", action="store_true", default=False, required=False, help="Calculate mean correlation over all scenarios")
 
     def exec(self, args, parser, unknown_args):
-        data = load_data(args.input, args.scenario_column, args.features)
+        data = load_data(args.input, args.scenario_column, args.features, args.skip_features)
         with pd.option_context('mode.use_inf_as_na', True):
-            df = data.df.fillna(value=0)
-        corr = df[data.feature_cols()].corrwith(data.df[args.target])
-        corr = corr.apply(lambda x: abs(x))
-        corr.apply(lambda x: math.nan if x < args.only_above else x)
-        corr.dropna(inplace=True)
+            data.df = data.df.fillna(value=0)
+        if args.scenario_mean:
+            corrs = []
+            for sc in data.get_scenarios():
+                sc_data = data.get_scenario_data(sc)
+                corr = self._calc_corr(sc_data, data.feature_cols(), args)
+                corrs.append(corr)
+            aggregated = pd.DataFrame(corrs)
+            corr = aggregated.mean()
+        else:
+            corr = self._calc_corr(data.df, data.feature_cols(), args)
         corr.sort_values(inplace=True)
         as_list = list(zip(corr.index, corr))
         if args.output is not None:
             df = pandas.DataFrame(as_list, columns=["feature", "corr_coeff"])
             df.to_csv(args.output, index=False)
         pprint.pprint(as_list)
+
+    def _calc_corr(self, df, feature_cols, args):
+        corr = df[feature_cols].corrwith(df[args.target])
+        corr = corr.apply(lambda x: abs(x))
+        corr.apply(lambda x: math.nan if x < args.only_above else x)
+        corr.dropna(inplace=True)
+
+        return corr
