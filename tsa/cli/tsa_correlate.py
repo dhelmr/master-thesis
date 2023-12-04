@@ -7,6 +7,7 @@ from argparse import ArgumentParser
 
 import mlflow
 import pandas
+import pandas as pd
 from mlflow import MlflowClient
 
 from tsa.cli.run import SubCommand, make_experiment, make_experiment_from_path
@@ -30,7 +31,9 @@ class TSACorrelateSubCommand(SubCommand):
 
     def exec(self, args, parser, unknown_args):
         data = load_data(args.input, args.scenario_column, args.features)
-        corr = data.df.corrwith(data.df[args.target])
+        with pd.option_context('mode.use_inf_as_na', True):
+            df = data.df.fillna(value=0)
+        corr = df[data.feature_cols()].corrwith(data.df[args.target])
         corr = corr.apply(lambda x: abs(x))
         corr.apply(lambda x: math.nan if x < args.only_above else x)
         corr.dropna(inplace=True)
