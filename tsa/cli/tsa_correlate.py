@@ -45,7 +45,7 @@ class TSACorrelateSubCommand(SubCommand):
             corr = aggregated.mean()
         else:
             corr = self._calc_corr(data.df, data.feature_cols(), args)
-        corr.sort_values(inplace=True)
+        corr.sort_values(inplace=True, key=lambda x: abs(x))
         as_list = list(zip(corr.index, corr))
         if args.output is not None:
             df = pandas.DataFrame(as_list, columns=["feature", "corr_coeff"])
@@ -54,7 +54,7 @@ class TSACorrelateSubCommand(SubCommand):
 
     def _calc_corr(self, df, feature_cols, args):
         corr = df[feature_cols].corrwith(df[args.target])
-        corr = corr.apply(lambda x: abs(x))
+        #corr = corr.apply(lambda x: abs(x))
         corr.apply(lambda x: math.nan if x < args.only_above else x)
         corr.dropna(inplace=True)
 
