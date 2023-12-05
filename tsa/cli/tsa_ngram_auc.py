@@ -53,8 +53,8 @@ class TSANgramAUCSubCommand(SubCommand):
                         auc = calc_area_under_curve(ngram_size_values.tolist(), Y_values.tolist())
                     # row[f"{f}-n{args.keep_ngram_size[0]}"] = row[f]
                     for ngram_size in args.keep_ngram_size:
-                        row[f"{f}-n{ngram_size}"] = measurement.loc[measurement[args.ngram_size_col] == ngram_size].iloc[0][f]
-                    row[f"{f}-auc"] = auc
+                        row[f"{f}@n{ngram_size}"] = measurement.loc[measurement[args.ngram_size_col] == ngram_size].iloc[0][f]
+                    row[f"{f}@auc"] = auc
                     # add feature for other ngram sizes
 
                     del row[f]
