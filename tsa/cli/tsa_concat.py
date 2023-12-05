@@ -35,9 +35,9 @@ class TSAConcatSubCommand(SubCommand):
         merged_df = None
         for i_file in args.input:
             df = pandas.read_csv(i_file)
-            drop_cols = ["parameter_cfg_id", "run_id"]
-            for c in args.skip:
-                if c in df.columns:
+            drop_cols = []
+            for c in args.skip + ["parameter_cfg_id", "run_id"]:
+                if c in df.columns and c not in drop_cols:
                     drop_cols.append(c)
             df.drop(columns=drop_cols, inplace=True)
             if merged_df is None:

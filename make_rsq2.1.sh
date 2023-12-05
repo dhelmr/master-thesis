@@ -7,12 +7,16 @@ python cli.py tsa-add-suffix -i results/thread_matrix-n3.csv --suffix '@n3' -o r
 
 python cli.py tsa-ngram-auc -i results/analysis-all-ngrams.csv -o results/rsq2-1/analysis-all-ngrams-auc.csv --keep-ngram-size 1 2 5 10 15 25
 
-python cli.py tsa-concat -i results/rsq2-1/analysis-all-ngrams-auc.csv results/rsq2-1/thread_matrix-n2-suffix.csv results/rsq2-1/thread_matrix-n3-suffix.csv results/data-drift-no-attacks.csv -o results/rsq2-1/rsq2-1-dd.csv --common syscalls --skip unique_ngrams/total unique_ngrams total $IGNORE_ZIPF_FEATURES
+python cli.py tsa-concat -i results/rsq2-1/analysis-all-ngrams-auc.csv results/rsq2-1/thread_matrix-n2-suffix.csv results/rsq2-1/thread_matrix-n3-suffix.csv results/data-drift-no-attacks.csv -o results/rsq2-1/dd.csv --common syscalls --skip unique_ngrams/total unique_ngrams total $IGNORE_ZIPF_FEATURES
 
-python cli.py tsa-combine --statistics-csv results/rsq2-1/rsq2-1-dd.csv -e $EXPERIMENT_PREFIX/analysis-stide-max_syscalls.search.yaml -o results/rsq2-1/rsq2-1-perf.csv
+python cli.py tsa-combine --statistics-csv results/rsq2-1/dd.csv -e $EXPERIMENT_PREFIX/analysis-stide-max_syscalls.search.yaml -o results/rsq2-1/perf.csv
 
-python cli.py tsa-augment -i results/rsq2-1/rsq2-1-perf.csv --skip-features jensen_shannon_divergence jensen_shannon_distance ratio_unseen_unique_test_ngrams ratio_unseen_test_ngrams -a FeatureTransform -o results/rsq2-1/perf-transformed.csv
-python cli.py tsa-augment -i results/rsq2-1/perf-transformed.csv --skip-features jensen_shannon_divergence jensen_shannon_distance ratio_unseen_unique_test_ngrams ratio_unseen_test_ngrams -a FeatureCombine -o results/rsq2-1/perf-transformed+combined.csv
+python cli.py tsa-augment -i results/rsq2-1/perf.csv --skip-features jensen_shannon_divergence jensen_shannon_distance ratio_unseen_unique_test_ngrams ratio_unseen_test_ngrams -a FeatureTransform -o results/rsq2-1/perf-augmented.csv
+#python cli.py tsa-augment -i results/rsq2-1/perf-transformed.csv --skip-features jensen_shannon_divergence jensen_shannon_distance ratio_unseen_unique_test_ngrams ratio_unseen_test_ngrams -a FeatureCombine -o results/rsq2-1/perf-transformed+combined.csv
+#python cli.py tsa-augment -i results/rsq2-1/perf.csv --skip-features jensen_shannon_divergence jensen_shannon_distance ratio_unseen_unique_test_ngrams ratio_unseen_test_ngrams -a FeatureCombine -o results/rsq2-1/perf-combined.csv
+#python cli.py tsa-concat -i results/rsq2-1/perf-combined.csv results/rsq2-1/perf-transformed.csv -o results/rsq2-1/perf-augmented.csv --common syscalls
 
-python cli.py tsa-augment -i results/rsq2-1/rsq2-1-dd.csv --skip-features jensen_shannon_divergence jensen_shannon_distance ratio_unseen_unique_test_ngrams ratio_unseen_test_ngrams -a FeatureTransform -o results/rsq2-1/dd-transformed.csv
-python cli.py tsa-augment -i results/rsq2-1/dd-transformed.csv --skip-features jensen_shannon_divergence jensen_shannon_distance ratio_unseen_unique_test_ngrams ratio_unseen_test_ngrams -a FeatureCombine -o results/rsq2-1/dd-transformed+combined.csv
+python cli.py tsa-augment -i results/rsq2-1/dd.csv --skip-features jensen_shannon_divergence jensen_shannon_distance ratio_unseen_unique_test_ngrams ratio_unseen_test_ngrams -a FeatureTransform -o results/rsq2-1/dd-augmented.csv
+#python cli.py tsa-augment -i results/rsq2-1/dd.csv --skip-features jensen_shannon_divergence jensen_shannon_distance ratio_unseen_unique_test_ngrams ratio_unseen_test_ngrams -a FeatureCombine -o results/rsq2-1/dd-combined.csv
+#python cli.py tsa-concat -i results/rsq2-1/dd-combined.csv results/rsq2-1/dd-transformed.csv -o results/rsq2-1/dd-augmented.csv --common syscalls
+#python cli.py tsa-augment -i results/rsq2-1/dd-transformed.csv --skip-features jensen_shannon_divergence jensen_shannon_distance ratio_unseen_unique_test_ngrams ratio_unseen_test_ngrams -a FeatureCombine -o results/rsq2-1/dd-transformed+combined.csv
