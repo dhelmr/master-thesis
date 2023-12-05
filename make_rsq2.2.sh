@@ -9,7 +9,7 @@ python cli.py tsa-ngram-auc -i results/analysis-all-ngrams.csv -o results/rsq2-2
 
 python cli.py tsa-concat -i results/rsq2-2/analysis-all-ngrams-auc.csv results/data-drift-no-attacks.csv -o results/rsq2-2/dd-ngrams.csv --common syscalls --skip unique_ngrams/total unique_ngrams total $IGNORE_ZIPF_FEATURES
 
-python cli.py tsa-concat -i results/rsq2-2/thread_matrix-n3-suffix.csv results/data-drift-no-attacks.csv -o results/rsq2-2/dd-thread-n3.csv --common syscalls --skip unique_ngrams/total unique_ngrams total $IGNORE_ZIPF_FEATURES
+python cli.py tsa-concat -i results/rsq2-2/thread_matrix-n3-suffix.csv results/data-drift-no-attacks.csv -o results/rsq2-2/dd-threads-n3.csv --common syscalls --skip unique_ngrams/total unique_ngrams total $IGNORE_ZIPF_FEATURES
 
 python cli.py tsa-combine --statistics-csv results/rsq2-2/analysis-all-ngrams-auc.csv -e $EXPERIMENT_PREFIX/analysis-stide-max_syscalls.search.yaml -o results/rsq2-2/perf-ngrams.csv
 
