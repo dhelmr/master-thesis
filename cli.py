@@ -13,6 +13,7 @@ from tsa.cli.tsa_correlate import TSACorrelateSubCommand
 from tsa.cli.tsa_cv import TSACrossValidateSubCommand
 from tsa.cli.tsa_dl import TSADownloaderSubCommand
 from tsa.cli.tsa_eval_fs import TSAEvalFsSubCommand
+from tsa.cli.tsa_find_threshold import TSAFindThresholdSubCommand
 from tsa.cli.tsa_fs import TSAFsSubCommand
 from tsa.cli.tsa_ngram_auc import TSANgramAUCSubCommand
 from tsa.cli.tsa_ruleminer import TSARuleMinerSubCommand
@@ -33,7 +34,8 @@ commands = [RunSubCommand(),
             TSAStatsSubCommand(),
             TSANgramAUCSubCommand(),
             TSAConcatSubCommand(),
-            TSAEvalFsSubCommand()
+            TSAEvalFsSubCommand(),
+            TSAFindThresholdSubCommand()
             ]
 
 if __name__ == '__main__':
