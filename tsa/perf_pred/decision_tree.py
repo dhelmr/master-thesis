@@ -21,39 +21,43 @@ from subprocess import call
 class DecisionTree(PerformancePredictor):
 
     def __init__(self, cli_args=[]):
+
         parser = argparse.ArgumentParser()
         parser.add_argument("--max-depth", default=5, type=int)
+        parser.add_argument("--minmax-scaling", default=False, action="store_true")
         #parser.add_argument("--min-samples-leaf", default=3, type=int)
         args = parser.parse_args(cli_args)
-        self.clf_args = vars(args)
+        self.max_depth = args.max_depth
+        self.minmax_scaling = args.minmax_scaling
 
+        self.pipeline = None
+        self.feature_names = []
         self.reset()
 
     def train(self, train_X: pandas.DataFrame, train_y: numpy.ndarray):
         train_X = self._preprocess(train_X)
-        train_set = train_X.values
-        #X_train_scaled = self.prepr_pl.fit_transform(train_set)
-        X_train_scaled = train_set
         self.feature_names = list(train_X.columns)
-        self.clf.fit(X_train_scaled, train_y)
+        self.pipeline.fit(train_X.values, train_y)
 
     def predict(self, test_X: pandas.DataFrame) -> numpy.ndarray:
         test_X = self._preprocess(test_X)
-        #X_test_scaled = self.prepr_pl.transform(test_X.values)
-        X_test_scaled = test_X.values
-        preds = self.clf.predict(X_test_scaled)
-        return preds
+        predictions = self.pipeline.predict(test_X.values)
+        return predictions
 
     def _preprocess(self, df):
         df = df.replace([np.inf, -np.inf], np.nan)
         return df.fillna(0)
     def reset(self):
-        self.clf = DecisionTreeClassifier(random_state=1, **self.clf_args)
-        # self.prepr_pl = Pipeline([("min-max", MinMaxScaler())])
-        #self.prepr_pl = Pipeline([])
+        self.clf = DecisionTreeClassifier(random_state=1, max_depth=self.max_depth)
+        if self.minmax_scaling:
+            self.pipeline = Pipeline([("min-max", MinMaxScaler()), ("clf", self.clf)])
+        else:
+            self.pipeline = Pipeline([("clf", self.clf)])
         self.feature_names=[]
 
-    def extract_rules(self, out_path: str, class_names = ["0", "1"]):
+    def extract_rules(self, out_path: str, class_names=None):
+        if class_names is None:
+            class_names = ["0", "1"]
         tree_rules = export_text(self.clf, feature_names=self.feature_names, decimals=6)
         dt_to_svg(self.clf, feature_names=self.feature_names, target_names=class_names, out_path=out_path)
         return tree_rules
