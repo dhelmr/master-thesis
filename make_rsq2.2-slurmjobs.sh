@@ -8,11 +8,11 @@ SLURM_MEM_GB=30 SLURM_HOURS=48 slurm/run.sh tsa-fs -i results/rsq2-2/$1.csv -o r
 }
 
 function iterdepth {
-  run $1 2 5 "$2"
-  run $1 3 5 "$2"
-  run $1 5 5 "$2"
-  run $1 10 5 "$2"
-  run $1 20 5 "$2"
+  run $1 2 4 "$2"
+  run $1 3 4 "$2"
+  run $1 5 4 "$2"
+  run $1 10 4 "$2"
+  run $1 20 4 "$2"
 }
 
 iterdepth dd-ngrams-augmented "--target jensen_shannon_divergence --threshold 0.0039 --reverse-classes"
