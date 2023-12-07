@@ -54,5 +54,3 @@ dataloader:
     - 3
     - 5
     - 10
-
-id: thread-freq.yaml
