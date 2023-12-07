@@ -47,10 +47,11 @@ class TSACrossValidateSubCommand(SubCommand):
         parser.add_argument("--threshold", default=0.8, type=float)
         parser.add_argument("--reverse-classes", default=False, action="store_true")
         parser.add_argument("--scenario-column", default="scenario")
+        parser.add_argument("--skip-features", "-s", required=False, nargs="+", default=[])
         parser.add_argument("--out", "-o", required=True)
 
     def exec(self, args, parser, unknown_args):
-        data = load_data(args.input, args.scenario_column, args.features)
+        data = load_data(args.input, args.scenario_column, args.features, skip_features=args.skip_features)
         all_stats = []
         for predictor_name in args.predictor:
             predictor = PREDICTORS[predictor_name](unknown_args)
