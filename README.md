@@ -14,6 +14,10 @@ In order to run and evaluate the experiments for the thesis, this reposistory of
 
 TODO: kurze Erklärung der einzelnen sub-commands
 
+## Setup MLflow
+
+TODO
+
 ## Reproducing Experiments
 
 The following shows how the results of the master's thesis can be reproduced.
