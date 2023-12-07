@@ -24,7 +24,7 @@ class NgramThreadEntropy(BuildingBlock):
                  anomaly_fn="homographic",
                  thread_anomaly_fn="max-scaled",
                  thread_anomaly_fn_alpha=2,
-                 entropy_alpha=3,
+                 entropy_alpha=1,
                  combine="arithmetic",
                  entropy_scale=1,
                  features=None):
@@ -76,16 +76,24 @@ class NgramThreadEntropy(BuildingBlock):
     def fit(self):
         self.freq_anomaly_fn.set_max_count(self._ngram_frequencies.max_count())
         self.thread_anomaly_fn.set_max_count(len(self._observed_thread_ids))
-        max_entropy = math.log(len(self._observed_thread_ids))
+        norm_entropies = self._calc_norm_entropies()
+        max_norm_entropy = max(norm_entropies.values())
         for ngram, thread_dist in self._thread_distributions.items():
-            normalized_entropy = thread_dist.entropy() / max_entropy
-            entropy_anomaly_value = pow(1-normalized_entropy, self._entropy_alpha)/self._entropy_scale
+            # entropy_anomaly_value = pow(1-normalized_entropy, self._entropy_alpha)/self._entropy_scale
             ngram_freq = self._ngram_frequencies.get_count(ngram)
             n_threads = len(thread_dist.keys())
+            norm_entropy_anomaly_value = 1 - (norm_entropies[ngram] / max_norm_entropy)
             anomaly_value = self._combine_scores(freq_score=self.freq_anomaly_fn.anomaly_value(ngram_freq),
                                                  thread_freq_score=self.thread_anomaly_fn.anomaly_value(n_threads),
-                                                 normalized_entropy=entropy_anomaly_value)
+                                                 normalized_entropy=norm_entropy_anomaly_value)
             self._anomaly_values[ngram] = anomaly_value
+
+    def _calc_norm_entropies(self):
+        norm_entropies = {}
+        max_entropy = math.log(len(self._observed_thread_ids))
+        for ngram, thread_dist in self._thread_distributions.items():
+            norm_entropies[ngram] = thread_dist.entropy() / max_entropy
+        return norm_entropies
 
     def _combine_scores(self, freq_score, thread_freq_score, normalized_entropy):
         features = []
@@ -107,7 +115,7 @@ class NgramThreadEntropy(BuildingBlock):
             product = 1
             for f in features:
                 product = product * f
-            return math.pow(product, 1/len(features))
+            return math.pow(product, 1 / len(features))
 
     def _calculate(self, syscall: Syscall):
         """
