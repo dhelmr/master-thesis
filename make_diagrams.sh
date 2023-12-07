@@ -16,9 +16,9 @@ python cli.py eval --config experiments/slurm/f-stide/f-stide-homographic-a0.5.y
 python cli.py eval --config experiments/slurm/f-stide/f-stide-exp-a0.3.yaml experiments/slurm/f-stide/f-stide-exp-a0.5.yaml experiments/slurm/f-stide/f-stide-exp-a0.7.yaml experiments/slurm/f-stide/f-stide-exp-a0.9.yaml experiments/slurm/f-stide/f-stide-exp-a0.95.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/f-stide-exp --names exp-0.3 exp-0.5 exp-0.7 exp-0.9 exp-0.95
 python cli.py eval --config experiments/slurm/f-stide/f-stide-exp-a0.3.yaml experiments/slurm/f-stide/f-stide-exp-a0.5.yaml experiments/slurm/f-stide/f-stide-exp-a0.7.yaml experiments/slurm/f-stide/f-stide-exp-a0.9.yaml experiments/slurm/f-stide/f-stide-exp-a0.95.yaml experiments/slurm/f-stide/f-stide-homographic-a0.5.yaml experiments/slurm/f-stide/f-stide-homographic-a2.yaml experiments/slurm/f-stide/f-stide-homographic-a5.yaml experiments/slurm/f-stide/f-stide-max-scaled.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/f-stide --names exp-0.3 exp-0.5 exp-0.7 exp-0.9 exp-0.95 hom-0.5 hom-2 hom-5 linear
 
-# thread-f-STIDE, tfidf-STIDE
+# thread-f-STIDE, tfidf-STIDE, norm-entropy-stide
 
-python cli.py eval --config experiments/slurm/thread-f-stide/thread-freq-homographic-a1.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a2.yaml experiments/slurm/tfidf-stide/tfidf_stide-mean-1.5.yaml experiments/slurm/tfidf-stide/tfidf_stide-mean-1.yaml --cache $MLFLOW_CACHE --artifacts-dir $ARTIFACTS_DIR/thread-based-stide-acc --names thread-f-stide-hom-1 thread-f-stide-hom-2 tfidf-stide-1.5 tfidf-stide-1
+python cli.py eval --config experiments/slurm/thread-f-stide/norm_entropy.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a1.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a2.yaml experiments/slurm/tfidf-stide/tfidf_stide-mean-1.5.yaml experiments/slurm/tfidf-stide/tfidf_stide-mean-1.yaml --cache $MLFLOW_CACHE --artifacts-dir $ARTIFACTS_DIR/thread-based-stide-acc --names norm-entropy-stide thread-f-stide-hom-1 thread-f-stide-hom-2 tfidf-stide-1.5 tfidf-stide-1
 
 # frequency OD
 

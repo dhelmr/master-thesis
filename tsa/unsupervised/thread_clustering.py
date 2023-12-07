@@ -34,6 +34,7 @@ def binary_jaccard_distance(u, v):
             sum_or += 1
     return (1 - sum_and / sum_or) if sum_or != 0 else 0
 
+
 def binary_hamming(u, v):
     distance = 0
     for i in range(len(u)):
@@ -44,25 +45,30 @@ def binary_hamming(u, v):
         distance += 1
     return distance
 
+
 _SQRT2 = np.sqrt(2)
 
 
 def hellinger(u, v):
     return euclidean(np.sqrt(u), np.sqrt(v)) / _SQRT2
 
-
 def jaccard_hellinger(u, v):
     return binary_jaccard_distance(u, v) * hellinger(u, v)
 
-def jaccard_cosine(u,v ):
+def jaccard_cosine(u, v):
     return binary_jaccard_distance(u, v) * cosine(u, v)
+
+def binary_weighted_cosine(u, v):
+    return 1 - (1 - binary_jaccard_distance(u, v)) * (1 - cosine(u, v))
+
 
 DISTANCE_FN = {
     "jaccard-cosine": jaccard_cosine,
     "binary-jaccard": binary_jaccard_distance,
     "hellinger": hellinger,
     "binary-hamming": binary_hamming,
-    "jaccard-hellinger": jaccard_hellinger
+    "jaccard-hellinger": jaccard_hellinger,
+    "binary-weighted-cosine": binary_weighted_cosine
 }
 
 
@@ -70,7 +76,8 @@ class ThreadClusteringOD(OutlierDetector):
 
     def __init__(self, building_block, train_features=None, n_components=2, distance="jaccard-cosine", tf_idf=False,
                  skip_mds: bool = False, thread_based=True, normalize_rows=False, normalize_ord=1, metric_mds=True,
-                 plot_mds=False, od_method: str = "IsolationForest", fill_na=False, od_kwargs=None, cache_key=None, **kwargs):
+                 plot_mds=False, od_method: str = "IsolationForest", fill_na=False, od_kwargs=None, cache_key=None,
+                 **kwargs):
         super().__init__(building_block, train_features, cache_key)
         if od_kwargs is None:
             od_kwargs = {}
@@ -97,10 +104,12 @@ class ThreadClusteringOD(OutlierDetector):
         self._fill_na = fill_na
         self._plot_mds = plot_mds
         self._cache_key = cache_key
-        self._skip_training_data = self._cache_key is not None and os.path.exists(self._cache_key_to_path(self._cache_key))
+        self._skip_training_data = self._cache_key is not None and os.path.exists(
+            self._cache_key_to_path(self._cache_key))
         self._matrix_builder = None if self._skip_training_data else NgramThreadMatrix()
         if self._skip_training_data:
             self.train_on = BuildingBlock().train_on
+
     def _add_training_data(self, index, ngram, syscall):
         if self._skip_training_data:
             return
@@ -136,6 +145,7 @@ class ThreadClusteringOD(OutlierDetector):
             pickle.dump({
                 "matrix": matrix, "training_data": training_data
             }, f)
+
     def detect_anomalies(self, training_data):
         # counts_by_thread = dict()
         #
@@ -177,7 +187,6 @@ class ThreadClusteringOD(OutlierDetector):
             distance_matrix = np.where(np.isnan(distance_matrix), 1, distance_matrix)
             distance_matrix = np.where(np.isinf(distance_matrix), 1, distance_matrix)
 
-
         preds = self._do_outlier_detection(distance_matrix)
         anomalous_entities = set()
         if self._thread_based:
@@ -209,7 +218,6 @@ class ThreadClusteringOD(OutlierDetector):
         print("Start Outlier Detection with", self._od.__dict__)
         preds = self._od.fit_predict(X)
         return preds
-
 
 
 def plot(matrix):
