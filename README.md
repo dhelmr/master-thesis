@@ -1,4 +1,25 @@
 
+# README
+
+This repository contains the source code for running the experiments of the master's thesis **TODO**. It bases on the Leipzig Intrusion Detection Data-Set ([LID-DS](https://github.com/LID-DS/LID-DS)). The original README of the LID-DS is also [included](README_LID-DS.md) in this repository. 
+Besides being a dataset for evaluating anomaly-based HIDS, the LID-DS also offers an accompanying python framework, which is used by this project. 
+
+## Installation
+
+TODO
+
+## CLI Overview
+
+In order to run and evaluate the experiments for the thesis, this reposistory offers a command-line tool in `cli.py`. It offers several sub-commands, which can be printed with `python cli.py --help`. 
+
+TODO: kurze Erklärung der einzelnen sub-commands
+
+## Reproducing Experiments
+
+The following shows how the results of the master's thesis can be reproduced.
+
+#### Training Set Suitability Estimation
+
 ## Create csv file containing training set statistics and performance metrics
 
 This assumes that the experiments in `experiments/slurm/analysis/all-ngrams.yaml` and `experiments/slurm/analysis/stide/*` are already completed in mlflow. 
@@ -13,44 +34,3 @@ python cli.py tsa-combine --statistics-csv test-all-ngrams.csv -e $EXPERIMENT_PR
 ```
 
 ---
-
-# LID-DS (Leipzig Intrusion Detection - Data Set)
-
-![LID-DS](https://raw.githubusercontent.com/LID-DS/LID-DS/master/lidds-logo-300.png)
-
-## The LID-DS host based intrusion detection data set.
-* LID-DS 2021: [download](https://cloud.scadsai.uni-leipzig.de/index.php/s/cRswswLo2QfLNYL)
-* LID-DS 2019: [download](https://cloud.scadsai.uni-leipzig.de/index.php/s/HLXiWssriRMt9pp)
-
-## The LID-DS-2021 Lib and Dataloader
-* [wiki](https://github.com/LID-DS/LID-DS/wiki)
-
-## The Recording Framework Version 2021
-* [LID-DS-2021 Recording Framework: Documentation](https://github.com/LID-DS/LID-DS/wiki/LID-DS-Recording-Framework:-Documentation-and-Installation)
-
-## License
-
-Leipzig Intrusion Detection Dataset (LID-DS)
-Copyright (C) 2022 Martin Grimmer, Felix Nirsberger, Tim Kaelble, Emmely Schulze, Toni Rucks, Martin Max Röhling, Dennis Kreußel and Simon Ganz.
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-## Contact
-Leipzig University, Martin Grimmer (grimmer@informatik.uni-leipzig.de).
-
-## Acknowledgements
-
-This work was partly funded by the German Federal Ministry of Education and Research within the project 
-[Explicit Privacy-Preserving Host Intrusion Detection System](http://www.exploids.de)(EXPLOIDS)(BMBF 16KIS0522K) and 
-[Competence Center for Scalable Data Services and Solutions (ScaDS) Dresden/Leipzig](http://www.scads.de) (BMBF 01IS14014B and BMBF 01IS18026B).
