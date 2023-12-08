@@ -13,14 +13,15 @@ from tsa.cli.run import SubCommand, make_experiment, make_experiment_from_path
 from tsa.experiment_checker import ExperimentChecker
 from tsa.perf_pred.cv import CV, PerformanceData
 from tsa.perf_pred.decision_tree import DecisionTree
-from tsa.perf_pred.heuristics import BaselineRandom, BaselineAlways0, BaselineAlways1, BaselineMajorityClass, Heuristic1, Heuristic2
+from tsa.perf_pred.heuristics import BaselineRandom, BaselineAlways0, BaselineAlways1, BaselineMajorityClass, \
+    Heuristic1, Heuristic2, Threshold
 from tsa.perf_pred.logistic_regression import LogisticRegression
 from tsa.perf_pred.random_forrest import RandomForrest
 
 PREDICTORS = {
     cls.__name__: cls for cls in
     [Heuristic1, Heuristic2, BaselineRandom, BaselineAlways1, BaselineAlways0, BaselineMajorityClass, DecisionTree,
-     LogisticRegression, RandomForrest]
+     LogisticRegression, RandomForrest, Threshold]
 }
 
 NON_FEATURE_COLS = [

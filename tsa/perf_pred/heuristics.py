@@ -1,4 +1,5 @@
 import abc
+import argparse
 import random
 from abc import ABC
 
@@ -75,3 +76,26 @@ class Heuristic2(Heuristic):
             return 1
         else:
             return 0
+
+class Threshold(PerformancePredictor):
+    def __init__(self, cli_args=[]):
+        super().__init__(cli_args)
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--threshold-feature", type=str, required=True)
+        parser.add_argument("--threshold-lt", action="store_true", required=True)
+        parser.add_argument("--threshold-value", type=float, required=True)
+        # parser.add_argument("--min-samples-leaf", default=3, type=int)
+        args = parser.parse_args(cli_args)
+        self.clf_args = vars(args)
+
+    def train(self, train_X: pandas.DataFrame, train_y: numpy.ndarray):
+        pass  # do nothing
+    def predict(self, test_X: pandas.DataFrame) -> numpy.ndarray:
+        preds = test_X.apply(self._decide_row, axis=1)
+        return np.array(preds)
+
+    def _decide_row(self, row):
+        if self.clf_args["threshold_lt"]:
+            return 1 if row[self.clf_args["threshold_feature"]] < self.clf_args["threshold_value"] else 0
+        else:
+            return 1 if row[self.clf_args["threshold_feature"]] >= self.clf_args["threshold_value"] else 0
