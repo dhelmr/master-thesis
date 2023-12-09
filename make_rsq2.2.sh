@@ -2,8 +2,8 @@ set -eux
 # add suffix to thread-ngram features in order to distinguish them
 # "--skip-features unique_ngrams/total unique_ngrams" is set because these statistics are duplicated in the datasets
 IGNORE_ZIPF_FEATURES="ngram_dists-zipf_a_mean ngram_dists-zipf_a_var ngram_dists-zipf_a_min ngram_dists-zipf_a_max ngram_dists-zipf_a_median ngram_dists-zipf_a_iod ngram_dists-zipf_loc_mean ngram_dists-zipf_loc_var ngram_dists-zipf_loc_min ngram_dists-zipf_loc_max ngram_dists-zipf_loc_median ngram_dists-zipf_loc_iod thread_dists-zipf_a_mean thread_dists-zipf_a_var thread_dists-zipf_a_min thread_dists-zipf_a_max thread_dists-zipf_a_median thread_dists-zipf_a_iod thread_dists-zipf_loc_mean thread_dists-zipf_loc_var thread_dists-zipf_loc_min thread_dists-zipf_loc_max thread_dists-zipf_loc_median thread_dists-zipf_loc_iod"
- python cli.py tsa-add-suffix -i results/thread_matrix-n2.csv --suffix '@n2' -o results/rsq2-1/thread_matrix-n2-suffix.csv --skip-features unique_ngrams/total unique_ngrams total $IGNORE_ZIPF_FEATURES
-python cli.py tsa-add-suffix -i results/thread_matrix-n3.csv --suffix '@n3' -o results/rsq2-2/thread_matrix-n3-suffix.csv --skip-features unique_ngrams/total unique_ngrams total $IGNORE_ZIPF_FEATURES
+pd -i results/thread_matrix-n3.csv --drop unique_ngrams/total unique_ngrams total $IGNORE_ZIPF_FEATURES -o results/rsq2-2/thread_matrix-n3.csv
+python cli.py tsa-add-suffix -i results/rsq2-2/thread_matrix-n3.csv --suffix '@n3' -o results/rsq2-2/thread_matrix-n3-suffix.csv
 
 python cli.py tsa-ngram-auc -i results/analysis-all-ngrams.csv -o results/rsq2-2/analysis-all-ngrams-auc.csv --keep-ngram-size 1 5 25
 
