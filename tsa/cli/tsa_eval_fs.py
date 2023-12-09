@@ -25,8 +25,8 @@ class TSAEvalFsSubCommand(SubCommand):
         super().__init__("tsa-eval-fs", "evaluate feature selection results", expect_unknown_args=True)
 
     def make_subparser(self, parser: ArgumentParser):
-        parser.add_argument("-f", "--feature-file", required=True,
-                            help="input feature-selection file (feature selection CSV)")
+        parser.add_argument("-f", "--feature-files", required=True, nargs="+",
+                            help="input feature-selection file(s) (feature selection CSV)")
         parser.add_argument("--out", "-o", required=True)
         parser.add_argument("--input", help="Performance Data CSV", required=True)
         parser.add_argument("--target", default="f1_cfa")
@@ -39,27 +39,38 @@ class TSAEvalFsSubCommand(SubCommand):
                             default="`gain.precision` > 0.01 and `mean.f1_score` > 0.5")
         parser.add_argument("--sort-by", help="Sort feature selection set by ...",
                             default="mean.precision")
+        parser.add_argument("--svgs", required=False, default=False, action="store_true")
 
     def exec(self, args, parser, unknown_args):
         data, rules_miner = TSARuleMinerSubCommand.init_rulesminer(args, unknown_args)
 
-        fs_results = pandas.read_csv(args.feature_file, index_col=False)
-        fs_results["key"] = fs_results.apply(lambda r: self._get_row_key(r["features"].split(";")), axis=1)
-        fs_results.set_index("key", inplace=True)
+        li = []
+        for f in tqdm(args.feature_files):
+            fs_results = pandas.read_csv(f, index_col=False)
+            fs_results["file"] = os.path.basename(f)
+            fs_results["key"] = fs_results.apply(lambda r: self._get_row_key(r["features"].split(";")), axis=1)
+            fs_results.set_index("key", inplace=True)
+            fs_results["gain.precision"] = fs_results.apply(
+                lambda r: self._calc_gain(r, fs_results, variable="mean.precision"), axis=1)
+            li.append(fs_results)
 
-        fs_results["gain.precision"] = fs_results.apply(
-            lambda r: self._calc_gain(r, fs_results, variable="mean.precision"), axis=1)
+        fs_results = pd.concat(li, axis=0, ignore_index=True)
+
         # fs_results["gain"] = fs_results.apply(lambda row:
         # fs_results.to_csv(args.out)
         fs_results = fs_results.query(args.query)
         fs_results.sort_values(by="mean.precision", ascending=False, inplace=True)
-        for i, features in enumerate(fs_results[:5]["features"]):
-            print("Precision Gain:", fs_results.iloc[i]["gain.precision"])
-            feature_set = features.split(";")
-            print(feature_set)
-            split = data.with_features(feature_set).get_split(args.target, [], args.threshold, args.reverse_classes)
-            svg_path = os.path.join(args.out, f"{i}.png")
-            rules_miner.extract_rules(split, svg_path)
+        out_path = os.path.join(args.out, "results.csv")
+        fs_results.to_csv(out_path)
+
+        if args.svgs:
+            for i, features in enumerate(fs_results[:5]["features"]):
+                print("Precision Gain:", fs_results.iloc[i]["gain.precision"])
+                feature_set = features.split(";")
+                print(feature_set)
+                split = data.with_features(feature_set).get_split(args.target, [], args.threshold, args.reverse_classes)
+                svg_path = os.path.join(args.out, f"{i}.png")
+                rules_miner.extract_rules(split, svg_path)
 
     def _get_row_key(self, features):
         key = list(sorted(features))
