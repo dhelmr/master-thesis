@@ -1,0 +1,71 @@
+scenarios:
+  # CWE-89-SQL-injection and PHP_CWE-434
+  - LID-DS-2021/CWE-89-SQL-injection:
+      no_test_attacks: false
+    LID-DS-2021/PHP_CWE-434:
+      no_test_attacks: true
+  - LID-DS-2021/PHP_CWE-434:
+      no_test_attacks: false
+    LID-DS-2021/CWE-89-SQL-injection:
+      no_test_attacks: true
+  # CVE-2014-0160 and Bruteforce_CWE-307
+  - LID-DS-2021/CVE-2014-0160:
+      no_test_attacks: false
+    LID-DS-2021/Bruteforce_CWE-307:
+      no_test_attacks: true
+  - LID-DS-2021/Bruteforce_CWE-307:
+      no_test_attacks: false
+    LID-DS-2021/CVE-2014-0160:
+      no_test_attacks: true
+  # all 6 combinations of CVE-2017-7529, CVE-2012-2122, CVE-2020-23839
+  - LID-DS-2021/CVE-2017-7529:
+      no_test_attacks: false
+    LID-DS-2021/CVE-2012-2122:
+      no_test_attacks: true
+  - LID-DS-2021/CVE-2017-7529:
+      no_test_attacks: false
+    LID-DS-2021/CVE-2020-23839:
+      no_test_attacks: true
+  - LID-DS-2021/CVE-2012-2122:
+      no_test_attacks: false
+    LID-DS-2021/CVE-2020-23839:
+      no_test_attacks: true
+  - LID-DS-2021/CVE-2012-2122:
+      no_test_attacks: false
+    LID-DS-2021/CVE-2017-7529:
+      no_test_attacks: true
+  - LID-DS-2021/CVE-2020-23839:
+      no_test_attacks: false
+    LID-DS-2021/CVE-2017-7529:
+      no_test_attacks: true
+  - LID-DS-2021/CVE-2020-23839:
+      no_test_attacks: false
+    LID-DS-2021/CVE-2012-2122:
+      no_test_attacks: true
+ids:
+  - name: IntEmbedding
+  - name: Ngram
+    args:
+      thread_aware: true
+      ngram_length: 5
+  - name: SystemCallGraph
+  - name: StreamSum
+    args:
+      thread_aware: False
+      wait_until_full: False
+      window_length: 1000
+  - name: MaxScoreThreshold
+dataloader:
+  base:
+    cont_ratio: 0.2
+  permutation_i:
+    - 0
+    - 1
+    - 2
+  num_attacks:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 5
+    - 10
