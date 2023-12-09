@@ -1,20 +1,15 @@
-import os
-import sys
-import tempfile
 from argparse import ArgumentParser
 from statistics import mean, median
 
-import mlflow
 import pandas
 import pandas as pd
-from mlflow import MlflowClient
 from tqdm import tqdm
 
-from tsa.cli.run import SubCommand, make_experiment, make_experiment_from_path
-from tsa.cli.tsa_combine import METRIC_KEYS
+from tsa.cli.run import SubCommand
 from tsa.cli.tsa_cv import load_data
-from tsa.experiment_checker import ExperimentChecker
-from tsa.mlflow.experiment_name_conversion import ExperimentNameConversion
+from tsa.perf_pred.cv import CV
+from tsa.perf_pred.heuristics import Threshold
+
 
 class TSAFindThresholdSubCommand(SubCommand):
 
@@ -24,6 +19,7 @@ class TSAFindThresholdSubCommand(SubCommand):
     def make_subparser(self, parser: ArgumentParser):
         parser.add_argument("-i", "--input", required=True,
                             help="input data file (training set statistics -> performance)")
+        parser.add_argument("--cv-data", required=True)
         parser.add_argument("--features", "-f", required=False, nargs="+", default=None)
         parser.add_argument("--target", required=True)
         parser.add_argument("--start", default=0, type=float)
@@ -34,13 +30,26 @@ class TSAFindThresholdSubCommand(SubCommand):
 
     def exec(self, args, parser, unknown_args):
         data = load_data(args.input, args.scenario_column, args.features)
+        cv_data = load_data(args.cv_data, args.scenario_column, args.features)
+        leave_out = len(data.get_scenarios())-1
+
         stats = []
         for threshold in tqdm(float_range(args.start, args.end, args.step)):
+            cv = CV(
+                cv_data.with_features([args.target]),
+                predictor=Threshold(["--threshold-feature", args.target, "--threshold-lt", "--threshold-value", str(threshold)]),
+                cv_leave_out=leave_out
+            )
+            cv_stats = cv.run("f1_cfa", 0.8, reverse_classes=False)
             stat = self.make_stats(data, threshold, args.target)
-            stat["cost"] = self.calc_costs(stat)
+            stat["balance_cost"] = self.calc_costs(stat)
+            stat = {
+                **stat,
+                **cv_stats
+            }
             stats.append(stat)
         stats = pandas.DataFrame(stats)
-        stats = stats.sort_values(by=["mean_min_fractions"])
+        stats = stats.sort_values(by=["balance_cost"])
         stats.to_csv(args.output)
 
 
