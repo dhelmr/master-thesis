@@ -15,10 +15,15 @@ function iterdepth {
   run $1 20 4 "$2"
 }
 
-iterdepth dd-ngrams-augmented "--target jensen_shannon_divergence --threshold 0.0039 --reverse-classes"
-iterdepth dd-ngrams-augmented "--target ratio_unseen_test_ngrams --threshold 0.0078 --reverse-classes"
-iterdepth dd-threads-n3-augmented "--target jensen_shannon_divergence --threshold 0.0039 --reverse-classes"
-iterdepth dd-threads-n3-augmented "--target ratio_unseen_test_ngrams --threshold 0.0078 --reverse-classes"
+ln -s results/rsq2-2/dd-ngrams-augmented.csv results/rsq2-2/dd-ngrams-augmented-jsd.csv
+ln -s results/rsq2-2/dd-ngrams-augmented.csv results/rsq2-2/dd-ngrams-augmented-rutn.csv
+ln -s results/rsq2-2/dd-threads-n3-augmented.csv results/rsq2-2/dd-threads-n3-augmented-jsd.csv
+ln -s results/rsq2-2/dd-threads-n3-augmented.csv results/rsq2-2/dd-threads-n3-augmented-rutn.csv
+
+iterdepth dd-ngrams-augmented-jsd "--target jensen_shannon_divergence --threshold 0.0039 --reverse-classes"
+iterdepth dd-ngrams-augmented-rutn "--target ratio_unseen_test_ngrams --threshold 0.0078 --reverse-classes"
+iterdepth dd-threads-n3-augmented-jsd "--target jensen_shannon_divergence --threshold 0.0039 --reverse-classes"
+iterdepth dd-threads-n3-augmented-rutn "--target ratio_unseen_test_ngrams --threshold 0.0078 --reverse-classes"
 
 iterdepth perf-ngrams-augmented "--target f1_cfa --threshold 0.8"
 iterdepth perf-threads-n3-augmented  "--target f1_cfa --threshold 0.8"

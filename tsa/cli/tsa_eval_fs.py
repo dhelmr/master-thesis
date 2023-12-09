@@ -40,6 +40,8 @@ class TSAEvalFsSubCommand(SubCommand):
         parser.add_argument("--sort-by", help="Sort feature selection set by ...",
                             default="mean.precision")
         parser.add_argument("--svgs", required=False, default=False, action="store_true")
+        parser.add_argument("--add-max-depth-column", required=False, default=False, action="store_true",
+                            help="If set, the max-depth for the decision tree in feature selection method is parsed from the file name.")
 
     def exec(self, args, parser, unknown_args):
         data, rules_miner = TSARuleMinerSubCommand.init_rulesminer(args, unknown_args)
@@ -47,17 +49,18 @@ class TSAEvalFsSubCommand(SubCommand):
         li = []
         for f in tqdm(args.feature_files):
             fs_results = pandas.read_csv(f, index_col=False)
-            fs_results["file"] = os.path.basename(f)
+            file_basename = os.path.basename(f)
+            fs_results["file"] = file_basename
             fs_results["key"] = fs_results.apply(lambda r: self._get_row_key(r["features"].split(";")), axis=1)
             fs_results.set_index("key", inplace=True)
             fs_results["gain.precision"] = fs_results.apply(
                 lambda r: self._calc_gain(r, fs_results, variable="mean.precision"), axis=1)
+            if args.add_max_depth_column:
+                fs_results["max_depth"] = self._parse_max_depth_decision_tree(file_basename)
             li.append(fs_results)
 
         fs_results = pd.concat(li, axis=0, ignore_index=True)
 
-        # fs_results["gain"] = fs_results.apply(lambda row:
-        # fs_results.to_csv(args.out)
         fs_results = fs_results.query(args.query)
         fs_results.sort_values(by="mean.precision", ascending=False, inplace=True)
         out_path = os.path.join(args.out, "results.csv")
@@ -85,3 +88,10 @@ class TSAEvalFsSubCommand(SubCommand):
             last_row = fs_results.loc[self._get_row_key(last_features)]
             gain = row[variable] - last_row[variable]
         return gain
+
+    def _parse_max_depth_decision_tree(self, file_name: str):
+        # expected file format is: "*-depth=%{depth}rounds=*.csv"
+        return int(substring(file_name, "-depth=", "rounds="))
+
+def substring(s, before, after):
+    return s[s.index(before)+len(before):s.index(after)]

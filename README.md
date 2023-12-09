@@ -8,15 +8,19 @@ Besides being a dataset for evaluating anomaly-based HIDS, the LID-DS also offer
 
 TODO
 
+For post-processing some of the experiment results, [a command-line interface](https://github.com/dhelmr/pd) to the `pandas` python library is used, which must be installed separately. This is needed for generating latex tables from the results.
+
+### Setup MLflow
+
+TODO
+
 ## CLI Overview
 
 In order to run and evaluate the experiments for the thesis, this reposistory offers a command-line tool in `cli.py`. It offers several sub-commands, which can be printed with `python cli.py --help`. 
 
 TODO: kurze Erklärung der einzelnen sub-commands
 
-## Setup MLflow
 
-TODO
 
 ## Reproducing Experiments
 
