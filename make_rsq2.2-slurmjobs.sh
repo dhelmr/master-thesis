@@ -15,10 +15,10 @@ function iterdepth {
   run $1 20 4 "$2"
 }
 
-ln -s results/rsq2-2/dd-ngrams-augmented.csv results/rsq2-2/dd-ngrams-augmented-jsd.csv
-ln -s results/rsq2-2/dd-ngrams-augmented.csv results/rsq2-2/dd-ngrams-augmented-rutn.csv
-ln -s results/rsq2-2/dd-threads-n3-augmented.csv results/rsq2-2/dd-threads-n3-augmented-jsd.csv
-ln -s results/rsq2-2/dd-threads-n3-augmented.csv results/rsq2-2/dd-threads-n3-augmented-rutn.csv
+ln -s dd-ngrams-augmented.csv results/rsq2-2/dd-ngrams-augmented-jsd.csv
+ln -s dd-ngrams-augmented.csv results/rsq2-2/dd-ngrams-augmented-rutn.csv
+ln -s dd-threads-n3-augmented.csv results/rsq2-2/dd-threads-n3-augmented-jsd.csv
+ln -s dd-threads-n3-augmented.csv results/rsq2-2/dd-threads-n3-augmented-rutn.csv
 
 iterdepth dd-ngrams-augmented-jsd "--target jensen_shannon_divergence --threshold 0.0039 --reverse-classes"
 iterdepth dd-ngrams-augmented-rutn "--target ratio_unseen_test_ngrams --threshold 0.0078 --reverse-classes"
