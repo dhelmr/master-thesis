@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eux
+
 MLFLOW_CACHE=${MLFLOW_CACHE:-results/mlflow_cache}
 ARTIFACTS_DIR=${ARTIFACTS_DIR:-results/test-artifacts}
 
@@ -18,7 +20,7 @@ python cli.py eval --config experiments/slurm/f-stide/f-stide-exp-a0.3.yaml expe
 
 # thread-f-STIDE, tfidf-STIDE, norm-entropy-stide
 
-python cli.py eval --config experiments/slurm/thread-f-stide/norm_entropy.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a1.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a2.yaml experiments/slurm/tfidf-stide/tfidf_stide-mean-1.5.yaml experiments/slurm/tfidf-stide/tfidf_stide-mean-1.yaml --cache $MLFLOW_CACHE --artifacts-dir $ARTIFACTS_DIR/thread-based-stide-acc --names norm-entropy-stide thread-f-stide-hom-1 thread-f-stide-hom-2 tfidf-stide-1.5 tfidf-stide-1
+python cli.py eval --config experiments/slurm/thread-f-stide/norm_entropy.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a1.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a2.yaml experiments/slurm/tfidf-stide/tfidf_stide-mean-1.5.yaml experiments/slurm/tfidf-stide/tfidf_stide-mean-1.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/thread-based-stide-acc --names norm-entropy-stide thread-f-stide-hom-1 thread-f-stide-hom-2 tfidf-stide-1.5 tfidf-stide-1
 
 # frequency OD
 
