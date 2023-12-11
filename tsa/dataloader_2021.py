@@ -51,7 +51,7 @@ class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
             category=TEST
         )
         exploits = [t for t in test_recordings if t.metadata()["exploit"] == True]
-        for_training, _ = split_list(exploits, self._cont_ratio)
+        for_training, for_test = split_list(exploits, self._cont_ratio)
         contaminated_recording_names = [r.name for r in for_training]
         # TODO handle case num_attacks > len(contaminated_recording_names)
         self._contaminated_recordings = set(
@@ -59,7 +59,8 @@ class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
         self._exclude_recordings = set(
             [r for r in contaminated_recording_names if r not in self._contaminated_recordings])
         if self._no_test_attacks:
-            self._exclude_recordings = set(contaminated_recording_names)
+            print("Exclude all")
+            self._exclude_recordings = set([r.name for r in for_test])
 
     def training_data(self, recording_type: RecordingType = None) -> list:
         training_data = super().training_data()
