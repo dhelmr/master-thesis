@@ -49,7 +49,6 @@ ids:
       window_size: 9
       epochs: 200
       vector_size: 11
-    cache_key: true
   - name: Ngram
     args:
       thread_aware: true
@@ -59,7 +58,6 @@ ids:
      epochs: 100
      sigma: 1.0
   - name: MaxScoreThreshold
-cache: true
 dataloader:
   base:
     cont_ratio: 0.2
