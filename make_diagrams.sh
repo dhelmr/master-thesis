@@ -5,22 +5,29 @@ set -eux
 MLFLOW_CACHE=${MLFLOW_CACHE:-results/mlflow_cache}
 ARTIFACTS_DIR=${ARTIFACTS_DIR:-results/test-artifacts}
 
+mkdir -p "$ARTIFACTS_DIR"
+
 # baseline
 
 python cli.py eval --config experiments/slurm/baseline/{stide,som,scg}.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/baseline --names STIDE SOM SCG
 
 # combined scenarios
+python cli.py eval --config experiments/slurm/combined/baseline/stide.yaml experiments/slurm/combined/baseline-same-attacks/stide.yaml experiments/slurm/combined/baseline/scg.yaml experiments/slurm/combined/baseline-same-attacks/scg.yaml experiments/slurm/combined/baseline/som.yaml experiments/slurm/combined/baseline-same-attacks/som.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/baseline-combined-scenarios --names "STIDE (different attacks)" "STIDE (same attacks)" "SCG (different attacks)" "SCG (same attacks)" "SOM (different attacks)" "SOM (same attacks)"
 
-python cli.py eval --config experiments/slurm/combined/baseline/{stide,som,scg}.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/baseline-combined-scenarios --names STIDE SOM SCG
+# STIDE with different n-gram lengths
+
+python cli.py eval --config experiments/slurm/baseline/stide-n2.yaml experiments/slurm/baseline/stide-n3.yaml experiments/slurm/baseline/stide.yaml experiments/slurm/baseline/stide-n6.yaml experiments/slurm/baseline/stide-n7.yaml experiments/slurm/baseline/stide-n10.yaml experiments/slurm/baseline/stide-n15.yaml experiments/slurm/baseline/stide-n20.yaml  --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/baseline-stide-ngram-lengths --names n=2 n=3 n=5 n=6 n=7 n=10 n=15 n=20
+
+
 # f-STIDE
 
-python cli.py eval --config experiments/slurm/f-stide/f-stide-homographic-a0.5.yaml experiments/slurm/f-stide/f-stide-homographic-a2.yaml experiments/slurm/f-stide/f-stide-homographic-a5.yaml experiments/slurm/f-stide/f-stide-max-scaled.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/f-stide-hom-linear --names hom-0.5 hom-2 hom-5 linear
-python cli.py eval --config experiments/slurm/f-stide/f-stide-exp-a0.3.yaml experiments/slurm/f-stide/f-stide-exp-a0.5.yaml experiments/slurm/f-stide/f-stide-exp-a0.7.yaml experiments/slurm/f-stide/f-stide-exp-a0.9.yaml experiments/slurm/f-stide/f-stide-exp-a0.95.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/f-stide-exp --names exp-0.3 exp-0.5 exp-0.7 exp-0.9 exp-0.95
+python cli.py eval --config experiments/slurm/baseline/stide.yaml experiments/slurm/f-stide/f-stide-homographic-a0.5.yaml experiments/slurm/f-stide/f-stide-homographic-a2.yaml experiments/slurm/f-stide/f-stide-homographic-a5.yaml experiments/slurm/f-stide/f-stide-max-scaled.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/f-stide-hom-linear --names "baseline (STIDE)" hom-0.5 hom-2 hom-5 linear
+python cli.py eval --config experiments/slurm/baseline/stide.yaml experiments/slurm/f-stide/f-stide-exp-a0.3.yaml experiments/slurm/f-stide/f-stide-exp-a0.5.yaml experiments/slurm/f-stide/f-stide-exp-a0.7.yaml experiments/slurm/f-stide/f-stide-exp-a0.9.yaml experiments/slurm/f-stide/f-stide-exp-a0.95.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/f-stide-exp --names "baseline (STIDE)" exp-0.3 exp-0.5 exp-0.7 exp-0.9 exp-0.95
 python cli.py eval --config experiments/slurm/f-stide/f-stide-exp-a0.3.yaml experiments/slurm/f-stide/f-stide-exp-a0.5.yaml experiments/slurm/f-stide/f-stide-exp-a0.7.yaml experiments/slurm/f-stide/f-stide-exp-a0.9.yaml experiments/slurm/f-stide/f-stide-exp-a0.95.yaml experiments/slurm/f-stide/f-stide-homographic-a0.5.yaml experiments/slurm/f-stide/f-stide-homographic-a2.yaml experiments/slurm/f-stide/f-stide-homographic-a5.yaml experiments/slurm/f-stide/f-stide-max-scaled.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/f-stide --names exp-0.3 exp-0.5 exp-0.7 exp-0.9 exp-0.95 hom-0.5 hom-2 hom-5 linear
 
 # thread-f-STIDE, tfidf-STIDE, norm-entropy-stide
 
-python cli.py eval --config experiments/slurm/thread-f-stide/norm_entropy.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a1.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a2.yaml experiments/slurm/tfidf-stide/tfidf_stide-mean-1.5.yaml experiments/slurm/tfidf-stide/tfidf_stide-mean-1.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/thread-based-stide-acc --names norm-entropy-stide thread-f-stide-hom-1 thread-f-stide-hom-2 tfidf-stide-1.5 tfidf-stide-1
+python cli.py eval --config experiments/slurm/thread-f-stide/norm_entropy.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a1.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a2.yaml experiments/slurm/tfidf-stide/tfidf_stide-mean-1.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/thread-based-stide-acc --names norm-entropy-stide thread-f-stide-hom-1 thread-f-stide-hom-2 tfidf-stide
 
 # frequency OD
 
@@ -37,7 +44,7 @@ python cli.py eval --config experiments/slurm/preprocessing/thread-od/tfidf-lof-
 python cli.py eval --config experiments/slurm/preprocessing/thread-od/lof-jaccard-cosine-n1.yaml experiments/slurm/preprocessing/thread-od/lof-jaccard-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/lof-jaccard-cosine-n3.yaml experiments/slurm/baseline/stide.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/thread-od --names n=1 n=2 n=3 "baseline (stide)"
 
 # 
-python cli.py eval --config experiments/slurm/preprocessing/thread-od/lof-{binary-jaccard,jds}-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-hellinger-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jds-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-canberra-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-chebyshev-n2.yaml experiments/slurm/baseline/stide.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/thread-od-distances --names binary-hamming "jsd" tfidf+cosine tfidf+jaccard-cosin tfidf+jaccard-hellinger tfidf+jsd tfidf+canberra tfidf+chebyshev "baseline (stide)"
+python cli.py eval --config experiments/slurm/preprocessing/thread-od/lof-{binary-jaccard,jds}-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-hellinger-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jds-n2.yaml experiments/slurm/baseline/stide.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/thread-od-distances --names binary-hamming "jsd" tfidf+cosine tfidf+jaccard-cosine tfidf+jaccard-hellinger tfidf+jsd "baseline (stide)"
 
 # SOM experiments
 
@@ -53,15 +60,15 @@ python cli.py eval --config experiments/slurm/som/sample-{0.95,0.99}.yaml experi
 # SCG Accomodation
 python cli.py eval --config experiments/slurm/baseline/scg{,-thread-wise-graphs}.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/scg --names "SCG baseline" thread-wise-graphs
 
-# Combination THread-OD + thread-f-stide
+# Combination Thread-OD + thread-f-stide
 
-python cli.py eval --config experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-cosine.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a2.yaml experiments/slurm/combination/stide/lof-cosine+thread-freq-homographic-a2.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/combination-stide-thread-od --names "Only Thread OD" "Only thread-f-stide" "Combination"
+python cli.py eval --config experiments/slurm/preprocessing/thread-od/tfidf-lof-cosine-n2.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a2.yaml experiments/slurm/combination/stide/lof-cosine+thread-freq-homographic-a2.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/combination-stide-thread-od --names "Only Thread OD" "Only thread-f-stide" "Thread OD + thread-f-stide"
+
+# Combination Thread-OD + norm-entropy-stide
+
+python cli.py eval --config experiments/slurm/preprocessing/thread-od/tfidf-lof-cosine-n2.yaml experiments/slurm/thread-f-stide/norm_entropy.yaml experiments/slurm/combination/stide/lof-cosine+norm-entropy.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/combination-norm-entropy-stide-thread-od --names "Only Thread OD" "Only norm-entropy-stide" "Thread OD + norm-entropy-stide"
 
 # Combination THread-OD + SCG
 
 python cli.py eval --config experiments/slurm/baseline/scg{,-thread-wise-graphs}.yaml experiments/slurm/combination/scg/lof-cosine+scg-baseline.yaml  experiments/slurm/combination/scg/lof-cosine+thread-wise.yaml --cache $MLFLOW_CACHE $ADDITIONAL_OPTIONS --artifacts-dir $ARTIFACTS_DIR/combination-scg-thread-od --names "SCG baseline" "Only SCG with thread-wise graphs" "Thread-OD + SCG baseline" "Thread OD + SCG with thread-wise graphs"
 
-for f in $(find $ARTIFACTS_DIR -type f -name '*.svg'); do
-  rsvg-convert -f pdf -o $f.pdf $f
-  pdfcrop --margin 1 $f.pdf $f.pdf
-done

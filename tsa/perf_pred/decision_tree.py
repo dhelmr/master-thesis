@@ -74,4 +74,4 @@ def dt_to_svg(dt, feature_names, target_names, out_path):
     print(tmp_file)
 
     # Convert to png using system command (requires Graphviz)
-    call(['dot', '-Tpng', tmp_file, '-o', out_path, '-Gdpi=600'])
+    call(['dot', '-Tsvg', tmp_file, '-o', out_path])

@@ -34,7 +34,7 @@ class TSAEvalFsSubCommand(SubCommand):
         parser.add_argument("--reverse-classes", default=False, action="store_true")
         parser.add_argument("--scenario-column", default="scenario")
         parser.add_argument("-p", "--predictor", help="Name of the Predictor", choices=PREDICTORS.keys(),
-                            default=list(PREDICTORS.keys()))
+                            default="DecisionTree")
         parser.add_argument("-q", "--query", help="Query for filtering the feature selection set",
                             default="`gain.precision` > 0.01 and `mean.f1_score` > 0.5")
         parser.add_argument("--sort-by", help="Sort feature selection set by ...",
