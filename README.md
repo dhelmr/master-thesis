@@ -112,9 +112,9 @@ With this, the mlflow results are cached locally in the directory `results/mlflo
 
 The following experiment configurations are utilized in the thesis (in the directory `experiments/slurm`):
 
-* Baselines (RSQ1.2): [experiments/slurm/baseline/stide.yaml](baseline/stide.yaml), `baseline/scg.yaml`, `baseline/som.yaml`
-* Baseline with Combined Scenarios (RSQ1.2, Different Attacks): `combined/baseline/*`
-* Baseline with Combined Scenarios (RSQ1.2, Same Attacks): `combined/baseline-same-attacks/*`
+* Baselines (RSQ1.2): [baseline/stide.yaml](experiments/slurm/baseline/stide.yaml), [baseline/scg.yaml](experiments/slurm/baseline/scg.yaml), [baseline/som.yaml](experiments/slurm/baseline/som.yaml)
+* Baseline with Combined Scenarios (RSQ1.2, Different Attacks): [combined/baseline/*](experiments/slurm/combined/baseline)
+* Baseline with Combined Scenarios (RSQ1.2, Same Attacks):  [combined/baseline-same-attacks/*](experiments/slurm/combined/baseline-same-attacks)
 * 
 
 #### Training Set Suitability Estimation
