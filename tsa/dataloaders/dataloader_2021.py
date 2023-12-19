@@ -62,7 +62,6 @@ class ContaminatedDataLoader2021(DataLoader2021, TsaBaseDataloader):
         exploits = [t for t in test_recordings if t.metadata()["exploit"] == True]
         for_training, for_test = split_list(exploits, self._cont_ratio)
         contaminated_recording_names = [r.name for r in for_training]
-        # TODO handle case num_attacks > len(contaminated_recording_names)
         self._contaminated_recordings = set(
             random_permutation(
                 contaminated_recording_names, self._num_attacks, self._permutation_i

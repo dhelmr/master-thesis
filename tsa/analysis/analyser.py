@@ -91,7 +91,6 @@ class TrainingSetAnalyser(AnalyserBB):
 
     def _add_input(self, inp):
         if inp is None:
-            # TODO
             return
         self._histogram.add(inp)
 

@@ -41,7 +41,6 @@ class NgramFrequencyAppender(BuildingBlock):
         if ngram is None:
             return
         self._normal_counts.add(ngram)
-        # TODO: refactor code
         if ngram not in self._thread_counts:
             self._thread_counts[ngram] = Histogram()
         thread_id = process_thread_id(syscall)

@@ -49,7 +49,6 @@ class TSANgramAUCSubCommand(SubCommand):
                         continue
                     Y_values = measurement[f]
                     if f == "conditional_entropy":
-                        # TODO filter out NaN values dynamically
                         auc = calc_area_under_curve(
                             ngram_size_values.tolist()[1:], Y_values.tolist()[1:]
                         )

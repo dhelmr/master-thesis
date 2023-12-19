@@ -17,7 +17,6 @@ class NgramAnalyser(AnalyserBB):
 
     def _add_input(self, syscall, inp):
         if inp is None:
-            # TODO
             return
         self._add_ngram(tuple(inp), trace_id=process_thread_id(syscall))
 

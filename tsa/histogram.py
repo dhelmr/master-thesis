@@ -98,7 +98,7 @@ class Histogram:
     def simpson_index(self):
         arr = self.counts_as_np_arr()
         if self._size == 1:
-            return nan  # TODO!!
+            return nan
         return np.sum((arr * (arr - 1))) / (self._size * (self._size - 1))
 
     def gini_coeff(self):

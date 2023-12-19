@@ -135,10 +135,6 @@ class CV:
             raise ValueError("No target variable: %s" % target_var)
         all_metrics = []
         for split in self._iter_cv_splits(target_var, threshold, reverse_classes):
-            # if np.all(split.test_y == 0) or np.all(split.test_y == 1):
-            #    print("Skip split, only one class in test data (test scenarios=%s)" % (split.test_scenarios, ))
-            #    continue
-            # TODO: preprocessing? (dim reduction, min-max scaling, ...?)
             self.predictor.reset()
             self.predictor.train(split.train_X, split.train_y)
             preds = self.predictor.predict(split.test_X)
@@ -153,7 +149,6 @@ class CV:
             }
             all_metrics.append(row_data)
         df = pandas.DataFrame(all_metrics)
-        # todo?
         df.fillna(value=0, inplace=True)
         mean_stats = df.mean(numeric_only=True)
         var_stats = df.var(numeric_only=True)

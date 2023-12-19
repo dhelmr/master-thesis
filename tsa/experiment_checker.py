@@ -169,7 +169,6 @@ class ExperimentChecker:
             if run.scenario not in missing_scenarios:
                 missing_scenarios[run.scenario] = 0
             missing_scenarios[run.scenario] += 1
-        # TODO add running runs duplicates
         return ExperimentStats(
             counts,
             runs,

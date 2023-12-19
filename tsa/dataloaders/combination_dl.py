@@ -62,9 +62,6 @@ class CombinationDL(TsaBaseDataloader):
         return direction_str
 
     def cfg_dict(self):
-        # TODO implement own superclass for dataloaders
-        # parent_dict = deepcopy(self.dl.cfg_dict())
-        # parent_dict["max_syscalls"] = self._max_syscalls
         aggregated_cfg = {}
         scenarios = []
         for dl in reversed(self._dls):

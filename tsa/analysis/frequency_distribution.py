@@ -17,7 +17,7 @@ class FrequencyDistribution(AnalyserBB):
 
     def _add_input(self, syscall, inp):
         if inp is None:
-            return  # TODO?
+            return
         if inp not in self._frequencies:
             self._frequencies[inp] = 0
         self._frequencies[inp] += 1

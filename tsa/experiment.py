@@ -216,7 +216,7 @@ class Experiment:
     def _get_dataloader_cfg(self):
         cfg = self._get_param("dataloader", "base", exp_type=dict)
         if "direction" not in cfg:
-            cfg["direction"] = Direction.BOTH  # TODO: make configurable
+            cfg["direction"] = Direction.BOTH
         return cfg
 
     def train_test(self, dataloader: BaseDataLoader, run_cfg: RunConfig, builder):

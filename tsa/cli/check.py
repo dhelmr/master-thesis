@@ -227,7 +227,7 @@ class CheckSubCommand(SubCommand):
 
 
 def load_exp_from_parser(config, experiment_name):
-    mlflow_client = MlflowClient()  # TODO global singleton
+    mlflow_client = MlflowClient()
     if config is None:
         experiment = make_experiment_from_mlflow(mlflow_client, experiment_name)
     else:

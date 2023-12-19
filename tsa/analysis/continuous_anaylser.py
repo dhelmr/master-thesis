@@ -10,7 +10,7 @@ class ContinuousTrainingSetAnalyser(AnalyserBB):
 
     def _add_input(self, syscall, inp):
         if inp is None:
-            return  # TODO
+            return
         self._data.append(inp)
 
     def _make_stats(self):

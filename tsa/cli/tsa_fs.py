@@ -77,7 +77,7 @@ class AllCombinations:
 
 FEATURE_SELECTORS = {
     "forward": ForwardSelector,
-    "all-2": AllCombinations,  # TODO find way to set params via cli
+    "all-2": AllCombinations,
 }
 
 

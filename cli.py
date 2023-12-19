@@ -19,27 +19,30 @@ from tsa.cli.tsa_ngram_auc import TSANgramAUCSubCommand
 from tsa.cli.tsa_ruleminer import TSARuleMinerSubCommand
 from tsa.cli.tsa_stats import TSAStatsSubCommand
 
-commands = [RunSubCommand(),
-            CheckSubCommand(),
-            TSADownloaderSubCommand(),
-            TSACrossValidateSubCommand(),
-            TSACombineSubCommand(),
-            SearchSubCommand(),
-            EvalSubCommand(),
-            TSAAugmentSubCommand(),
-            TSAFsSubCommand(),
-            TSARuleMinerSubCommand(),
-            TSACorrelateSubCommand(),
-            TSAAddSuffixSubCommand(),
-            TSAStatsSubCommand(),
-            TSANgramAUCSubCommand(),
-            TSAConcatSubCommand(),
-            TSAEvalFsSubCommand(),
-            TSAFindThresholdSubCommand()
-            ]
+commands = [
+    RunSubCommand(),
+    CheckSubCommand(),
+    TSADownloaderSubCommand(),
+    TSACrossValidateSubCommand(),
+    TSACombineSubCommand(),
+    SearchSubCommand(),
+    EvalSubCommand(),
+    TSAAugmentSubCommand(),
+    TSAFsSubCommand(),
+    TSARuleMinerSubCommand(),
+    TSACorrelateSubCommand(),
+    TSAAddSuffixSubCommand(),
+    TSAStatsSubCommand(),
+    TSANgramAUCSubCommand(),
+    TSAConcatSubCommand(),
+    TSAEvalFsSubCommand(),
+    TSAFindThresholdSubCommand(),
+]
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     subparsers = parser.add_subparsers(dest="command")
     for comm in commands:
         sparser = subparsers.add_parser(comm.name, help=comm.desc)
@@ -48,7 +51,11 @@ if __name__ == '__main__':
     args, unknown_args = parser.parse_known_args()
     for comm in commands:
         if comm.name == args.command:
-            if not comm.expect_unknown_args and unknown_args is not None and len(unknown_args) > 0:
+            if (
+                not comm.expect_unknown_args
+                and unknown_args is not None
+                and len(unknown_args) > 0
+            ):
                 raise RuntimeError("Unexpected arguments: %s" % unknown_args)
             comm.exec(args, parser, unknown_args)
             sys.exit(0)

@@ -29,7 +29,7 @@ class ClusterVisualize(AnalyserBB):
 
     def _add_input(self, syscall, inp):
         if inp is None:
-            return  # TODO?
+            return
         self._matrix.add(inp, process_thread_id(syscall))
 
     def _make_stats(self):
@@ -84,7 +84,6 @@ class ClusterVisualize(AnalyserBB):
         return MinMaxScaler().fit_transform(transformed)
 
     def build_clusters(self, matrix, distance):
-        # TODO. refactor with ThreadClusteringOD
         if distance in DISTANCE_FN:
             distance = DISTANCE_FN[distance]
         distance_matrix = squareform(pdist(matrix, metric=distance))

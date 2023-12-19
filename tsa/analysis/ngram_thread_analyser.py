@@ -28,7 +28,6 @@ class NgramThreadAnalyser(AnalyserBB):
 
     def _add_input(self, syscall, inp):
         if inp is None:
-            # TODO
             return
         ngram = inp
         self.ngram_thread_matrix.add(ngram, process_thread_id(syscall))

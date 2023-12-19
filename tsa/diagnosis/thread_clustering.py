@@ -115,7 +115,6 @@ class ThreadClusteringOD(OutlierDetector):
         if distance in DISTANCE_FN:
             self._distance = DISTANCE_FN[distance]
         else:
-            # TODO: check if distance is valid scipy distance fn
             self._distance = distance
         self._tf_idf = tf_idf
         self._thread_based = thread_based
