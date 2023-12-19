@@ -110,12 +110,35 @@ python cli.py eval --config experiments/slurm/baseline/stide.yaml --cache result
 
 With this, the mlflow results are cached locally in the directory `results/mlflow_cache`, which must be created first. The diagrams and evaluation metrics are written to the artifacts directory `results/baseline-stide`.
 
-The following experiment configurations are utilized in the thesis (in the directory `experiments/slurm`):
+The following experiment configurations are utilized in the thesis (in the directory `experiments/slurm`) for research question 1.2:
 
 * Baselines (RSQ1.2): [baseline/stide.yaml](experiments/slurm/baseline/stide.yaml), [baseline/scg.yaml](experiments/slurm/baseline/scg.yaml), [baseline/som.yaml](experiments/slurm/baseline/som.yaml)
 * Baseline with Combined Scenarios (RSQ1.2, Different Attacks): [combined/baseline/*](experiments/slurm/combined/baseline)
 * Baseline with Combined Scenarios (RSQ1.2, Same Attacks):  [combined/baseline-same-attacks/*](experiments/slurm/combined/baseline-same-attacks)
-* 
+
+For the robustness improvement experiments (cf. section 6.2 in the thesis), the following configurations are used:
+
+* "6.2.1 Influence of N-Gram Size on STIDE’s Robustness": `experiments/slurm/baseline/stide-n2.yaml experiments/slurm/baseline/stide-n3.yaml experiments/slurm/baseline/stide.yaml experiments/slurm/baseline/stide-n6.yaml experiments/slurm/baseline/stide-n7.yaml experiments/slurm/baseline/stide-n10.yaml experiments/slurm/baseline/stide-n15.yaml experiments/slurm/baseline/stide-n20.yaml`
+* "6.2.2 f-STIDE": `experiments/slurm/f-stide/f-stide-exp-a0.3.yaml experiments/slurm/f-stide/f-stide-exp-a0.5.yaml experiments/slurm/f-stide/f-stide-exp-a0.7.yaml experiments/slurm/f-stide/f-stide-exp-a0.9.yaml experiments/slurm/f-stide/f-stide-exp-a0.95.yaml experiments/slurm/f-stide/f-stide-homographic-a0.5.yaml experiments/slurm/f-stide/f-stide-homographic-a2.yaml experiments/slurm/f-stide/f-stide-homographic-a5.yaml experiments/slurm/f-stide/f-stide-max-scaled.yaml`
+* "6.2.3 Thread-Based STIDE Accommodation": `experiments/slurm/thread-f-stide/norm_entropy.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a1.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a2.yaml experiments/slurm/tfidf-stide/tfidf_stide-mean-1.yaml`
+* "6.2.4 SCG Accomodation: Thread-Wise Graphs": ` experiments/slurm/baseline/scg{,-thread-wise-graphs}.yaml`
+* "6.2.5 SOM Accomodation: Frequency Features": `experiments/slurm/frequency_append/som-{ngram,thread,ngram-thread}.yaml experiments/slurm/baseline/som.yaml`
+* "6.2.6 SOM Accomodation: Smaller Sizes": `experiments/slurm/som/size0.{5,7,9}.yaml experiments/slurm/baseline/som.yaml`
+* "6.2.7 SOM Accomodation: Frequency-Based Sampling": `experiments/slurm/som/sample-0.{5,7,9,95,99}.yaml experiments/slurm/baseline/som.yaml`
+* "6.2.8 Combination of SOM Accommodation Methods": `experiments/slurm/som/sample-{0.95,0.99}.yaml experiments/slurm/som/sample-{0.95,0.99}+thread-size0.7.yaml`
+* "6.2.9 Frequency-Based Outlier Diagnosis" (absolute thresholds): `experiments/slurm/preprocessing/frequency-od/stide-t1.yaml experiments/slurm/preprocessing/frequency-od/stide-t3.yaml experiments/slurm/preprocessing/frequency-od/stide-t8.yaml experiments/slurm/preprocessing/frequency-od/stide-t15.yaml`
+* "6.2.9 Frequency-Based Outlier Diagnosis" (relative thresholds): `experiments/slurm/preprocessing/frequency-od/rel/stide-0.00005.yaml experiments/slurm/preprocessing/frequency-od/rel/stide-0.00001.yaml experiments/slurm/preprocessing/frequency-od/rel/stide-0.000005.yaml` 
+* "6.2.10 Thread-Based Outlier Diagnosis" (no tfidf): `experiments/slurm/preprocessing/thread-od/lof-jaccard-cosine-n1.yaml experiments/slurm/preprocessing/thread-od/lof-jaccard-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/lof-jaccard-cosine-n3.yaml experiments/slurm/baseline/stide.yaml`
+* "6.2.10 Thread-Based Outlier Diagnosis" (tfidf): `experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-cosine-n1.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-cosine-n3.yaml experiments/slurm/baseline/stide.yaml`
+* "6.2.10 Thread-Based Outlier Diagnosis" (distances):  ` experiments/slurm/preprocessing/thread-od/lof-{binary-jaccard,jds}-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-cosine-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jaccard-hellinger-n2.yaml experiments/slurm/preprocessing/thread-od/tfidf-lof-jds-n2.yaml experiments/slurm/baseline/stide.yaml`
+* "6.2.11 Combination of Thread-Based Outlier Diagnosis with SCG and STIDE
+Accomodation" (Thread-OD + thread-f-stide): `experiments/slurm/preprocessing/thread-od/tfidf-lof-cosine-n2.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a2.yaml experiments/slurm/combination/stide/lof-cosine+thread-freq-homographic-a2.yaml`
+* "6.2.11 Combination of Thread-Based Outlier Diagnosis with SCG and STIDE
+Accomodation" (Thread-OD + norm-entropy-stide): `experiments/slurm/preprocessing/thread-od/tfidf-lof-cosine-n2.yaml experiments/slurm/thread-f-stide/norm_entropy.yaml experiments/slurm/combination/stide/lof-cosine+norm-entropy.yaml`
+* * "6.2.11 Combination of Thread-Based Outlier Diagnosis with SCG and STIDE
+Accomodation" (Thread-OD + SCG+thread-wise graphs): `experiments/slurm/baseline/scg{,-thread-wise-graphs}.yaml experiments/slurm/combination/scg/lof-cosine+scg-baseline.yaml  experiments/slurm/combination/scg/lof-cosine+thread-wise.yaml`
+
+
 
 #### Training Set Suitability Estimation
 
