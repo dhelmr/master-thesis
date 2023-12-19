@@ -142,20 +142,52 @@ Accomodation" (Thread-OD + SCG+thread-wise graphs): `experiments/slurm/baseline/
 
 #### Training Set Suitability Estimation
 
-## Create csv file containing training set statistics and performance metrics
+Note: For post-processing some of the experiment results, [a command-line interface](https://github.com/dhelmr/pd) to the `pandas` python library is used, which must be installed separately. It is needed for generating latex tables from the results.
 
-This assumes that the experiments in `experiments/slurm/analysis/all-ngrams.yaml` and `experiments/slurm/analysis/stide/*` are already completed in mlflow. 
+##### Suitability Datasets
+
+The experiments for creating the suitability datasets are:
+
+* For the STIDE f1-score suitability quantifier: `max_syscalls-big.search.yaml`, `max_syscalls-medium.search.yaml`, and `max_syscalls-small.search.yaml` in `experiments/slurm/analysis/stide`
+* for the general n-gram frequency statistics: `analysis/all-ngrams.yaml`
+* For the thread-n-gram matrix statistics: `analysis/thread_matrix-n2.yaml` and `analysis/thread_matrix-n3.yaml`
+* For the data drift suitability quantifiers: `analysis/data-drift-no-attacks.yaml`
+
+Once they are finished in mlflow, they can then be aggregated and downloaded with:
 
 ```sh
-# set EXPERIMENT_PREFIX according to mlflow tracking server
-export EXPERIMENT_PREFIX="..."
-# download training set statistics
-python cli.py tsa-dl-e $EXPERIMENT_PREFIX/analysis-all-ngrams.yaml --config experiments/slurm/analysis/all-ngrams.yaml -o test-all-ngrams.csv
-# combine f1/prec/recall performance stats with training set statistics
-python cli.py tsa-combine --statistics-csv test-all-ngrams.csv -e $EXPERIMENT_PREFIX/analysis-stide-max_syscalls.search.yaml -o test-perf-all-ngrams.csv 
+python cli.py tsa-dl -o results/thread_matrix-n3.csv -e $EXPERIMENT_PREFIX/analysis-thread_matrix-n3.yaml --config experiments/slurm/analysis/thread_matrix-n3.yaml
+python cli.py tsa-dl -o results/thread_matrix-n2.csv -e $EXPERIMENT_PREFIX/analysis-thread_matrix-n3.yaml --config experiments/slurm/analysis/thread_matrix-n2.yaml
+python cli.py tsa-dl -o results/analysis-all-ngrams.csv -e $EXPERIMENT_PREFIX/analysis-all-ngrams.yaml --config experiments/slurm/analysis/all-ngrams.yaml
+python cli.py tsa-dl -o results/data-drift-no-attacks.csv -e $EXPERIMENT_PREFIX/analysis-data_drift-data-drift-no-attacks.yaml --config experiments/slurm/analysis/data_drift/data-drift-no-attacks.yaml
 ```
 
----
+##### RSQ1.1
 
+The following scripts generate the results for RSQ2.1:
 
-# Optional: For post-processing some of the experiment results, [a command-line interface](https://github.com/dhelmr/pd) to the `pandas` python library is used, which must be installed separately. This is needed for generating latex tables from the results.
+```sh
+./make_rsq2.1.sh # creates/augments the data
+./make_rsq2.1-corr.sh # calculates the correlation coefficients
+./make_rsq2.1-tables.sh # creates the latex tables used in the thesis
+```
+
+##### RSQ2.1
+
+The following scripts generate the results for RSQ2.2:
+
+```sh
+./make_rsq2.2.sh # creates/augments the data
+./make_rsq2.2-baselines.sh # calculates the baseline results for the datasets
+./make_rsq2.2-stats-tables.sh # Creates the class distribution tables used in the tables
+./make_rsq2.2-slurmjobs.sh # Runs the feature selection on SLURM
+./make_rsq2.2-results.sh # Selects the best features and generates the tables used in the thesis
+```
+
+##### RSQ2.3
+The following scripts generate the results for RSQ2.3:
+
+```sh
+./make_rsq2.3-dt.sh # generate decision tree SVGs
+```
+
