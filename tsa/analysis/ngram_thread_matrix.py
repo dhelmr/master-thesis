@@ -5,6 +5,8 @@ from dataloader.syscall import Syscall
 from tsa.histogram import Histogram
 
 Ngram = tuple
+
+
 class NgramThreadMatrix:
     def __init__(self):
         self._thread_distributions: Dict[Ngram, Histogram] = {}
@@ -41,6 +43,7 @@ class NgramThreadMatrix:
 
     def thread_distances(self):
         return make_distance_matrix(self._ngram_distributions)
+
     def threads(self) -> List[str]:
         observed_threads = self._ngram_distributions.keys()
         return list(observed_threads)
@@ -50,7 +53,7 @@ class NgramThreadMatrix:
 
     def idf(self, ngram):
         n_threads = len(self._ngram_distributions.keys())
-        return math.log(n_threads/len(self._thread_distributions[ngram])+1)
+        return math.log(n_threads / len(self._thread_distributions[ngram]) + 1)
 
     def tf(self, ngram, thread_id):
         return self._ngram_distributions[thread_id].get_count(ngram)
@@ -67,7 +70,7 @@ class NgramThreadMatrix:
         return matrix, row_labels, column_labels
 
 
-def make_distance_matrix(d: Dict[object, Histogram], distance = "hellinger"):
+def make_distance_matrix(d: Dict[object, Histogram], distance="hellinger"):
     distance_matrix = []
     calculated_distances = {}  # used to ensure symetry of the distance matrix
     for hist1 in d.values():
@@ -84,27 +87,27 @@ def make_distance_matrix(d: Dict[object, Histogram], distance = "hellinger"):
     del calculated_distances
     return distance_matrix
 
+
 def hist_distance(hist1, hist2, distance_name):
     if distance_name == "jaccard-cosine":
         cos_sim = hist1.cosine_similarity(hist2)
         jaccard_sim = hist1.binary_jaccard(hist2)
-        return (1-cos_sim)*(1-jaccard_sim)
+        return (1 - cos_sim) * (1 - jaccard_sim)
     if distance_name == "cosine":
-        return 1-hist1.cosine_similarity(hist2)
+        return 1 - hist1.cosine_similarity(hist2)
     if distance_name == "jaccard":
-        return 1-hist1.binary_jaccard(hist2)
+        return 1 - hist1.binary_jaccard(hist2)
     elif distance_name == "hellinger":
         return hist1.hellinger_distance(hist2)
     elif distance_name == "jaccard-hellinger":
         jaccard = hist1.binary_jaccard(hist2)
-        return (1-jaccard)*hist1.hellinger_distance(hist2)
+        return (1 - jaccard) * hist1.hellinger_distance(hist2)
     elif distance_name == "jsd":
         # jensen shannon distance is the square root of jensen shannon divergence
         return math.sqrt(hist1.jensen_shannon_divergence(hist2))
     else:
         raise ValueError("Unknown distance: %s" % distance_name)
 
+
 def process_thread_id(syscall: Syscall):
     return f"({syscall.process_id()},{syscall.thread_id()})"
-
-

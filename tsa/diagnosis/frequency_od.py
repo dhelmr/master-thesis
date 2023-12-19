@@ -2,8 +2,9 @@ from tsa.diagnosis.preprocessing import OutlierDetector
 
 
 class FrequencyOD(OutlierDetector):
-
-    def __init__(self, building_block, train_features=None, threshold=3, relative=False, **kwargs):
+    def __init__(
+        self, building_block, train_features=None, threshold=3, relative=False, **kwargs
+    ):
         super().__init__(building_block, train_features, **kwargs)
         self._relative = relative
         self._threshold = threshold
@@ -12,7 +13,9 @@ class FrequencyOD(OutlierDetector):
         if self._relative:
             len_td = len(training_data)
             t = self._threshold * len_td
-            print(f"Set threshold to {self._threshold} of training data (size={len_td}) => t={t}")
+            print(
+                f"Set threshold to {self._threshold} of training data (size={len_td}) => t={t}"
+            )
             return t
         else:
             return self._threshold

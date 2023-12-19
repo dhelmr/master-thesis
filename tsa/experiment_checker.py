@@ -28,7 +28,6 @@ class ExperimentStats:
         return [c for c in self.missing_runs if c.iteration not in running_iterations]
 
 
-
 class ExperimentChecker:
     def __init__(self, experiment: Experiment, no_ids_checks=False):
         self.experiment = experiment
@@ -42,17 +41,21 @@ class ExperimentChecker:
     def iter_mlflow_runs(self):
         exp = self.mlflow_client.get_experiment_by_name(self.experiment.mlflow_name)
         if exp is None:
-            raise RuntimeError("Experiment with name '%s' not found." % self.experiment.mlflow_name)
+            raise RuntimeError(
+                "Experiment with name '%s' not found." % self.experiment.mlflow_name
+            )
         filter_str = ""
         if not self.no_id_checks:
             filter_str = f"params.parameter_cfg_id = '{safe_filter_value(self.experiment.parameter_cfg_id)}'"
 
         token = None
         while True:
-            result = self.mlflow_client.search_runs(experiment_ids=[exp.experiment_id],
-                                                    order_by=["start_time DESC"],
-                                                    filter_string=filter_str,
-                                                    page_token=token)
+            result = self.mlflow_client.search_runs(
+                experiment_ids=[exp.experiment_id],
+                order_by=["start_time DESC"],
+                filter_string=filter_str,
+                page_token=token,
+            )
             token = result.token
             for r in result:
                 yield r
@@ -64,7 +67,9 @@ class ExperimentChecker:
             raise ValueError("Could not find key 'iteration' in run config")
         iteration = int(run.data.params["iteration"])
         if "lid_ds_version" in run.data.params:
-            scenario = run.data.params["lid_ds_version"] + "/" + run.data.params["scenario"]
+            scenario = (
+                run.data.params["lid_ds_version"] + "/" + run.data.params["scenario"]
+            )
         else:
             scenario = run.data.params["scenario"]
         return RunConfig(
@@ -72,11 +77,12 @@ class ExperimentChecker:
             num_attacks=int(run.data.params["num_attacks"]),
             iteration=iteration,
             permutation_i=int(run.data.params["permutation_i"]),
-            scenario=scenario
+            scenario=scenario,
         )
 
-    def counts_by_run_status(self) -> Tuple[Dict[RunStatus, Dict[int, int]], List[Run], List[RunConfig]]:
-
+    def counts_by_run_status(
+        self,
+    ) -> Tuple[Dict[RunStatus, Dict[int, int]], List[Run], List[RunConfig]]:
         counts_by_status = {status: {} for status in RunStatus.all_status()}
         skipped = []
         parsed_runs = []
@@ -102,7 +108,9 @@ class ExperimentChecker:
 
         return counts_by_status, skipped, parsed_runs
 
-    def check_integrity(self, mlflow_run_cfgs: List[RunConfig], expected_run_cfgs: List[RunConfig]):
+    def check_integrity(
+        self, mlflow_run_cfgs: List[RunConfig], expected_run_cfgs: List[RunConfig]
+    ):
         failed_integrity = []
         not_found = []
         for mlflow_cfg in mlflow_run_cfgs:
@@ -120,8 +128,12 @@ class ExperimentChecker:
 
     def _compare_configs(self, expected_run_cfg: RunConfig, mlflow_cfg: RunConfig):
         if isinstance(expected_run_cfg.scenario, CombinedScenario):
-            scenario_list_as_str = str([s for s, _ in expected_run_cfg.scenario.scenarios.items()])
-            expected_run_cfg = dataclasses.replace(expected_run_cfg, scenario=scenario_list_as_str)
+            scenario_list_as_str = str(
+                [s for s, _ in expected_run_cfg.scenario.scenarios.items()]
+            )
+            expected_run_cfg = dataclasses.replace(
+                expected_run_cfg, scenario=scenario_list_as_str
+            )
         return expected_run_cfg == mlflow_cfg
 
     def stats(self) -> ExperimentStats:
@@ -131,18 +143,26 @@ class ExperimentChecker:
         failed_integrity, not_found = self.check_integrity(parsed_run_cfgs, runs)
         if len(failed_integrity) > 0:
             raise RuntimeError(
-                "The following mlflow runs have unexpected parameters (based on their iteration id): %s" %
-                [r.iteration for r in failed_integrity])
+                "The following mlflow runs have unexpected parameters (based on their iteration id): %s"
+                % [r.iteration for r in failed_integrity]
+            )
         if len(not_found) > 0:
-            raise RuntimeError("The following mlflow runs are not expected %s" % [r.iteration for r in not_found])
+            raise RuntimeError(
+                "The following mlflow runs are not expected %s"
+                % [r.iteration for r in not_found]
+            )
 
         fin_counts = counts[RunStatus.FINISHED]
         runn_counts = counts[RunStatus.RUNNING]
 
         missing = [run for run in runs if run.iteration not in fin_counts]
         missing_but_running = [run for run in missing if run.iteration in runn_counts]
-        duplicates = [(run, fin_counts[run.iteration]) for run in runs if run.iteration if
-                      run.iteration in fin_counts and fin_counts[run.iteration] > 1]
+        duplicates = [
+            (run, fin_counts[run.iteration])
+            for run in runs
+            if run.iteration
+            if run.iteration in fin_counts and fin_counts[run.iteration] > 1
+        ]
 
         missing_scenarios = {}
         for run in missing:
@@ -150,7 +170,15 @@ class ExperimentChecker:
                 missing_scenarios[run.scenario] = 0
             missing_scenarios[run.scenario] += 1
         # TODO add running runs duplicates
-        return ExperimentStats(counts, runs, skipped, missing, missing_but_running, duplicates, missing_scenarios)
+        return ExperimentStats(
+            counts,
+            runs,
+            skipped,
+            missing,
+            missing_but_running,
+            duplicates,
+            missing_scenarios,
+        )
 
     def get_stale_runs(self, older_than: timedelta):
         now = time.time() * 1000
@@ -167,12 +195,19 @@ class ExperimentChecker:
         counts = {r.iteration: 0 for r in runs}
         exp = self.mlflow_client.get_experiment_by_name(self.experiment.mlflow_name)
         if exp is None:
-            raise RuntimeError("Experiment with name '%s' not found." % self.experiment.mlflow_name)
+            raise RuntimeError(
+                "Experiment with name '%s' not found." % self.experiment.mlflow_name
+            )
         running_runs = []
         failed_runs = []
-        for r in self.mlflow_client.search_runs(experiment_ids=[exp.experiment_id], order_by=["start_time DESC"]):
+        for r in self.mlflow_client.search_runs(
+            experiment_ids=[exp.experiment_id], order_by=["start_time DESC"]
+        ):
             if "iteration" not in r.data.params:
-                print("Skip run %s, because it has no 'iteration' parameter" % r.info.run_id)
+                print(
+                    "Skip run %s, because it has no 'iteration' parameter"
+                    % r.info.run_id
+                )
             iteration = int(r.data.params["iteration"])
             if r.info.status == "RUNNING":
                 running_runs.append(iteration)
@@ -209,10 +244,11 @@ class ExperimentChecker:
                 raise RuntimeError("Experiment is not finished.")
         exp = mlflow.get_experiment_by_name(self.experiment.mlflow_name)
         runs = mlflow.search_runs(experiment_ids=[exp.experiment_id])
-        runs = runs.loc[~runs["params.dataloader.scenario"].isin(self.experiment.ignore_scenarios)]
+        runs = runs.loc[
+            ~runs["params.dataloader.scenario"].isin(self.experiment.ignore_scenarios)
+        ]
         return runs, stats.is_finished()
 
 
 def safe_filter_value(value: str) -> str:
     return value.replace("'", "\\'")
-

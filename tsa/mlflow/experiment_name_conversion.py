@@ -17,12 +17,12 @@ class ExperimentNameConversion:
         self.exp_base_path = os.path.abspath(os.environ["EXPERIMENT_BASE_PATH"])
 
     def infer_exp_name(self, config_path: str):
-        rel_exp_path = os.path.abspath(config_path)[len(self.exp_base_path) + 1:]
+        rel_exp_path = os.path.abspath(config_path)[len(self.exp_base_path) + 1 :]
         exp_name = "%s/%s" % (self.mlflow_exp_prefix, rel_exp_path.replace("/", "-"))
         return exp_name
 
     def get_rel_exp_name(self, mlflow_name: str):
-        return mlflow_name[len(self.mlflow_exp_prefix)+1:]
+        return mlflow_name[len(self.mlflow_exp_prefix) + 1 :]
 
 
 @dataclasses.dataclass
@@ -45,8 +45,7 @@ class MlflowResultsCache:
         epoch_time = os.path.getmtime(result_file)
         df = pandas.read_csv(result_file)
         return CachedResult(
-            df=df,
-            timestamp=datetime.datetime.utcfromtimestamp(epoch_time)
+            df=df, timestamp=datetime.datetime.utcfromtimestamp(epoch_time)
         )
 
     def cache(self, exp_name: str, df: DataFrame):

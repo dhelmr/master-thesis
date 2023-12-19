@@ -10,24 +10,40 @@ from tsa.cli.tsa_cv import load_data
 
 
 class TSACorrelateSubCommand(SubCommand):
-
     def __init__(self):
-        super().__init__("tsa-correlate", "show correlations of training set statistics")
+        super().__init__(
+            "tsa-correlate", "show correlations of training set statistics"
+        )
+
     def make_subparser(self, parser: ArgumentParser):
-        parser.add_argument("-i", "--input", required=True,
-                            help="input data file (training set statistics -> performance)")
+        parser.add_argument(
+            "-i",
+            "--input",
+            required=True,
+            help="input data file (training set statistics -> performance)",
+        )
         parser.add_argument("--features", "-f", required=False, nargs="+", default=None)
         parser.add_argument("--target", default="f1_cfa")
-       # parser.add_argument("--threshold", default=0.8, type=float)
+        # parser.add_argument("--threshold", default=0.8, type=float)
         parser.add_argument("--scenario-column", default="scenario")
         parser.add_argument("--only-above", default=0.2)
         parser.add_argument("-o", "--output", default=None, type=str)
-        parser.add_argument("--skip-features", "-s", required=False, default=[], nargs="+")
-        parser.add_argument("--scenario-mean", action="store_true", default=False, required=False, help="Calculate mean correlation over all scenarios")
+        parser.add_argument(
+            "--skip-features", "-s", required=False, default=[], nargs="+"
+        )
+        parser.add_argument(
+            "--scenario-mean",
+            action="store_true",
+            default=False,
+            required=False,
+            help="Calculate mean correlation over all scenarios",
+        )
 
     def exec(self, args, parser, unknown_args):
-        data = load_data(args.input, args.scenario_column, args.features, args.skip_features)
-        with pd.option_context('mode.use_inf_as_na', True):
+        data = load_data(
+            args.input, args.scenario_column, args.features, args.skip_features
+        )
+        with pd.option_context("mode.use_inf_as_na", True):
             data.df = data.df.fillna(value=0)
         if args.scenario_mean:
             corrs = []
@@ -48,7 +64,7 @@ class TSACorrelateSubCommand(SubCommand):
 
     def _calc_corr(self, df, feature_cols, args):
         corr = df[feature_cols].corrwith(df[args.target])
-        #corr = corr.apply(lambda x: abs(x))
+        # corr = corr.apply(lambda x: abs(x))
         corr.apply(lambda x: math.nan if x < args.only_above else x)
         corr.dropna(inplace=True)
 

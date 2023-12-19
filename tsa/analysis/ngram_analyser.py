@@ -47,7 +47,9 @@ class NgramAnalyser(AnalyserBB):
     def _make_stats(self):
         stats = []
         alphabet_size = 0
-        last_counts = {} # stores the n-gram counts for the last depth (used for conditional entropy calculation)
+        last_counts = (
+            {}
+        )  # stores the n-gram counts for the last depth (used for conditional entropy calculation)
         for ngram_size in range(1, self.len + 1):
             unique = 0
             total = 0
@@ -80,26 +82,28 @@ class NgramAnalyser(AnalyserBB):
             unique_norm_entropy = entropy / np.log(unique)
             simpson_index = np.sum((counts * (counts - 1))) / (total * (total - 1))
             gini = gini_coeff(counts)
-            stats.append({
-                "ngram_size": ngram_size,
-                "unique_ngrams": unique,
-                "total": total,
-                "unique_ngrams/total": unique / total,
-                "entropy": entropy,
-                "conditional_entropy": cond_entropy,
-                "simpson_index": simpson_index,
-                "gini": gini,
-                "density": density,
-                "variability": variability,
-                "normalized_entropy": unique_norm_entropy,
-                "unique_syscalls": alphabet_size
-            })
+            stats.append(
+                {
+                    "ngram_size": ngram_size,
+                    "unique_ngrams": unique,
+                    "total": total,
+                    "unique_ngrams/total": unique / total,
+                    "entropy": entropy,
+                    "conditional_entropy": cond_entropy,
+                    "simpson_index": simpson_index,
+                    "gini": gini,
+                    "density": density,
+                    "variability": variability,
+                    "normalized_entropy": unique_norm_entropy,
+                    "unique_syscalls": alphabet_size,
+                }
+            )
         return stats
 
 
 def count_ngrams(sequence, size: int, count_dict):
     for i in range(len(sequence) - size + 1):
-        subsequence = sequence[i:i + size]
+        subsequence = sequence[i : i + size]
         ngram = tuple([t for t in subsequence])
         if ngram not in count_dict:
             count_dict[ngram] = 0

@@ -8,7 +8,10 @@ from pandas import DataFrame
 
 from tsa.cli.check import load_exp_from_parser
 from tsa.cli.run import SubCommand
-from tsa.mlflow.experiment_name_conversion import ExperimentNameConversion, MlflowResultsCache
+from tsa.mlflow.experiment_name_conversion import (
+    ExperimentNameConversion,
+    MlflowResultsCache,
+)
 from tsa.utils import md5
 
 METRIC_LABELS = {
@@ -16,7 +19,7 @@ METRIC_LABELS = {
     "metrics.ids.precision_with_cfa": "mean precision",
     "metrics.ids.detection_rate": "mean detection rate",
     "metrics.ids.consecutive_false_positives_normal": "mean cfp-normal",
-    "metrics.ids.consecutive_false_positives_exploits": "mean cfp-exploits"
+    "metrics.ids.consecutive_false_positives_exploits": "mean cfp-exploits",
 }
 
 
@@ -25,15 +28,35 @@ class EvalSubCommand(SubCommand):
         super().__init__("eval", "evaluate multiple experiments for their robustness")
 
     def make_subparser(self, parser: argparse.ArgumentParser):
-        parser.add_argument("-c", "--config", required=False, nargs="+",
-                            help="Experiment config yaml file. If not set, the config is loaded from the first mlflow run.")
-        parser.add_argument("--allow-unfinished", required=False, default=False, action="store_true")
-        parser.add_argument("--cache", default=None, help="If set, use a local directory to cache mlflow results.")
-        parser.add_argument("--query", "-q", default=None, help="Filter result dataframes using a pandas query")
+        parser.add_argument(
+            "-c",
+            "--config",
+            required=False,
+            nargs="+",
+            help="Experiment config yaml file. If not set, the config is loaded from the first mlflow run.",
+        )
+        parser.add_argument(
+            "--allow-unfinished", required=False, default=False, action="store_true"
+        )
+        parser.add_argument(
+            "--cache",
+            default=None,
+            help="If set, use a local directory to cache mlflow results.",
+        )
+        parser.add_argument(
+            "--query",
+            "-q",
+            default=None,
+            help="Filter result dataframes using a pandas query",
+        )
         parser.add_argument("--plot-y", default="metrics.ids.f1_cfa")
         parser.add_argument("--names", default=None, nargs="+", type=str)
-        parser.add_argument("--artifacts-dir", default=None, type=str,
-                            help="Store artifacts to a directory (created if not exists)")
+        parser.add_argument(
+            "--artifacts-dir",
+            default=None,
+            type=str,
+            help="Store artifacts to a directory (created if not exists)",
+        )
 
     def exec(self, args, parser, unknown_args):
         if args.artifacts_dir is not None and not os.path.exists(args.artifacts_dir):
@@ -59,18 +82,30 @@ class EvalSubCommand(SubCommand):
             name = converter.get_rel_exp_name(checker.experiment.mlflow_name)
             print(checker.experiment.mlflow_name)
             runs = self._get_results(checker, name, cache, args.allow_unfinished)
-            runs = runs.loc[~runs["params.dataloader.scenario"].isin(checker.experiment.ignore_scenarios)]
+            runs = runs.loc[
+                ~runs["params.dataloader.scenario"].isin(
+                    checker.experiment.ignore_scenarios
+                )
+            ]
             runs["params.num_attacks"] = pd.to_numeric(runs["params.num_attacks"])
             if args.query is not None:
                 runs = runs.query(args.query, engine="python")
-            aggregated: DataFrame = runs.filter(items=["params.num_attacks",
-                                                       "metrics.ids.f1_cfa",
-                                                       "metrics.ids.precision_with_cfa",
-                                                       "metrics.ids.detection_rate",
-                                                       "metrics.ids.consecutive_false_positives_normal",
-                                                       "metrics.ids.consecutive_false_positives_exploits",
-                                                       "experiment_name"]
-                                                ).groupby("params.num_attacks").mean(numeric_only=False).reset_index()
+            aggregated: DataFrame = (
+                runs.filter(
+                    items=[
+                        "params.num_attacks",
+                        "metrics.ids.f1_cfa",
+                        "metrics.ids.precision_with_cfa",
+                        "metrics.ids.detection_rate",
+                        "metrics.ids.consecutive_false_positives_normal",
+                        "metrics.ids.consecutive_false_positives_exploits",
+                        "experiment_name",
+                    ]
+                )
+                .groupby("params.num_attacks")
+                .mean(numeric_only=False)
+                .reset_index()
+            )
             if args.names is not None and args.names[i] != "-":
                 name = args.names[i]
             robustness_values[name] = self._calc_robustness_scores(aggregated)
@@ -92,63 +127,87 @@ class EvalSubCommand(SubCommand):
             r_transposed.to_csv(
                 path_or_buf=os.path.join(args.artifacts_dir, f"robustness-measures.csv")
             )
-            self.make_robustness_fig(r_transposed,
-                                     metrics=["metrics.ids.f1_cfa",
-                                              "metrics.ids.precision_with_cfa",
-                                              "metrics.ids.detection_rate"],
-                                     img_path=os.path.join(args.artifacts_dir, f"auc.svg"),
-                                     metrics_prefix="auc")
-            self.make_robustness_fig(r_transposed,
-                                     metrics=["metrics.ids.f1_cfa",
-                                              "metrics.ids.precision_with_cfa",
-                                              "metrics.ids.detection_rate"],
-                                     img_path=os.path.join(args.artifacts_dir, f"relative.svg"),
-                                     metrics_prefix="relative")
-            self.make_robustness_fig(r_transposed,
-                                     metrics=["metrics.ids.consecutive_false_positives_normal",
-                                              "metrics.ids.consecutive_false_positives_exploits"],
-                                     img_path=os.path.join(args.artifacts_dir, f"auc-cfp.svg"),
-                                     metrics_prefix="auc")
-            self.make_robustness_fig(r_transposed,
-                                     metrics=["metrics.ids.consecutive_false_positives_normal",
-                                              "metrics.ids.consecutive_false_positives_exploits"],
-                                     img_path=os.path.join(args.artifacts_dir, f"relative-cfp.svg"),
-                                     metrics_prefix="relative")
+            self.make_robustness_fig(
+                r_transposed,
+                metrics=[
+                    "metrics.ids.f1_cfa",
+                    "metrics.ids.precision_with_cfa",
+                    "metrics.ids.detection_rate",
+                ],
+                img_path=os.path.join(args.artifacts_dir, f"auc.svg"),
+                metrics_prefix="auc",
+            )
+            self.make_robustness_fig(
+                r_transposed,
+                metrics=[
+                    "metrics.ids.f1_cfa",
+                    "metrics.ids.precision_with_cfa",
+                    "metrics.ids.detection_rate",
+                ],
+                img_path=os.path.join(args.artifacts_dir, f"relative.svg"),
+                metrics_prefix="relative",
+            )
+            self.make_robustness_fig(
+                r_transposed,
+                metrics=[
+                    "metrics.ids.consecutive_false_positives_normal",
+                    "metrics.ids.consecutive_false_positives_exploits",
+                ],
+                img_path=os.path.join(args.artifacts_dir, f"auc-cfp.svg"),
+                metrics_prefix="auc",
+            )
+            self.make_robustness_fig(
+                r_transposed,
+                metrics=[
+                    "metrics.ids.consecutive_false_positives_normal",
+                    "metrics.ids.consecutive_false_positives_exploits",
+                ],
+                img_path=os.path.join(args.artifacts_dir, f"relative-cfp.svg"),
+                metrics_prefix="relative",
+            )
 
-    def make_robustness_fig(self, robustness_df: pandas.DataFrame, metrics_prefix, metrics, img_path):
-        robustness_df = robustness_df.drop(columns=[c for c in robustness_df.columns if c not in
-                                                    [f"{metrics_prefix}.{m}" for m in metrics] + ["experiment"]])
+    def make_robustness_fig(
+        self, robustness_df: pandas.DataFrame, metrics_prefix, metrics, img_path
+    ):
+        robustness_df = robustness_df.drop(
+            columns=[
+                c
+                for c in robustness_df.columns
+                if c not in [f"{metrics_prefix}.{m}" for m in metrics] + ["experiment"]
+            ]
+        )
         robustness_df = robustness_df.melt(
-            id_vars=["experiment"],
-            var_name="metric",
-            value_name="value"
+            id_vars=["experiment"], var_name="metric", value_name="value"
         )
         robustness_df["metric"] = robustness_df["metric"].apply(
             lambda metric: f"{metrics_prefix} {METRIC_LABELS[metric[len(metrics_prefix) + 1:]]}"
         )
         print(robustness_df)
         # for metric in ["metrics.ids.f1_cfa", "metrics.ids.detection_rate", "metrics.ids.precision_with_cfa"]:
-        r_fig = px.bar(robustness_df, x="experiment", y="value", color="metric", barmode="group")
+        r_fig = px.bar(
+            robustness_df, x="experiment", y="value", color="metric", barmode="group"
+        )
         # r_fig.update_layout(yaxis_title=f"AUC of {METRIC_LABELS[metric]}")
         r_fig.write_image(img_path)
 
     def make_metric_fig(self, df: pandas.DataFrame, metric: str, img_path):
-        fig = px.line(df,
-                      x="params.num_attacks",
-                      y=metric,
-                      color="Experiment",
-                      line_dash="Experiment",
-                      line_dash_sequence=["dot"],
-                      markers=True)
-        if metric not in ["metrics.ids.consecutive_false_positives_normal",
-                          "metrics.ids.consecutive_false_positives_exploits"]:
-            fig.update_layout(
-                yaxis=dict(range=[0, 1])
-            )
+        fig = px.line(
+            df,
+            x="params.num_attacks",
+            y=metric,
+            color="Experiment",
+            line_dash="Experiment",
+            line_dash_sequence=["dot"],
+            markers=True,
+        )
+        if metric not in [
+            "metrics.ids.consecutive_false_positives_normal",
+            "metrics.ids.consecutive_false_positives_exploits",
+        ]:
+            fig.update_layout(yaxis=dict(range=[0, 1]))
             fig.update_yaxes(gridwidth=0.5, griddash="dot", dtick=0.1)
         fig.update_layout(
-            yaxis_title=METRIC_LABELS[metric],
-            xaxis_title="Number of Attacks"
+            yaxis_title=METRIC_LABELS[metric], xaxis_title="Number of Attacks"
         )
         fig.write_image(img_path)
 
@@ -157,7 +216,9 @@ class EvalSubCommand(SubCommand):
             runs, _ = checker.get_runs_df(no_finished_check=allow_unfinished)
             return runs
 
-        cache_key = exp_name + md5(checker.experiment.ignore_scenarios, checker.experiment.parameter_cfg)
+        cache_key = exp_name + md5(
+            checker.experiment.ignore_scenarios, checker.experiment.parameter_cfg
+        )
         from_cache = cache.get_cached_result(cache_key)
         if from_cache is None:
             runs, is_finished = checker.get_runs_df(no_finished_check=allow_unfinished)
@@ -168,7 +229,9 @@ class EvalSubCommand(SubCommand):
             print("from cache", from_cache.timestamp)
         return runs
 
-    def _calc_robustness_scores(self, df: DataFrame, num_attack_col="params.num_attacks"):
+    def _calc_robustness_scores(
+        self, df: DataFrame, num_attack_col="params.num_attacks"
+    ):
         if num_attack_col not in df.columns:
             raise ValueError("%s is not a column in the dataframe" % num_attack_col)
 
@@ -182,20 +245,31 @@ class EvalSubCommand(SubCommand):
             if num_attacks == 0:
                 continue
             for m in metrics:
-                metrics_sums[m] += df.query(f"`{num_attack_col}` == {num_attacks}")[m].iloc[0]
+                metrics_sums[m] += df.query(f"`{num_attack_col}` == {num_attacks}")[
+                    m
+                ].iloc[0]
             weight_sum += 1
 
         # metrics_means = {m: metrics_sums[m] / weight_sum for m in metrics}
 
-        clean_data_metrics = {m: df.query(f"`{num_attack_col}` == 0")[m].iloc[0] for m in metrics}
-        auc_metrics_w0 = {m: self._calc_auc_metrics(df, num_attack_col, m) for m in metrics}
+        clean_data_metrics = {
+            m: df.query(f"`{num_attack_col}` == 0")[m].iloc[0] for m in metrics
+        }
+        auc_metrics_w0 = {
+            m: self._calc_auc_metrics(df, num_attack_col, m) for m in metrics
+        }
         # auc_metrics_geq1 = {m: self._calc_auc_metrics(df.query(f"`{num_attack_col}` != 0"), num_attack_col, m) for m in
         #                    metrics}
-        relative_robustness_score = {m: auc_metrics_w0[m] / clean_data_metrics[m] for m in metrics}
+        relative_robustness_score = {
+            m: auc_metrics_w0[m] / clean_data_metrics[m] for m in metrics
+        }
 
         # write the scores into a single dict
         scores = {}
-        for prefix, scores_dict in [("auc", auc_metrics_w0), ("relative", relative_robustness_score)]:
+        for prefix, scores_dict in [
+            ("auc", auc_metrics_w0),
+            ("relative", relative_robustness_score),
+        ]:
             # ("mean", auc_metrics_w0), ("auc_geq1", auc_metrics_geq1)]:
             for key, metric_value in scores_dict.items():
                 scores[f"{prefix}.{key}"] = metric_value
@@ -216,7 +290,10 @@ class EvalSubCommand(SubCommand):
         for checker in checkers:
             for sc in all_ignore_scenarios:
                 if sc not in checker.experiment.ignore_scenarios:
-                    print("[%s] Ignore scenario %s" % (checker.experiment.parameter_cfg_id, sc))
+                    print(
+                        "[%s] Ignore scenario %s"
+                        % (checker.experiment.parameter_cfg_id, sc)
+                    )
                     checker.experiment.ignore_scenarios.append(sc)
 
 
@@ -226,6 +303,8 @@ def calc_area_under_curve(X, Y):
     sum = 0
     for k in range(len(X) - 1):
         if X[k] > X[k + 1]:
-            raise ValueError("X is not sorted! X[%s] = %s > X[%s] = %s" % (k, X[k], k + 1, X[k + 1]))
+            raise ValueError(
+                "X is not sorted! X[%s] = %s > X[%s] = %s" % (k, X[k], k + 1, X[k + 1])
+            )
         sum += (Y[k] + Y[k + 1]) / 2 * (X[k + 1] - X[k])
     return sum / (X[-1] - X[0])

@@ -5,10 +5,11 @@ from tsa.histogram import Histogram
 
 
 class NgramFrequencyAppender(BuildingBlock):
-    """
-    """
+    """ """
 
-    def __init__(self, input: BuildingBlock, anomaly_fn="max-scaled", alpha=0.5, features=None):
+    def __init__(
+        self, input: BuildingBlock, anomaly_fn="max-scaled", alpha=0.5, features=None
+    ):
         super().__init__()
         if features is None:
             self._features = ["ngram_frequency", "thread_frequency"]
@@ -50,6 +51,7 @@ class NgramFrequencyAppender(BuildingBlock):
     def fit(self):
         self._anomaly_function.set_max_count(self._normal_counts.max_count())
         self._thread_af.set_max_count(len(self._observed_threads))
+
     def _calculate(self, syscall):
         inp = self._input.get_result(syscall)
         if inp is None:

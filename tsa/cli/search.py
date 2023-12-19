@@ -17,12 +17,20 @@ class SearchSubCommand(SubCommand):
         super().__init__("search", "run parameter search")
 
     def make_subparser(self, parser: argparse.ArgumentParser):
-        parser.add_argument("-c", "--config", required=True, help="Experiment Search config yaml file.")
-        parser.add_argument("--experiment", "-e", required=False, help="Sets the mlflow experiment ID", type=str)
+        parser.add_argument(
+            "-c", "--config", required=True, help="Experiment Search config yaml file."
+        )
+        parser.add_argument(
+            "--experiment",
+            "-e",
+            required=False,
+            help="Sets the mlflow experiment ID",
+            type=str,
+        )
 
     def exec(self, args, parser, unknown_args):
-        #outdir = args.out_dir
-        #if outdir is not None:
+        # outdir = args.out_dir
+        # if outdir is not None:
         #    if not os.path.exists(outdir):
         #        print("%s does not exist" % outdir)
         #        sys.exit(1)
@@ -40,10 +48,7 @@ class SearchSubCommand(SubCommand):
             print("No parameter configurations to continue")
             return
 
-        experiment_start_args = {
-            "num_runs": 1,
-            "dry_run": False
-        }
+        experiment_start_args = {"num_runs": 1, "dry_run": False}
         start_at = get_next_iteration(mlflow, next_experiment, mode="random")
         print("Start at iteration", start_at)
 
@@ -51,7 +56,6 @@ class SearchSubCommand(SubCommand):
 
 
 class ParameterSearch:
-
     def __init__(self, cfg):
         self._cfg = cfg
 
@@ -68,6 +72,7 @@ class ParameterSearch:
             experiment = make_experiment(parameters, mlflow_client, mlflow_exp_name)
             checker = ExperimentChecker(experiment)
             yield checker
+
     def get_next(self, mlflow_client, mlflow_exp_name) -> Optional[Experiment]:
         for checker in self.iterate_exp_checkers(mlflow_client, mlflow_exp_name):
             experiment = checker.experiment
@@ -75,10 +80,16 @@ class ParameterSearch:
                 return experiment
             stats = checker.stats()
             if stats.is_finished():
-                print("Experiment for parameter config %s is finished." % experiment.parameter_cfg_id)
+                print(
+                    "Experiment for parameter config %s is finished."
+                    % experiment.parameter_cfg_id
+                )
             elif len(stats.missing_runs) == len(stats.missing_runs_but_running):
-                print("All runs of experiment %s are still running, continue to next." % experiment.parameter_cfg_id)
-                continue # TODO change for other modes than grid mode (if next parameter cfg depends on previous ones)
+                print(
+                    "All runs of experiment %s are still running, continue to next."
+                    % experiment.parameter_cfg_id
+                )
+                continue  # TODO change for other modes than grid mode (if next parameter cfg depends on previous ones)
             else:
                 return experiment
 

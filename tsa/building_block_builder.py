@@ -45,18 +45,55 @@ from tsa.utils import access_cfg, exists_key
 def Ngram(building_block, *args, **kwargs):
     return _Ngram([building_block], *args, **kwargs)
 
+
 def Ngram(building_block, *args, **kwargs):
     return _Ngram([building_block], *args, **kwargs)
 
-BUILDING_BLOCKS = {cls.__name__: cls for cls in
-                   [AE, Stide, Som, SystemCallGraph, IntEmbedding, W2VEmbedding, CacheableW2V, OneHotEncoding, Ngram, LOF,
-                    MixedModelOutlierDetector, MaxScoreThreshold, StreamSum, FrequencyOD,
-                    EllipticEnvelopeOD, IsolationForestOD,
-                    TrainingSetAnalyser, ContinuousTrainingSetAnalyser, Visualize, NgramAnalyser,
-                    PCA_BB, W2VConcat, TupleBB, TrainingSetFilter, FrequencyEncoding, FrequencySTIDE,
-                    NgramFrequencyAppender, ThreadClusteringOD, NgramThreadEntropy, ScoreMultiplication, NgramThreadEmbeddingBB,
-                    NgramThreadAnalyser, NgramThreadDistance, ClusterVisualize, TfidfSTIDE, FrequencyDistribution, MicroSTIDEs,
-                    PercentileThreshold, DataDriftAnalyser]}
+
+BUILDING_BLOCKS = {
+    cls.__name__: cls
+    for cls in [
+        AE,
+        Stide,
+        Som,
+        SystemCallGraph,
+        IntEmbedding,
+        W2VEmbedding,
+        CacheableW2V,
+        OneHotEncoding,
+        Ngram,
+        LOF,
+        MixedModelOutlierDetector,
+        MaxScoreThreshold,
+        StreamSum,
+        FrequencyOD,
+        EllipticEnvelopeOD,
+        IsolationForestOD,
+        TrainingSetAnalyser,
+        ContinuousTrainingSetAnalyser,
+        Visualize,
+        NgramAnalyser,
+        PCA_BB,
+        W2VConcat,
+        TupleBB,
+        TrainingSetFilter,
+        FrequencyEncoding,
+        FrequencySTIDE,
+        NgramFrequencyAppender,
+        ThreadClusteringOD,
+        NgramThreadEntropy,
+        ScoreMultiplication,
+        NgramThreadEmbeddingBB,
+        NgramThreadAnalyser,
+        NgramThreadDistance,
+        ClusterVisualize,
+        TfidfSTIDE,
+        FrequencyDistribution,
+        MicroSTIDEs,
+        PercentileThreshold,
+        DataDriftAnalyser,
+    ]
+}
 BuildingBlockCfg = dict
 
 
@@ -65,7 +102,9 @@ class IDSPipelineBuilder:
         self.analysers = []
         self._cache_context = cache_context
 
-    def _build_block(self, cfg: BuildingBlockCfg, last_block: BuildingBlock, cache_key) -> BuildingBlock:
+    def _build_block(
+        self, cfg: BuildingBlockCfg, last_block: BuildingBlock, cache_key
+    ) -> BuildingBlock:
         cfg = copy.deepcopy(cfg)
         name = access_cfg(cfg, "name")
         if name not in BUILDING_BLOCKS:
@@ -82,10 +121,15 @@ class IDSPipelineBuilder:
         try:
             bb = bb_class(last_block, **bb_args)
         except Exception as e:
-            raise RuntimeError("Error building block %s with args %s.\nNested Error is: %s" % (name, cfg, e)) from e
+            raise RuntimeError(
+                "Error building block %s with args %s.\nNested Error is: %s"
+                % (name, cfg, e)
+            ) from e
         return bb
 
-    def _build_split_block(self, cfg: BuildingBlockCfg, last_block: BuildingBlock, cache_key):
+    def _build_split_block(
+        self, cfg: BuildingBlockCfg, last_block: BuildingBlock, cache_key
+    ):
         parallel_blocks = []
         for _, config_list in cfg["split"].items():
             bb = self._build_bb_pipeline(config_list, cache_key, last_block)
@@ -94,13 +138,14 @@ class IDSPipelineBuilder:
 
     def build_all(self, configs: List[BuildingBlockCfg]):
         first_block = SyscallName()
-        last_block = self._build_bb_pipeline(configs,
-                                             cache_key=self._cache_context,
-                                             from_block=first_block)
+        last_block = self._build_bb_pipeline(
+            configs, cache_key=self._cache_context, from_block=first_block
+        )
         return last_block
 
-
-    def _build_bb_pipeline(self, configs: List[BuildingBlockCfg], cache_key: str, from_block: BuildingBlock):
+    def _build_bb_pipeline(
+        self, configs: List[BuildingBlockCfg], cache_key: str, from_block: BuildingBlock
+    ):
         last_block = from_block
         for i, cfg in enumerate(configs):
             cache_key += "||" + str(cfg)

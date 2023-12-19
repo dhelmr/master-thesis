@@ -15,13 +15,10 @@ from tsa.analysis.analyser import AnalyserBB
 from tsa.analysis.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
 from tsa.diagnosis.thread_clustering import DISTANCE_FN
 
-DEFAULT_DISTANCES = [
-    "euclidean", "cosine", "hamming"
-]
+DEFAULT_DISTANCES = ["euclidean", "cosine", "hamming"]
 
 
 class ClusterVisualize(AnalyserBB):
-
     def __init__(self, *args, distances: List[str] = None, **kwargs):
         super().__init__(*args, **kwargs)
         self._matrix = NgramThreadMatrix()
@@ -65,14 +62,14 @@ class ClusterVisualize(AnalyserBB):
                 "distance": distance,
                 "name": name,
                 "mean": np.mean(coords),
-                "var": np.var(coords)
+                "var": np.var(coords),
             }
             print(rows_common)
             stats.append(rows_common)
         except ValueError as e:
             print("Error occured for", name, distance)
             print(e)
-        #for r, c in enumerate(coords):
+        # for r, c in enumerate(coords):
         #    stats.append({
         #        **{f"x{i}": c[i] for i in range(len(coords[0]))},
         #        **{"i": r},

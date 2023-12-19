@@ -12,7 +12,10 @@ from pandas import DataFrame
 
 def split_list(l, fraction_sublist1: float):
     if fraction_sublist1 < 0 or fraction_sublist1 > 1:
-        raise ValueError("Argument fraction_sublist1 must be between 0 and 1, but is: %s" % fraction_sublist1)
+        raise ValueError(
+            "Argument fraction_sublist1 must be between 0 and 1, but is: %s"
+            % fraction_sublist1
+        )
     size = len(l)
     split_at = math.floor(fraction_sublist1 * size)
     return l[:split_at], l[split_at:]
@@ -45,7 +48,8 @@ def get_offset(length, perm_i, step_size):
 def set_list_offset(l, new_offset) -> list:
     a = l[:new_offset]
     b = l[new_offset:]
-    return b+a
+    return b + a
+
 
 def access_cfg(root_obj, *keys, default=None, required=True, exp_type=None):
     if default is not None:
@@ -59,16 +63,23 @@ def access_cfg(root_obj, *keys, default=None, required=True, exp_type=None):
             if not required:
                 return default
             else:
-                raise ValueError("Cannot find parameter for key '%s' at %s" % (key, cur_key if cur_key != "" else "[ROOT]"))
+                raise ValueError(
+                    "Cannot find parameter for key '%s' at %s"
+                    % (key, cur_key if cur_key != "" else "[ROOT]")
+                )
         cur_obj = cur_obj[key]
         cur_key = "%s.%s" % (cur_key, key)
     if exp_type is not None and not isinstance(cur_obj, exp_type):
-        raise ValueError("Parameter '%s' is not of expected type %s" % (cur_key, exp_type))
+        raise ValueError(
+            "Parameter '%s' is not of expected type %s" % (cur_key, exp_type)
+        )
     return cur_obj
+
 
 def exists_key(root_obj, *keys) -> bool:
     val = access_cfg(root_obj, *keys, default=None, required=False)
     return val is not None
+
 
 def choose_element(iterator, index):
     if index < 0:
@@ -79,7 +90,9 @@ def choose_element(iterator, index):
         if i == index:
             return el
     raise ValueError(
-        "Cannot choose the %s-th element, because the iterator returned only %s elements." % (index, total))
+        "Cannot choose the %s-th element, because the iterator returned only %s elements."
+        % (index, total)
+    )
 
 
 def log_pandas_df(df: DataFrame, name: str):
@@ -88,12 +101,14 @@ def log_pandas_df(df: DataFrame, name: str):
     df.to_parquet(tmpfile, compression="gzip")
     mlflow.log_artifact(tmpfile)
 
+
 # see https://stackoverflow.com/a/49571213
 def gini_coeff(x):
     sorted_x = np.sort(x)
     n = len(x)
     cumx = np.cumsum(sorted_x, dtype=float)
     return (n + 1 - 2 * np.sum(cumx) / cumx[-1]) / n
+
 
 def md5(*args):
     """

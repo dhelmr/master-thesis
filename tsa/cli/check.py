@@ -7,43 +7,71 @@ import yaml
 from mlflow import MlflowClient
 from mlflow.entities import RunStatus
 
-from tsa.cli.run import SubCommand, make_experiment_from_path, make_experiment_from_mlflow
+from tsa.cli.run import (
+    SubCommand,
+    make_experiment_from_path,
+    make_experiment_from_mlflow,
+)
 from tsa.cli.search import ParameterSearch
 from tsa.experiment_checker import ExperimentChecker, ExperimentStats
 from tsa.mlflow.experiment_name_conversion import ExperimentNameConversion
 
 
 class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
 
 class CheckSubCommand(SubCommand):
-
     def __init__(self):
         super().__init__("check", "check experiment for completeness and integrity")
         self._no_choice = False
 
     def make_subparser(self, parser: ArgumentParser):
-        parser.add_argument("--experiment", "-e", required=False,
-                            help="Sets the mlflow experiment name. If not set, it will be inferred from the config path.",
-                            type=str)
-        parser.add_argument("-c", "--config", required=True, help="Experiment config yaml file.")
-        parser.add_argument("--remove-stale", help="remove stale runs (RUNNING but older than x hours)",
-                            action="store_true")
-        parser.add_argument("--stale-hours", help="defines after how many hours RUNNING runs defined as 'stale'",
-                            type=int, default=49)
+        parser.add_argument(
+            "--experiment",
+            "-e",
+            required=False,
+            help="Sets the mlflow experiment name. If not set, it will be inferred from the config path.",
+            type=str,
+        )
+        parser.add_argument(
+            "-c", "--config", required=True, help="Experiment config yaml file."
+        )
+        parser.add_argument(
+            "--remove-stale",
+            help="remove stale runs (RUNNING but older than x hours)",
+            action="store_true",
+        )
+        parser.add_argument(
+            "--stale-hours",
+            help="defines after how many hours RUNNING runs defined as 'stale'",
+            type=int,
+            default=49,
+        )
         parser.add_argument("--remove-duplicate", action="store_true", default=False)
-        parser.add_argument("--no-choice", action="store_true", default=False, help="Assume yes/first choice if asked for confirmation. (used for remove-duplicates or remove-stale)")
-        parser.add_argument("--verbose", action="store_true", help="Verbose output", default=False)
-        parser.add_argument("--scenarios", action="store_true", help="Print missing scenarios", default=False)
+        parser.add_argument(
+            "--no-choice",
+            action="store_true",
+            default=False,
+            help="Assume yes/first choice if asked for confirmation. (used for remove-duplicates or remove-stale)",
+        )
+        parser.add_argument(
+            "--verbose", action="store_true", help="Verbose output", default=False
+        )
+        parser.add_argument(
+            "--scenarios",
+            action="store_true",
+            help="Print missing scenarios",
+            default=False,
+        )
 
     def exec(self, args, parser, unknown_args):
         self._no_choice = args.no_choice
@@ -75,7 +103,9 @@ class CheckSubCommand(SubCommand):
                 self._remove_duplicate(stats, checker)
             else:
                 stats = checker.stats()
-                ok, status = self.print_stats(stats, verbose=args.verbose, print_scenarios=args.scenarios)
+                ok, status = self.print_stats(
+                    stats, verbose=args.verbose, print_scenarios=args.scenarios
+                )
                 if ok:
                     print(bcolors.OKGREEN + "Ok" + bcolors.ENDC)
                     count_ok += 1
@@ -96,10 +126,13 @@ class CheckSubCommand(SubCommand):
         if len(stale) == 0:
             print("No stale runs found.")
             return
-        print("Found %s stale runs (state=RUNNING but start_time older than %s hours)" % (len(stale), args.stale_hours))
+        print(
+            "Found %s stale runs (state=RUNNING but start_time older than %s hours)"
+            % (len(stale), args.stale_hours)
+        )
         for s in stale:
             start_time_seconds = int(s.info.start_time / 1000)
-            start_time = strftime('%Y-%m-%d %H:%M:%S', localtime(start_time_seconds))
+            start_time = strftime("%Y-%m-%d %H:%M:%S", localtime(start_time_seconds))
             print(s.info.run_id, start_time)
         if self.choice("Remove these %s runs?" % len(stale)) == "y":
             for s in stale:
@@ -145,10 +178,15 @@ class CheckSubCommand(SubCommand):
             pprint.pprint(stats.missing_scenarios)
 
         finished_count = len(stats.run_configs) - len(stats.missing_runs)
-        print("Progress: %s finished; %s running (out of missing runs)" %
-              (format_perc(finished_count, len(stats.run_configs)),
-               format_perc(len(stats.missing_runs_but_running), len(stats.missing_runs))
-               ))
+        print(
+            "Progress: %s finished; %s running (out of missing runs)"
+            % (
+                format_perc(finished_count, len(stats.run_configs)),
+                format_perc(
+                    len(stats.missing_runs_but_running), len(stats.missing_runs)
+                ),
+            )
+        )
         return ok, status
 
     def _remove_duplicate(self, stats: ExperimentStats, checker):
@@ -161,10 +199,15 @@ class CheckSubCommand(SubCommand):
                     continue
                 found_runs.append(r)
             for i, r in enumerate(found_runs):
-                print("[%s] %s - %s - %s" % (i, r.info.run_name, r.info.status, r.info.start_time))
-            keep = self.choice("Found %s mlflow runs for run cfg %s. Enter which run to keep. (k for keep all)" % (
-            len(found_runs), run_cfg),
-                          choices=[str(index) for index in range(len(found_runs))] + ["k"])
+                print(
+                    "[%s] %s - %s - %s"
+                    % (i, r.info.run_name, r.info.status, r.info.start_time)
+                )
+            keep = self.choice(
+                "Found %s mlflow runs for run cfg %s. Enter which run to keep. (k for keep all)"
+                % (len(found_runs), run_cfg),
+                choices=[str(index) for index in range(len(found_runs))] + ["k"],
+            )
             if keep == "k":
                 continue
             else:
@@ -173,7 +216,6 @@ class CheckSubCommand(SubCommand):
                         continue
                     print("Delete", r.info.run_name)
                     checker.experiment.mlflow.delete_run(r.info.run_id)
-
 
     def choice(self, msg: str, choices=["y", "n"]):
         if self._no_choice:
@@ -197,6 +239,4 @@ def load_exp_from_parser(config, experiment_name):
 def format_perc(fraction, of):
     if of == 0:
         return "%s/%s" % (fraction, of)
-    return "%s/%s (%s perc.)" % (
-        fraction, of, fraction / of * 100
-    )
+    return "%s/%s (%s perc.)" % (fraction, of, fraction / of * 100)

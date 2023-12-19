@@ -18,6 +18,8 @@ class TupleBB(BuildingBlock):
         if inp is None:
             return None
         return tuple([inp])
+
+
 class W2VConcat(BuildingBlock):
     def __init__(self, input_bb, variance: bool, cosine_sims: bool):
         super().__init__()
@@ -25,6 +27,7 @@ class W2VConcat(BuildingBlock):
         self._dependency_list = [self._input]
         self.variance = variance
         self.cosine_sims = cosine_sims
+
     def depends_on(self) -> list:
         return self._dependency_list
 
@@ -40,12 +43,13 @@ class W2VConcat(BuildingBlock):
             features += variance.tolist()
         if self.cosine_sims:
             cosines = []
-            for i in range(len(arrays)-1):
+            for i in range(len(arrays) - 1):
                 # cosine = np.cos()
-                cosine = cos_sim(arrays[i], arrays[i+1])
+                cosine = cos_sim(arrays[i], arrays[i + 1])
                 cosines.append(cosine)
             features += cosines
         return tuple(features)
 
-def cos_sim(a,b):
-    return np.dot(a,b)/(np.linalg.norm(a)*np.linalg.norm(b))
+
+def cos_sim(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))

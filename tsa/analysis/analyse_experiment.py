@@ -25,8 +25,10 @@ class DummyDecider(BuildingBlock):
 
     def is_decider(self):
         return True
+
     def depends_on(self) -> list:
         return self._deps
+
 
 class AnalysisExperiment(Experiment):
     def __init__(self, *args, **kwargs):
@@ -38,10 +40,12 @@ class AnalysisExperiment(Experiment):
 
         decider = DummyDecider(last_bb)
 
-        ids = IDS(data_loader=dataloader,
-                  resulting_building_block=decider,
-                  create_alarms=True,
-                  plot_switch=False)
+        ids = IDS(
+            data_loader=dataloader,
+            resulting_building_block=decider,
+            create_alarms=True,
+            plot_switch=False,
+        )
         if decider._activate_test_phase:
             ids.detect()
 

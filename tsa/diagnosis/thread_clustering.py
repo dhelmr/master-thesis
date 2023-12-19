@@ -50,11 +50,14 @@ _SQRT2 = np.sqrt(2)
 def hellinger(u, v):
     return euclidean(np.sqrt(u), np.sqrt(v)) / _SQRT2
 
+
 def jaccard_hellinger(u, v):
     return binary_jaccard_distance(u, v) * hellinger(u, v)
 
+
 def jaccard_cosine(u, v):
     return binary_jaccard_distance(u, v) * cosine(u, v)
+
 
 def binary_weighted_cosine(u, v):
     return 1 - (1 - binary_jaccard_distance(u, v)) * (1 - cosine(u, v))
@@ -66,22 +69,41 @@ DISTANCE_FN = {
     "hellinger": hellinger,
     "binary-hamming": binary_hamming,
     "jaccard-hellinger": jaccard_hellinger,
-    "binary-weighted-cosine": binary_weighted_cosine
+    "binary-weighted-cosine": binary_weighted_cosine,
 }
 
 
 class ThreadClusteringOD(OutlierDetector):
-
-    def __init__(self, building_block, train_features=None, n_components=2, distance="jaccard-cosine", tf_idf=False,
-                 skip_mds: bool = False, thread_based=True, normalize_rows=False, normalize_ord=1, metric_mds=True,
-                 plot_mds=False, od_method: str = "IsolationForest", fill_na=False, od_kwargs=None, cache_key=None,
-                 **kwargs):
+    def __init__(
+        self,
+        building_block,
+        train_features=None,
+        n_components=2,
+        distance="jaccard-cosine",
+        tf_idf=False,
+        skip_mds: bool = False,
+        thread_based=True,
+        normalize_rows=False,
+        normalize_ord=1,
+        metric_mds=True,
+        plot_mds=False,
+        od_method: str = "IsolationForest",
+        fill_na=False,
+        od_kwargs=None,
+        cache_key=None,
+        **kwargs
+    ):
         super().__init__(building_block, train_features, cache_key)
         if od_kwargs is None:
             od_kwargs = {}
-        self._mds = MDS(n_components=n_components, metric=metric_mds, dissimilarity="precomputed")
+        self._mds = MDS(
+            n_components=n_components, metric=metric_mds, dissimilarity="precomputed"
+        )
         if od_method not in OD_METHODS:
-            raise ValueError("Invalid od_method name %s. Must be one of: %s" % (od_method, list(OD_METHODS.keys())))
+            raise ValueError(
+                "Invalid od_method name %s. Must be one of: %s"
+                % (od_method, list(OD_METHODS.keys()))
+            )
         if od_method == "LocalOutlierFactor" and skip_mds:
             od_kwargs["metric"] = "precomputed"
             self._need_mds = False
@@ -103,7 +125,8 @@ class ThreadClusteringOD(OutlierDetector):
         self._plot_mds = plot_mds
         self._cache_key = cache_key
         self._skip_training_data = self._cache_key is not None and os.path.exists(
-            self._cache_key_to_path(self._cache_key))
+            self._cache_key_to_path(self._cache_key)
+        )
         self._matrix_builder = None if self._skip_training_data else NgramThreadMatrix()
         if self._skip_training_data:
             self.train_on = BuildingBlock().train_on
@@ -121,7 +144,9 @@ class ThreadClusteringOD(OutlierDetector):
             raise KeyError("$W2V_CACHE_PATH must be set")
 
         md5_hash = hashlib.md5(cache_key.encode()).hexdigest()
-        model_path = os.path.join(os.environ["CACHE_PATH"], "%s.ngram-matrix.pickle" % md5_hash)
+        model_path = os.path.join(
+            os.environ["CACHE_PATH"], "%s.ngram-matrix.pickle" % md5_hash
+        )
         return model_path
 
     def _load_data_from_cache(self):
@@ -140,9 +165,7 @@ class ThreadClusteringOD(OutlierDetector):
             return
         with open(path, "wb") as f:
             print("Write to cache: %s" % path)
-            pickle.dump({
-                "matrix": matrix, "training_data": training_data
-            }, f)
+            pickle.dump({"matrix": matrix, "training_data": training_data}, f)
 
     def detect_anomalies(self, training_data):
         # counts_by_thread = dict()
@@ -163,7 +186,9 @@ class ThreadClusteringOD(OutlierDetector):
         if self._cache_key is not None:
             self._store_cache(training_data, self._matrix_builder)
 
-        print("number of threads in training set: ", len(self._matrix_builder.threads()))
+        print(
+            "number of threads in training set: ", len(self._matrix_builder.threads())
+        )
         print("number of ngrams in training set: ", len(self._matrix_builder.ngrams()))
         # distance_matrix = make_distance_matrix(counts_by_thread, self._distance)
         if self._tf_idf:
@@ -174,7 +199,9 @@ class ThreadClusteringOD(OutlierDetector):
             matrix, ngrams, threads = self._matrix_builder.ngram_thread_matrix()
         if self._thread_based:
             print("Transpose matrix...")
-            matrix = np.transpose(matrix)  # convert ngram-thread matrix to thread-ngram matrix
+            matrix = np.transpose(
+                matrix
+            )  # convert ngram-thread matrix to thread-ngram matrix
         if self._normalize_rows:
             print("Normalize matrix...")
             norm = linalg.norm(matrix, axis=1, ord=self._normalize_ord).reshape(-1, 1)
@@ -198,8 +225,9 @@ class ThreadClusteringOD(OutlierDetector):
 
         anomalies = set()
         for i, ngram, thread_id in training_data:
-            if (self._thread_based and thread_id in anomalous_entities) \
-                    or (not self._thread_based and ngram in anomalous_entities):
+            if (self._thread_based and thread_id in anomalous_entities) or (
+                not self._thread_based and ngram in anomalous_entities
+            ):
                 anomalies.add(i)
         return anomalies
 

@@ -13,7 +13,6 @@ from tsa.confusion_matrix import ConfusionMatrix
 
 
 class PerformancePredictor(abc.ABC):
-
     def __init__(self, cli_args):
         pass
 
@@ -45,14 +44,19 @@ class TrainTestSplit:
 
 
 class PerformanceData:
-    def __init__(self, df: DataFrame,
-                 feature_cols: List[str],
-                 scenario_col="scenario",
-                 syscalls_col="syscalls"):
+    def __init__(
+        self,
+        df: DataFrame,
+        feature_cols: List[str],
+        scenario_col="scenario",
+        syscalls_col="syscalls",
+    ):
         self.df = df
         self._feature_cols = feature_cols
         self.scenario_col = scenario_col
-        self.target_cols = [col for col in df.columns if col not in feature_cols and col != scenario_col]
+        self.target_cols = [
+            col for col in df.columns if col not in feature_cols and col != scenario_col
+        ]
         self.syscalls_col = syscalls_col
 
     def feature_cols(self):
@@ -64,7 +68,13 @@ class PerformanceData:
     def get_scenario_data(self, sc_name: str) -> pandas.DataFrame:
         return self.df.loc[self.df[self.scenario_col] == sc_name]
 
-    def get_split(self, target_var: str, test_scenarios: List[str], threshold: float, reverse_classes: bool) -> TrainTestSplit:
+    def get_split(
+        self,
+        target_var: str,
+        test_scenarios: List[str],
+        threshold: float,
+        reverse_classes: bool,
+    ) -> TrainTestSplit:
         all_scenarios = self.get_scenarios()
         # validate parameters
         for sc in test_scenarios:
@@ -78,7 +88,12 @@ class PerformanceData:
         train_X = train.filter(self._feature_cols)
         test_X = test.filter(self._feature_cols)
 
-        map_to_binary_class = lambda value: 1 if (value > threshold and not reverse_classes) or (value <= threshold and reverse_classes) else 0
+        map_to_binary_class = (
+            lambda value: 1
+            if (value > threshold and not reverse_classes)
+            or (value <= threshold and reverse_classes)
+            else 0
+        )
         train_y = train[target_var].apply(map_to_binary_class).to_numpy()
         test_y = test[target_var].apply(map_to_binary_class).to_numpy()
 
@@ -90,7 +105,7 @@ class PerformanceData:
             test_y=test_y,
             test_X=test_X,
             train_y=train_y,
-            train_X=train_X
+            train_X=train_X,
         )
 
     def with_features(self, feature_cols: List[str]) -> "PerformanceData":
@@ -98,7 +113,7 @@ class PerformanceData:
             self.df,
             feature_cols=feature_cols,
             scenario_col=self.scenario_col,
-            syscalls_col=self.syscalls_col
+            syscalls_col=self.syscalls_col,
         )
 
 
@@ -106,12 +121,16 @@ CVPerformance = Any
 
 
 class CV:
-    def __init__(self, data: PerformanceData, predictor: PerformancePredictor, cv_leave_out=2):
+    def __init__(
+        self, data: PerformanceData, predictor: PerformancePredictor, cv_leave_out=2
+    ):
         self.data = data
         self.cv_leave_out = cv_leave_out
         self.predictor = predictor
 
-    def run(self, target_var: str, threshold: float, reverse_classes: bool) -> CVPerformance:
+    def run(
+        self, target_var: str, threshold: float, reverse_classes: bool
+    ) -> CVPerformance:
         if target_var not in self.data.target_cols:
             raise ValueError("No target variable: %s" % target_var)
         all_metrics = []
@@ -130,7 +149,7 @@ class CV:
                 "train_scenarios": split.train_scenarios,
                 "target_var": split.target_var,
                 "threshold": split.threshold,
-                **metrics
+                **metrics,
             }
             all_metrics.append(row_data)
         df = pandas.DataFrame(all_metrics)
@@ -141,16 +160,23 @@ class CV:
         min_stats = df.min(numeric_only=True)
         max_stats = df.max(numeric_only=True)
         range_stats = max_stats - min_stats
-        stats = pandas.concat([mean_stats, var_stats, min_stats, max_stats, range_stats], axis=1).rename(columns={0: "mean", 1: "var", 2: "min", 3: "max", 4: "range"})
+        stats = pandas.concat(
+            [mean_stats, var_stats, min_stats, max_stats, range_stats], axis=1
+        ).rename(columns={0: "mean", 1: "var", 2: "min", 3: "max", 4: "range"})
         return unpack_dict(stats.to_dict())
 
-    def _iter_cv_splits(self, target_var: str, threshold: float, reverse_classes: bool) -> Iterable[TrainTestSplit]:
+    def _iter_cv_splits(
+        self, target_var: str, threshold: float, reverse_classes: bool
+    ) -> Iterable[TrainTestSplit]:
         scenarios = self.data.get_scenarios()
         for val_scenarios in itertools.combinations(scenarios, self.cv_leave_out):
-            split = self.data.get_split(target_var, val_scenarios, threshold, reverse_classes)
+            split = self.data.get_split(
+                target_var, val_scenarios, threshold, reverse_classes
+            )
             yield split
 
-def unpack_dict(d: Dict[str, Any], key_prefix="", to_dict = None):
+
+def unpack_dict(d: Dict[str, Any], key_prefix="", to_dict=None):
     if to_dict is None:
         to_dict = {}
     for k in d.keys():

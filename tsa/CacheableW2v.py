@@ -8,8 +8,9 @@ from algorithms.features.impl.w2v_embedding import W2VEmbedding
 
 
 class CacheableW2V(W2VEmbedding):
-
-    def __init__(self, input: BuildingBlock, cache_key: str = None, workers=1, *args, **kwargs):
+    def __init__(
+        self, input: BuildingBlock, cache_key: str = None, workers=1, *args, **kwargs
+    ):
         super().__init__(input, *args, workers=workers, **kwargs)
         self._cache_key = cache_key
         if self._cache_key is not None:
@@ -38,7 +39,9 @@ class CacheableW2V(W2VEmbedding):
             raise KeyError("$W2V_CACHE_PATH must be set")
 
         md5_hash = hashlib.md5(cache_key.encode()).hexdigest()
-        model_path = os.path.join(os.environ["W2V_CACHE_PATH"], "%s.w2v.pickle" % md5_hash)
+        model_path = os.path.join(
+            os.environ["W2V_CACHE_PATH"], "%s.w2v.pickle" % md5_hash
+        )
         return model_path
 
     def write_model_to_cache(self, key):

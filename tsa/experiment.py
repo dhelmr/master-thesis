@@ -30,6 +30,7 @@ ScenarioName = str
 @dataclasses.dataclass
 class CombinedScenario:
     scenarios: Dict[ScenarioName, dict]
+
     def __hash__(self):
         return hash(json.dumps(self.scenarios, sort_keys=True))
 
@@ -52,6 +53,7 @@ class RunConfig:
 
 IGNORE_SCENARIOS = ["LID-DS-2021/CVE-2017-12635_6"]
 
+
 class Experiment:
     def __init__(self, parameter_cfg, mlflow: MlflowClient, mlflow_name):
         self._tmp_results_df = None
@@ -63,7 +65,9 @@ class Experiment:
 
         # some scenarios should be ignored even if some runs for them are already present
         # this is why they cannot simply be removed from the experiment, but rather are stored in this list
-        self.ignore_scenarios = self._get_param("ignore_scenarios", exp_type=list, default=[])
+        self.ignore_scenarios = self._get_param(
+            "ignore_scenarios", exp_type=list, default=[]
+        )
         for sc in IGNORE_SCENARIOS:
             if sc not in self.ignore_scenarios:
                 self.ignore_scenarios.append(sc)
@@ -74,14 +78,19 @@ class Experiment:
         if num_attacks_range is None:
             max_attacks = self._get_param("dataloader", "max_attacks", exp_type=int)
             num_attacks_range = range(max_attacks + 1)
-        permutation_i_values = self._get_param("dataloader", "permutation_i", required=True)
+        permutation_i_values = self._get_param(
+            "dataloader", "permutation_i", required=True
+        )
         if not isinstance(permutation_i_values, list):
             if not str(permutation_i_values).isdigit():
-                raise ValueError("Invalid value for permutation_i: %s" % permutation_i_values)
+                raise ValueError(
+                    "Invalid value for permutation_i: %s" % permutation_i_values
+                )
             permutation_i_values = [permutation_i_values]
         iteration = 0
-        for permutation_i, scenario, num_attacks in itertools.product(permutation_i_values, self.scenarios,
-                                                                      num_attacks_range):
+        for permutation_i, scenario, num_attacks in itertools.product(
+            permutation_i_values, self.scenarios, num_attacks_range
+        ):
             #            lid_ds_version, scenario_name = scenario.split("/")
             if isinstance(scenario, dict):
                 scenario = CombinedScenario(scenarios=scenario)
@@ -90,7 +99,7 @@ class Experiment:
                 num_attacks=num_attacks,
                 iteration=iteration,
                 scenario=scenario,
-                permutation_i=permutation_i
+                permutation_i=permutation_i,
             )
 
             if scenario not in self.ignore_scenarios:
@@ -116,7 +125,9 @@ class Experiment:
                 return
             with mlflow.start_run() as run:
                 mlflow.log_params(convert_mlflow_dict(run_cfg.to_dict()))
-                mlflow.log_params(convert_mlflow_dict(dataloader.cfg_dict(), "dataloader"))
+                mlflow.log_params(
+                    convert_mlflow_dict(dataloader.cfg_dict(), "dataloader")
+                )
                 print(self.parameter_cfg)
                 mlflow.log_dict(self.parameter_cfg, "config.json")
                 self._log_ids_cfg()
@@ -125,7 +136,9 @@ class Experiment:
                     # the cache context should be the same for all runs with num_attacks=0, because permutation_i has no effect
                     del dataloader_context["permutation_i"]
                 builder = IDSPipelineBuilder(cache_context=str(dataloader_context))
-                additional_params, results, ids = self.train_test(dataloader, run_cfg, builder)
+                additional_params, results, ids = self.train_test(
+                    dataloader, run_cfg, builder
+                )
                 pprint.pprint(results)
                 # update dataloader reference because the ids might have been loaded from cache
                 dataloader: TsaBaseDataloader = ids._data_loader
@@ -147,11 +160,13 @@ class Experiment:
 
     def _make_dl_from_scenario(self, scenario: ScenarioName, cfg: Dict):
         try:
-            lid_ds_base = os.environ['LID_DS_BASE']
+            lid_ds_base = os.environ["LID_DS_BASE"]
         except KeyError as exc:
-            raise ValueError("No LID-DS Base Path given."
-                             "Please specify as argument or set Environment Variable "
-                             "$LID_DS_BASE") from exc
+            raise ValueError(
+                "No LID-DS Base Path given."
+                "Please specify as argument or set Environment Variable "
+                "$LID_DS_BASE"
+            ) from exc
         lid_ds_version = scenario.split("/")[0]
         if lid_ds_version == "LID-DS-2019":
             cls = ContaminatedDataLoader2019
@@ -168,7 +183,7 @@ class Experiment:
         base_cfg = {
             **base_cfg,
             "permutation_i": run_cfg.permutation_i,
-            "num_attacks": run_cfg.num_attacks
+            "num_attacks": run_cfg.num_attacks,
         }
         if isinstance(run_cfg.scenario, ScenarioName):
             dataloader = self._make_dl_from_scenario(run_cfg.scenario, base_cfg)
@@ -177,20 +192,25 @@ class Experiment:
             for i, scenario_cfg in enumerate(run_cfg.scenario.scenarios.items()):
                 scenario_name, scenario_dl_cfg = scenario_cfg
                 dataloader_cfg = copy.deepcopy(base_cfg)
-                dataloader_cfg = {
-                    **scenario_dl_cfg,
-                    **dataloader_cfg
-                }
+                dataloader_cfg = {**scenario_dl_cfg, **dataloader_cfg}
                 if i == 0:  # first dataloader has mum_attacks from run cfg
-                    part_dataloader = self._make_dl_from_scenario(scenario_name, dataloader_cfg)
+                    part_dataloader = self._make_dl_from_scenario(
+                        scenario_name, dataloader_cfg
+                    )
                 else:
                     dataloader_cfg["num_attacks"] = 0
-                    part_dataloader = self._make_dl_from_scenario(scenario_name, dataloader_cfg)
+                    part_dataloader = self._make_dl_from_scenario(
+                        scenario_name, dataloader_cfg
+                    )
                 dls.append(part_dataloader)
             dataloader = CombinationDL(dls)
         else:
-            raise ValueError("Not supported scenario specification: %s" % run_cfg.scenario)
-        dataloader = FilterDataloader(dataloader, **self._get_param("dataloader", "filter", default={}))
+            raise ValueError(
+                "Not supported scenario specification: %s" % run_cfg.scenario
+            )
+        dataloader = FilterDataloader(
+            dataloader, **self._get_param("dataloader", "filter", default={})
+        )
         return dataloader
 
     def _get_dataloader_cfg(self):
@@ -208,10 +228,12 @@ class Experiment:
         if use_cache:
             ids = self._load_from_cache(dataloader, run_cfg)
         if ids is None:
-            ids = IDS(data_loader=dataloader,
-                      resulting_building_block=decider,
-                      create_alarms=True,
-                      plot_switch=False)
+            ids = IDS(
+                data_loader=dataloader,
+                resulting_building_block=decider,
+                create_alarms=True,
+                plot_switch=False,
+            )
         if use_cache:
             self._serialize_ids(ids, dataloader, run_cfg)
 
@@ -221,15 +243,20 @@ class Experiment:
 
         results = self.calc_extended_results(performance)
         additional_parameters = {
-            f"tsa{i + 1}": analyser.get_analyse_result() for i, analyser in enumerate(builder.analysers)
+            f"tsa{i + 1}": analyser.get_analyse_result()
+            for i, analyser in enumerate(builder.analysers)
         }
         # additional_parameters["config"] = ids.get_config_tree_links(),
         return additional_parameters, results, ids
 
     def calc_extended_results(self, performance: Performance):
         results = performance.get_results()
-        cm = ConfusionMatrix(tn=results["true_negatives"], fp=results["false_positives"], tp=results["true_positives"],
-                             fn=results["false_negatives"])
+        cm = ConfusionMatrix(
+            tn=results["true_negatives"],
+            fp=results["false_positives"],
+            tp=results["true_positives"],
+            fn=results["false_negatives"],
+        )
         metrics = cm.calc_unweighted_measurements()
         return {"ids": results, "cm": metrics}
 
@@ -259,7 +286,9 @@ class Experiment:
             raise KeyError("$IDS_CACHE_PATH must be set if caching of ids is used")
         base_path = os.environ["IDS_CACHE_PATH"]
         cfg = self.parameter_cfg
-        context = str(cfg) + "||" + str(dataloader.cfg_dict()) + "||" + str(run_cfg.to_dict())
+        context = (
+            str(cfg) + "||" + str(dataloader.cfg_dict()) + "||" + str(run_cfg.to_dict())
+        )
         print("Cache context:", context)
         context_hash = hashlib.md5(context.encode()).hexdigest()
         return os.path.join(base_path, context_hash + ".ids.pickle")

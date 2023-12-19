@@ -24,7 +24,6 @@ class Heuristic(PerformancePredictor, ABC):
 
 
 class BaselineRandom(PerformancePredictor):
-
     def train(self, train_X: pandas.DataFrame, train_y: numpy.ndarray):
         pass
 
@@ -34,13 +33,11 @@ class BaselineRandom(PerformancePredictor):
 
 
 class BaselineAlways0(Heuristic):
-
     def _decide_row(self, row) -> int:
         return 0
 
 
 class BaselineAlways1(Heuristic):
-
     def _decide_row(self, row) -> int:
         return 1
 
@@ -59,12 +56,17 @@ class BaselineMajorityClass(Heuristic):
 
     def _decide_row(self, row) -> int:
         total = self.zeros + self.ones
-        return numpy.random.choice(numpy.arange(0, 2), p=[self.zeros/total, self.ones/total])
+        return numpy.random.choice(
+            numpy.arange(0, 2), p=[self.zeros / total, self.ones / total]
+        )
 
 
 class Heuristic1(Heuristic):
     def _decide_row(self, row) -> int:
-        if row["unique_ngrams/n_threads"] < 0.75 and 0.45 < row["ngram_dists_norm_entropy_mean"] < 0.6:
+        if (
+            row["unique_ngrams/n_threads"] < 0.75
+            and 0.45 < row["ngram_dists_norm_entropy_mean"] < 0.6
+        ):
             return 1
         else:
             return 0
@@ -72,10 +74,14 @@ class Heuristic1(Heuristic):
 
 class Heuristic2(Heuristic):
     def _decide_row(self, row) -> int:
-        if row["unique_ngrams/total"] < 0.0003 and row["unique_ngrams/n_threads"] < 0.75:
+        if (
+            row["unique_ngrams/total"] < 0.0003
+            and row["unique_ngrams/n_threads"] < 0.75
+        ):
             return 1
         else:
             return 0
+
 
 class Threshold(PerformancePredictor):
     def __init__(self, cli_args=[]):
@@ -90,12 +96,23 @@ class Threshold(PerformancePredictor):
 
     def train(self, train_X: pandas.DataFrame, train_y: numpy.ndarray):
         pass  # do nothing
+
     def predict(self, test_X: pandas.DataFrame) -> numpy.ndarray:
         preds = test_X.apply(self._decide_row, axis=1)
         return np.array(preds)
 
     def _decide_row(self, row):
         if self.clf_args["threshold_lt"]:
-            return 1 if row[self.clf_args["threshold_feature"]] < self.clf_args["threshold_value"] else 0
+            return (
+                1
+                if row[self.clf_args["threshold_feature"]]
+                < self.clf_args["threshold_value"]
+                else 0
+            )
         else:
-            return 1 if row[self.clf_args["threshold_feature"]] >= self.clf_args["threshold_value"] else 0
+            return (
+                1
+                if row[self.clf_args["threshold_feature"]]
+                >= self.clf_args["threshold_value"]
+                else 0
+            )

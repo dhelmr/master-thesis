@@ -65,6 +65,7 @@ class UnsupervisedDataLoader(TsaBaseDataloader):
     def artifact_dict(self):
         return self.dl.artifact_dict()
 
+
 class UnsupervisedExperiment(Experiment):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -73,13 +74,17 @@ class UnsupervisedExperiment(Experiment):
         ids_cfg = self._get_param("ids", exp_type=list)
         last_bb = builder.build_all(ids_cfg)
         if not isinstance(last_bb, OutlierDetector):
-            raise ValueError("Expect the resulting block of the experiment to be an outlier detector.")
+            raise ValueError(
+                "Expect the resulting block of the experiment to be an outlier detector."
+            )
         evaluator = UnsupervisedEvaluator(last_bb)
         only_training_dl = UnsupervisedDataLoader(dataloader)
-        ids = IDS(data_loader=only_training_dl,
-                  resulting_building_block=evaluator,
-                  create_alarms=True,
-                  plot_switch=False)
+        ids = IDS(
+            data_loader=only_training_dl,
+            resulting_building_block=evaluator,
+            create_alarms=True,
+            plot_switch=False,
+        )
         performance = ids.detect()
         results = self.calc_extended_results(performance)
         return {}, results, ids

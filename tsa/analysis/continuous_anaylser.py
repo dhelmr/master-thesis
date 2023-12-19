@@ -4,13 +4,13 @@ from tsa.analysis.analyser import AnalyserBB
 
 
 class ContinuousTrainingSetAnalyser(AnalyserBB):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._data = []
+
     def _add_input(self, syscall, inp):
         if inp is None:
-            return #TODO
+            return  # TODO
         self._data.append(inp)
 
     def _make_stats(self):

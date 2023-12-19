@@ -9,8 +9,12 @@ from dataloader.syscall import Syscall
 
 
 class OutlierDetector(BuildingBlock):
-
-    def __init__(self, building_block: BuildingBlock = None, train_features=None, cache_key: str = None):
+    def __init__(
+        self,
+        building_block: BuildingBlock = None,
+        train_features=None,
+        cache_key: str = None,
+    ):
         super().__init__()
         self._input = building_block
         if train_features is None:

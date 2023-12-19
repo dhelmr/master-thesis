@@ -14,7 +14,7 @@ class FilteredRecording(BaseRecording):
                 yield syscall
 
     def packets(self):
-        return  self.__wrapped_recording.packets()
+        return self.__wrapped_recording.packets()
 
     def resource_stats(self) -> list:
         return self.__wrapped_recording.resource_stats()

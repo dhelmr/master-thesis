@@ -9,7 +9,6 @@ from tsa.diagnosis.thread_clustering import plot
 
 
 class NgramThreadEmbeddings:
-
     def __init__(self, matrix, ngrams, n_components=10):
         matrix = deepcopy(matrix)
 
@@ -42,8 +41,7 @@ class NgramThreadEmbeddings:
 
 
 class NgramThreadEmbeddingBB(BuildingBlock):
-    """
-    """
+    """ """
 
     def __init__(self, input: BuildingBlock, n_components=10, append=False):
         super().__init__()
@@ -74,7 +72,9 @@ class NgramThreadEmbeddingBB(BuildingBlock):
 
     def fit(self):
         matrix, ngrams, threads = self._ngram_thread_matrix.ngram_thread_matrix()
-        self._embeddings = NgramThreadEmbeddings(matrix, ngrams, n_components=self._n_components)
+        self._embeddings = NgramThreadEmbeddings(
+            matrix, ngrams, n_components=self._n_components
+        )
 
     def _calculate(self, syscall):
         inp = self._input.get_result(syscall)

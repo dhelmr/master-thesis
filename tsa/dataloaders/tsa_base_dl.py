@@ -1,5 +1,6 @@
 from dataloader.base_data_loader import BaseDataLoader
 
+
 class TsaBaseDataloader(BaseDataLoader):
     def cfg_dict(self):
         raise NotImplementedError()

@@ -9,12 +9,10 @@ from dataloader.syscall import Syscall
 
 class PercentileThreshold(BuildingBlock):
     """
-        Saves maximum anomaly score of validation data as threshold.
+    Saves maximum anomaly score of validation data as threshold.
     """
 
-    def __init__(self,
-                 feature: BuildingBlock,
-                 percentile=95):
+    def __init__(self, feature: BuildingBlock, percentile=95):
         super().__init__()
         self._percentile = percentile
         self._threshold = None

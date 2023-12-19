@@ -55,13 +55,16 @@ class CombinationDL(TsaBaseDataloader):
             if direction_str is None:
                 direction_str = cur_direction_str
             elif direction_str != cur_direction_str:
-                raise RuntimeError("Direction strings of the dataloaders do not match! %s != %s" % (cur_direction_str, direction_str))
+                raise RuntimeError(
+                    "Direction strings of the dataloaders do not match! %s != %s"
+                    % (cur_direction_str, direction_str)
+                )
         return direction_str
 
     def cfg_dict(self):
         # TODO implement own superclass for dataloaders
-        #parent_dict = deepcopy(self.dl.cfg_dict())
-        #parent_dict["max_syscalls"] = self._max_syscalls
+        # parent_dict = deepcopy(self.dl.cfg_dict())
+        # parent_dict["max_syscalls"] = self._max_syscalls
         aggregated_cfg = {}
         scenarios = []
         for dl in reversed(self._dls):

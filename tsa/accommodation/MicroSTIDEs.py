@@ -7,9 +7,17 @@ from dataloader.syscall import Syscall
 from tsa.analysis.ngram_thread_matrix import process_thread_id
 
 AGGREGATIONS = ["mean", "median"]
-class MicroSTIDEs(BuildingBlock):
 
-    def __init__(self, input: BuildingBlock, n_models=20, models_per_trace=1, stream_sum_window_len = 1000, aggregation="mean"):
+
+class MicroSTIDEs(BuildingBlock):
+    def __init__(
+        self,
+        input: BuildingBlock,
+        n_models=20,
+        models_per_trace=1,
+        stream_sum_window_len=1000,
+        aggregation="mean",
+    ):
         super().__init__()
         # parameter
         self._input = input
@@ -17,10 +25,12 @@ class MicroSTIDEs(BuildingBlock):
         # internal data for training
         self._n_models = n_models
         self._normal_models = [set() for _ in range(n_models)]
-        self._trace_ids = {} # assigns trace_ids of the training set to model_ids
+        self._trace_ids = {}  # assigns trace_ids of the training set to model_ids
         self._models_per_trace = models_per_trace
 
-        self._stream_sums = [deque(maxlen=stream_sum_window_len) for _ in range(n_models)]
+        self._stream_sums = [
+            deque(maxlen=stream_sum_window_len) for _ in range(n_models)
+        ]
 
         self.aggregation = aggregation
         if aggregation not in AGGREGATIONS:
@@ -36,7 +46,9 @@ class MicroSTIDEs(BuildingBlock):
     def _get_models(self, syscall):
         trace_id = process_thread_id(syscall)
         if trace_id not in self._trace_ids:
-            self._trace_ids[trace_id] = random.choices(range(self._n_models), k=self._models_per_trace)
+            self._trace_ids[trace_id] = random.choices(
+                range(self._n_models), k=self._models_per_trace
+            )
         for model_id in self._trace_ids[trace_id]:
             yield self._normal_models[model_id]
 

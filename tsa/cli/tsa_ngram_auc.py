@@ -10,13 +10,19 @@ from tsa.cli.tsa_cv import load_data
 
 
 class TSANgramAUCSubCommand(SubCommand):
-
     def __init__(self):
-        super().__init__("tsa-ngram-auc", "calculate Area-Under-Curve Values for n-gram related metrics")
+        super().__init__(
+            "tsa-ngram-auc",
+            "calculate Area-Under-Curve Values for n-gram related metrics",
+        )
 
     def make_subparser(self, parser: ArgumentParser):
-        parser.add_argument("-i", "--input", required=True,
-                            help="input data file (training set statistics -> performance)")
+        parser.add_argument(
+            "-i",
+            "--input",
+            required=True,
+            help="input data file (training set statistics -> performance)",
+        )
         parser.add_argument("--features", "-f", required=False, nargs="+", default=None)
         parser.add_argument("--ngram-size-col", required=False, default="ngram_size")
         parser.add_argument("--scenario-column", default="scenario")
@@ -31,21 +37,31 @@ class TSANgramAUCSubCommand(SubCommand):
         for sc in tqdm(data.get_scenarios()):
             sc_data = data.get_scenario_data(sc)
             for n_syscalls in pd.unique(sc_data["syscalls"]):
-                measurement = sc_data.loc[sc_data["syscalls"] == n_syscalls].sort_values(by=args.ngram_size_col)
+                measurement = sc_data.loc[
+                    sc_data["syscalls"] == n_syscalls
+                ].sort_values(by=args.ngram_size_col)
                 ngram_size_values = measurement[args.ngram_size_col]
-                row = measurement.loc[measurement[args.ngram_size_col] == args.keep_ngram_size[0]].to_dict("records")[0]
+                row = measurement.loc[
+                    measurement[args.ngram_size_col] == args.keep_ngram_size[0]
+                ].to_dict("records")[0]
                 for f in data.feature_cols():
                     if f == args.ngram_size_col:
                         continue
                     Y_values = measurement[f]
                     if f == "conditional_entropy":
                         # TODO filter out NaN values dynamically
-                        auc = calc_area_under_curve(ngram_size_values.tolist()[1:], Y_values.tolist()[1:])
+                        auc = calc_area_under_curve(
+                            ngram_size_values.tolist()[1:], Y_values.tolist()[1:]
+                        )
                     else:
-                        auc = calc_area_under_curve(ngram_size_values.tolist(), Y_values.tolist())
+                        auc = calc_area_under_curve(
+                            ngram_size_values.tolist(), Y_values.tolist()
+                        )
                     # row[f"{f}-n{args.keep_ngram_size[0]}"] = row[f]
                     for ngram_size in args.keep_ngram_size:
-                        row[f"{f}@n{ngram_size}"] = measurement.loc[measurement[args.ngram_size_col] == ngram_size].iloc[0][f]
+                        row[f"{f}@n{ngram_size}"] = measurement.loc[
+                            measurement[args.ngram_size_col] == ngram_size
+                        ].iloc[0][f]
                     row[f"{f}@auc"] = auc
                     # add feature for other ngram sizes
 

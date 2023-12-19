@@ -68,7 +68,8 @@ class Histogram:
         current = self.get_count(element)
         if reduce_by > current:
             raise ValueError(
-                f"Cannot reduce count for {element}. Reduce count {reduce_by} must be <= than current value {current}. ")
+                f"Cannot reduce count for {element}. Reduce count {reduce_by} must be <= than current value {current}. "
+            )
         self._counts[element] -= reduce_by
         self._size -= reduce_by
         if self._counts[element] == 0:
@@ -107,11 +108,10 @@ class Histogram:
     def fit_zipf(self, a_upper_bound=20):
         sorted_counts = sorted(self._counts.values(), reverse=True)
         ##data = list(enumerate(sorted_counts))
-        fitted = scipy.stats.fit(scipy.stats.zipf, sorted_counts, bounds={"a": (0, a_upper_bound)})
-        return {
-            "a": fitted.params.a,
-            "loc": fitted.params.loc
-        }
+        fitted = scipy.stats.fit(
+            scipy.stats.zipf, sorted_counts, bounds={"a": (0, a_upper_bound)}
+        )
+        return {"a": fitted.params.a, "loc": fitted.params.loc}
 
     def values(self):
         return self._counts.values()
@@ -133,7 +133,9 @@ class Histogram:
         for _, c1, c2 in self.zip(hist2):
             mixture_prob = 0.5 * (c1 / total1 + c2 / total2)
             mixture_entropy += mixture_prob * math.log(mixture_prob, base)
-        jsd = - mixture_entropy - 0.5 * (self.entropy(base=base) + hist2.entropy(base=base))
+        jsd = -mixture_entropy - 0.5 * (
+            self.entropy(base=base) + hist2.entropy(base=base)
+        )
         if jsd < 0:  # handle numerical inaccuracies; jsd should always be >= 0
             return 0
         return jsd

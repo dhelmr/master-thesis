@@ -5,10 +5,9 @@ from tsa.histogram import Histogram
 
 
 class FrequencySTIDE(BuildingBlock):
-    """
-    """
+    """ """
 
-    def __init__(self, input: BuildingBlock, alpha=0.5, anomaly_fn = "exponential"):
+    def __init__(self, input: BuildingBlock, alpha=0.5, anomaly_fn="exponential"):
         super().__init__()
         # parameter
         self._input = input
@@ -51,4 +50,3 @@ class FrequencySTIDE(BuildingBlock):
         else:
             ngram_freq = 0
         return self.anomaly_fn.anomaly_value(ngram_freq)
-

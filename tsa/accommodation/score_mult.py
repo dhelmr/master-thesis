@@ -18,6 +18,7 @@ class ScoreMultiplication(BuildingBlock):
 
     def depends_on(self):
         return self._dependency_list
+
     def _calculate(self, syscall):
         product = 1
         for bb in self._input:

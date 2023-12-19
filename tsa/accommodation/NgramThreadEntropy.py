@@ -16,18 +16,20 @@ FEATURE_NORMALIZED_ENTR = "normalized_entropy"
 
 
 class NgramThreadEntropy(BuildingBlock):
-    """
-    """
+    """ """
 
-    def __init__(self, input: BuildingBlock,
-                 alpha=2,
-                 anomaly_fn="homographic",
-                 thread_anomaly_fn="max-scaled",
-                 thread_anomaly_fn_alpha=2,
-                 entropy_alpha=1,
-                 combine="arithmetic",
-                 entropy_scale=1,
-                 features=None):
+    def __init__(
+        self,
+        input: BuildingBlock,
+        alpha=2,
+        anomaly_fn="homographic",
+        thread_anomaly_fn="max-scaled",
+        thread_anomaly_fn_alpha=2,
+        entropy_alpha=1,
+        combine="arithmetic",
+        entropy_scale=1,
+        features=None,
+    ):
         super().__init__()
         # parameter
         if features is None:
@@ -47,7 +49,9 @@ class NgramThreadEntropy(BuildingBlock):
         self._dependency_list.append(self._input)
 
         self.freq_anomaly_fn = FrequencyAnomalyFunction(anomaly_fn, alpha)
-        self.thread_anomaly_fn = FrequencyAnomalyFunction(thread_anomaly_fn, thread_anomaly_fn_alpha)
+        self.thread_anomaly_fn = FrequencyAnomalyFunction(
+            thread_anomaly_fn, thread_anomaly_fn_alpha
+        )
 
         self._entropy_alpha = entropy_alpha
         self._entropy_scale = entropy_scale
@@ -83,9 +87,11 @@ class NgramThreadEntropy(BuildingBlock):
             ngram_freq = self._ngram_frequencies.get_count(ngram)
             n_threads = len(thread_dist.keys())
             norm_entropy_anomaly_value = 1 - (norm_entropies[ngram] / max_norm_entropy)
-            anomaly_value = self._combine_scores(freq_score=self.freq_anomaly_fn.anomaly_value(ngram_freq),
-                                                 thread_freq_score=self.thread_anomaly_fn.anomaly_value(n_threads),
-                                                 normalized_entropy=norm_entropy_anomaly_value)
+            anomaly_value = self._combine_scores(
+                freq_score=self.freq_anomaly_fn.anomaly_value(ngram_freq),
+                thread_freq_score=self.thread_anomaly_fn.anomaly_value(n_threads),
+                normalized_entropy=norm_entropy_anomaly_value,
+            )
             self._anomaly_values[ngram] = anomaly_value
 
     def _calc_norm_entropies(self):

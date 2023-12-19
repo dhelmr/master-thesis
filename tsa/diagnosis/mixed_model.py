@@ -35,7 +35,10 @@ class NgramNaiveBayes:
         if prior in self._logprob_cache and ngram in self._logprob_cache[prior]:
             return self._logprob_cache[prior][ngram]
         prior_count = self._prior_hist.get_count(prior) + self._pseudo_count
-        post_count = self._post_hist.get_count(ngram) + self._pseudo_count * self._post_hist.unique_elements()
+        post_count = (
+            self._post_hist.get_count(ngram)
+            + self._pseudo_count * self._post_hist.unique_elements()
+        )
         logprob = math.log2(post_count / prior_count)
         if prior not in self._logprob_cache:
             self._logprob_cache[prior] = {}
@@ -67,7 +70,9 @@ class NgramNaiveBayes:
 
 
 class MixedModelOutlierDetector(OutlierDetector):
-    def __init__(self, building_block: BuildingBlock = None, train_features=None, lam=0.2, c=0.2):
+    def __init__(
+        self, building_block: BuildingBlock = None, train_features=None, lam=0.2, c=0.2
+    ):
         super().__init__(building_block, train_features)
         self._normal_dist = NgramNaiveBayes()
         self._num_anomalies = 0
@@ -76,11 +81,15 @@ class MixedModelOutlierDetector(OutlierDetector):
         self._log_lam = math.log2(self._lam)
         self._log_reverse_lam = math.log2(1 - self._lam)
 
-
     def _ll(self, anomaly_length):
         logp_anomaly = math.log2(1 / len(self._training_data))
         ll_anomalies = anomaly_length * logp_anomaly
-        return self._normal_dist._size * self._log_reverse_lam + self._normal_dist.sum_prob() + anomaly_length * self._log_lam + ll_anomalies
+        return (
+            self._normal_dist._size * self._log_reverse_lam
+            + self._normal_dist.sum_prob()
+            + anomaly_length * self._log_lam
+            + ll_anomalies
+        )
 
     def detect_anomalies(self, training_data):
         print("Find anomalies in training data...")

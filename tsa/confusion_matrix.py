@@ -8,6 +8,7 @@ class ConfusionMatrix:
     """
     Data Class for the values of a confusion matrix
     """
+
     tp: int
     tn: int
     fp: int

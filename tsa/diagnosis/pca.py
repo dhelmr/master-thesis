@@ -30,8 +30,8 @@ class PCA_BB(BuildingBlock):
         inp = self._input.get_result(syscall)
         if inp is None:
             return None
-        #arr = np.array([inp])
-        #arr = arr.reshape(1,-1)
+        # arr = np.array([inp])
+        # arr = arr.reshape(1,-1)
         transformed = self.pca.transform([inp])[0]
         return tuple(transformed)
 

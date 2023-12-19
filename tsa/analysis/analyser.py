@@ -11,7 +11,13 @@ from tsa.histogram import Histogram
 
 
 class AnalyserBB(BuildingBlock):
-    def __init__(self, input_bb: BuildingBlock, update_interval=1000, fixed_stops=None, test_phase: bool = False):
+    def __init__(
+        self,
+        input_bb: BuildingBlock,
+        update_interval=1000,
+        fixed_stops=None,
+        test_phase: bool = False,
+    ):
         super().__init__()
         if fixed_stops is None:
             fixed_stops = set()
@@ -40,8 +46,10 @@ class AnalyserBB(BuildingBlock):
         inp = self._input.get_result(syscall)
         self._add_input(syscall, inp)
         self._current_i += 1
-        if self._current_i in self._fixed_stops or \
-                (self._update_interval is not None and self._current_i % self._update_interval == 0):
+        if self._current_i in self._fixed_stops or (
+            self._update_interval is not None
+            and self._current_i % self._update_interval == 0
+        ):
             self.__update_stats()
 
     def fit(self):
@@ -77,7 +85,6 @@ class AnalyserBB(BuildingBlock):
 
 
 class TrainingSetAnalyser(AnalyserBB):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._histogram = Histogram()
@@ -97,7 +104,7 @@ class TrainingSetAnalyser(AnalyserBB):
             "total": len(self._histogram),
             "u/t": uniq / len(self._histogram),
             "entropy": self._histogram.entropy(base=e),
-            "simpson_index": self._histogram.simpson_index()
+            "simpson_index": self._histogram.simpson_index(),
         }
 
 

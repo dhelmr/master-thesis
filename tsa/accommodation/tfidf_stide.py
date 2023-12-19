@@ -4,15 +4,11 @@ from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 from tsa.analysis.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
 
-AGGREGATION_FUNCTIONS = {
-    "mean": np.mean,
-    "max": np.max
-}
+AGGREGATION_FUNCTIONS = {"mean": np.mean, "max": np.max}
 
 
 class TfidfSTIDE(BuildingBlock):
-    """
-    """
+    """ """
 
     def __init__(self, input: BuildingBlock, unseen_factor=1.5, aggregation="mean"):
         super().__init__()
