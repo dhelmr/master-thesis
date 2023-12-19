@@ -4,9 +4,7 @@ from statistics import mean, median
 
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
-from tsa.frequency_encoding import FrequencyAnomalyFunction
-from tsa.histogram import Histogram
-from tsa.ngram_thread_matrix import process_thread_id
+from tsa.analysis.ngram_thread_matrix import process_thread_id
 
 AGGREGATIONS = ["mean", "median"]
 class MicroSTIDEs(BuildingBlock):

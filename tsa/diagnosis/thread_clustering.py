@@ -16,8 +16,8 @@ from sklearn.preprocessing import MinMaxScaler
 from scipy.spatial.distance import pdist, cosine, squareform, euclidean
 
 from algorithms.building_block import BuildingBlock
-from tsa.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
-from tsa.unsupervised.preprocessing import OutlierDetector
+from tsa.analysis.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
+from tsa.diagnosis.preprocessing import OutlierDetector
 
 OD_METHODS = {
     cls.__name__: cls for cls in [LocalOutlierFactor, IsolationForest, EllipticEnvelope]

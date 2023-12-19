@@ -17,7 +17,7 @@ from typing import List
 from tsa.analysis.analyse_experiment import AnalysisExperiment
 from tsa.experiment import Experiment
 from tsa.experiment_checker import ExperimentChecker
-from tsa.unsupervised.evaluation import UnsupervisedExperiment
+from tsa.diagnosis.evaluation import UnsupervisedExperiment
 from tsa.utils import access_cfg
 
 RANDOM_SEED = 0

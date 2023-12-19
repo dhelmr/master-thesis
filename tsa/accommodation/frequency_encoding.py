@@ -1,6 +1,5 @@
 import itertools
 import math
-import random
 
 from sklearn.manifold import MDS
 from sklearn.preprocessing import MinMaxScaler

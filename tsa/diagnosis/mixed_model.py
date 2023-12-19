@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 from algorithms.building_block import BuildingBlock
 from tsa.histogram import Histogram
-from tsa.unsupervised.preprocessing import OutlierDetector
+from tsa.diagnosis.preprocessing import OutlierDetector
 
 
 class NgramNaiveBayes:

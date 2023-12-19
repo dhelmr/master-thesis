@@ -14,10 +14,10 @@ from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from tsa.CacheableW2v import CacheableW2V
-from tsa.FrequencySTIDE import FrequencySTIDE
-from tsa.MicroSTIDEs import MicroSTIDEs
-from tsa.NgramThreadDistance import NgramThreadDistance
-from tsa.NgramThreadEntropy import NgramThreadEntropy
+from tsa.accommodation.FrequencySTIDE import FrequencySTIDE
+from tsa.accommodation.MicroSTIDEs import MicroSTIDEs
+from tsa.accommodation.NgramThreadDistance import NgramThreadDistance
+from tsa.accommodation.NgramThreadEntropy import NgramThreadEntropy
 from tsa.analysis.analyser import TrainingSetAnalyser
 from tsa.analysis.cluster_visualization_analyser import ClusterVisualize
 from tsa.analysis.data_drift_analyser import DataDriftAnalyser
@@ -27,18 +27,18 @@ from tsa.analysis.continuous_anaylser import ContinuousTrainingSetAnalyser
 from tsa.analysis.ngram_thread_analyser import NgramThreadAnalyser
 from tsa.analysis.visualization_analyser import Visualize
 from tsa.dataloaders.training_set_filter import TrainingSetFilter
-from tsa.frequency_encoding import FrequencyEncoding
-from tsa.ngram_frequency_append import NgramFrequencyAppender
-from tsa.percentile_threshold import PercentileThreshold
-from tsa.score_mult import ScoreMultiplication
-from tsa.ngram_thread_pca import NgramThreadEmbeddingBB
-from tsa.tfidf_stide import TfidfSTIDE
-from tsa.unsupervised.pca import PCA_BB
-from tsa.unsupervised.scikit import LOF, EllipticEnvelopeOD, IsolationForestOD
-from tsa.unsupervised.frequency_od import FrequencyOD
-from tsa.unsupervised.mixed_model import MixedModelOutlierDetector
-from tsa.unsupervised.thread_clustering import ThreadClusteringOD
-from tsa.unsupervised.w2v_concat import W2VConcat, TupleBB
+from tsa.accommodation.frequency_encoding import FrequencyEncoding
+from tsa.accommodation.ngram_frequency_append import NgramFrequencyAppender
+from tsa.accommodation.percentile_threshold import PercentileThreshold
+from tsa.accommodation.score_mult import ScoreMultiplication
+from tsa.accommodation.ngram_thread_pca import NgramThreadEmbeddingBB
+from tsa.accommodation.tfidf_stide import TfidfSTIDE
+from tsa.diagnosis.pca import PCA_BB
+from tsa.diagnosis.scikit import LOF, EllipticEnvelopeOD, IsolationForestOD
+from tsa.diagnosis.frequency_od import FrequencyOD
+from tsa.diagnosis.mixed_model import MixedModelOutlierDetector
+from tsa.diagnosis.thread_clustering import ThreadClusteringOD
+from tsa.diagnosis.w2v_concat import W2VConcat, TupleBB
 from tsa.utils import access_cfg, exists_key
 
 

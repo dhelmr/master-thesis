@@ -8,7 +8,7 @@ from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
-from tsa.frequency_encoding import FrequencyAnomalyFunction
+from tsa.accommodation.frequency_encoding import FrequencyAnomalyFunction
 from tsa.histogram import Histogram
 
 

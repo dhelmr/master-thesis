@@ -5,7 +5,7 @@ from dataloader.syscall import Syscall
 from tsa.building_block_builder import IDSPipelineBuilder
 from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 from tsa.experiment import Experiment
-from tsa.unsupervised.preprocessing import OutlierDetector
+from tsa.diagnosis.preprocessing import OutlierDetector
 
 
 class UnsupervisedEvaluator(BuildingBlock):

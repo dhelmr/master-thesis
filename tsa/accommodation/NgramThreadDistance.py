@@ -7,8 +7,8 @@ from sklearn.preprocessing import normalize, minmax_scale
 
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
-from tsa.frequency_encoding import FrequencyAnomalyFunction
-from tsa.ngram_thread_matrix import NgramThreadMatrix, make_distance_matrix, process_thread_id
+from tsa.accommodation.frequency_encoding import FrequencyAnomalyFunction
+from tsa.analysis.ngram_thread_matrix import NgramThreadMatrix, make_distance_matrix, process_thread_id
 from tsa.histogram import Histogram
 
 Ngram = tuple

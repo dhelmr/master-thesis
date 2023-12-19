@@ -12,12 +12,12 @@ from sklearn.manifold import MDS
 from sklearn.preprocessing import MinMaxScaler
 
 from algorithms.features.impl.min_max_scaling import MinMaxScaling
-from tsa.unsupervised.thread_clustering import DISTANCE_FN
+from tsa.diagnosis.thread_clustering import DISTANCE_FN
 from tsa.utils import log_pandas_df
 from tsa.analysis.analyser import AnalyserBB
 import matplotlib.pyplot as plt
 
-from tsa.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
+from tsa.analysis.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
 
 DEFAULT_DISTANCES = [
     "euclidean", "cosine", "hamming"

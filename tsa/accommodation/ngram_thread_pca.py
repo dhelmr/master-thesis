@@ -4,8 +4,8 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import MinMaxScaler
 
 from algorithms.building_block import BuildingBlock
-from tsa.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
-from tsa.unsupervised.thread_clustering import plot
+from tsa.analysis.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
+from tsa.diagnosis.thread_clustering import plot
 
 
 class NgramThreadEmbeddings:

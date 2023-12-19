@@ -17,9 +17,11 @@ from dataloader.base_data_loader import BaseDataLoader
 from dataloader.direction import Direction
 from tsa.building_block_builder import IDSPipelineBuilder
 from tsa.confusion_matrix import ConfusionMatrix
-from tsa.dataloader_2019 import ContaminatedDataLoader2019
-from tsa.dataloader_2021 import ContaminatedDataLoader2021
+
+
 from tsa.dataloaders.combination_dl import CombinationDL
+from tsa.dataloaders.dataloader_2019 import ContaminatedDataLoader2019
+from tsa.dataloaders.dataloader_2021 import ContaminatedDataLoader2021
 from tsa.dataloaders.filter_dl import FilterDataloader
 from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 from tsa.utils import access_cfg

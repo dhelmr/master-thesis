@@ -7,7 +7,7 @@ from tqdm import tqdm
 from dataloader.direction import Direction
 from dataloader.recording_2019 import Recording2019, RecordingDataParts
 from dataloader.base_data_loader import BaseDataLoader
-from tsa.dataloader_2021 import get_scenario_name
+from tsa.dataloaders.dataloader_2021 import get_scenario_name
 from tsa.dataloaders.combination_dl import yield_successively
 from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 from tsa.utils import split_list, random_permutation
@@ -98,7 +98,6 @@ class ContaminatedDataLoader2019(TsaBaseDataloader):
             self._exploit_recordings = []
 
         # create contaminated recordings that will be added to the training phase
-        # TODO handle case num_attacks > len(training_exploit_lines)
         training_exploit_lines = random_permutation(training_exploit_lines, self._num_attacks, self._permutation_i)
         self._contaminated_recordings = []
         for recording_line, _ in training_exploit_lines:

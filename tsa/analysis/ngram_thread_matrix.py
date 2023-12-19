@@ -6,7 +6,6 @@ from tsa.histogram import Histogram
 
 Ngram = tuple
 class NgramThreadMatrix:
-    # TODO: needs tests
     def __init__(self):
         self._thread_distributions: Dict[Ngram, Histogram] = {}
         self._ngram_distributions: Dict[str, Histogram] = {}

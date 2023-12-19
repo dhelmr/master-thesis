@@ -4,7 +4,7 @@ from sklearn.covariance import EllipticEnvelope
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
-from tsa.unsupervised.preprocessing import OutlierDetector
+from tsa.diagnosis.preprocessing import OutlierDetector
 
 
 class ScitkitOD(OutlierDetector):

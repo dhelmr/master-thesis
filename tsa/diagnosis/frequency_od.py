@@ -1,4 +1,4 @@
-from tsa.unsupervised.preprocessing import OutlierDetector
+from tsa.diagnosis.preprocessing import OutlierDetector
 
 
 class FrequencyOD(OutlierDetector):

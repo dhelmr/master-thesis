@@ -1,5 +1,5 @@
 from algorithms.building_block import BuildingBlock
-from tsa.unsupervised.preprocessing import OutlierDetector
+from tsa.diagnosis.preprocessing import OutlierDetector
 
 
 class DecisionEngineOD(OutlierDetector):
