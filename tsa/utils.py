@@ -6,7 +6,8 @@ import random
 import tempfile
 
 import mlflow
-from pandas import DataFrame, np
+import numpy as np
+from pandas import DataFrame
 
 
 def split_list(l, fraction_sublist1: float):

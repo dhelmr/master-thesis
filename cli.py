@@ -39,10 +39,10 @@ commands = [RunSubCommand(),
             ]
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     subparsers = parser.add_subparsers(dest="command")
     for comm in commands:
-        sparser = subparsers.add_parser(comm.name, description=comm.desc)
+        sparser = subparsers.add_parser(comm.name, help=comm.desc)
         comm.make_subparser(sparser)
 
     args, unknown_args = parser.parse_known_args()
@@ -57,4 +57,3 @@ if __name__ == '__main__':
     if args.command is not None:
         print("Unknown subcommand: ", args.command)
     sys.exit(1)
-

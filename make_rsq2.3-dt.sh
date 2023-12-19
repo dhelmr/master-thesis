@@ -14,4 +14,5 @@ make_tree perf-threads-n3-augmented ""
 make_tree dd-threads-n3-augmented-jsd "--target jensen_shannon_divergence --threshold 0.0039 --reverse-classes"
 make_tree dd-threads-n3-augmented-rutn "--target ratio_unseen_test_ngrams --threshold 0.0078 --reverse-classes"
 
-# TODO: dd-ngrams-*
+make_tree dd-ngrams-augmented-jsd "--target jensen_shannon_divergence --threshold 0.0039 --reverse-classes"
+make_tree dd-ngrams-augmented-rutn "--target ratio_unseen_test_ngrams --threshold 0.0078 --reverse-classes"
