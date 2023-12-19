@@ -5,7 +5,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 from algorithms.building_block import BuildingBlock
 from tsa.analysis.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
-from tsa.diagnosis.thread_clustering import plot
+from tsa.diagnosis.thread_od import plot
 
 
 class NgramThreadEmbeddings:

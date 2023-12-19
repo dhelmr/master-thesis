@@ -13,7 +13,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 from tsa.analysis.analyser import AnalyserBB
 from tsa.analysis.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
-from tsa.diagnosis.thread_clustering import DISTANCE_FN
+from tsa.diagnosis.thread_od import DISTANCE_FN
 
 DEFAULT_DISTANCES = ["euclidean", "cosine", "hamming"]
 

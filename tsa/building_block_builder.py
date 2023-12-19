@@ -37,7 +37,7 @@ from tsa.diagnosis.frequency_od import FrequencyOD
 from tsa.diagnosis.mixed_model import MixedModelOutlierDetector
 from tsa.diagnosis.pca import PCA_BB
 from tsa.diagnosis.scikit import LOF, EllipticEnvelopeOD, IsolationForestOD
-from tsa.diagnosis.thread_clustering import ThreadClusteringOD
+from tsa.diagnosis.thread_od import ThreadClusteringOD
 from tsa.diagnosis.w2v_concat import W2VConcat, TupleBB
 from tsa.utils import access_cfg, exists_key
 
