@@ -1,6 +1,6 @@
 import dataclasses
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Dict, Tuple, List
 
 import mlflow

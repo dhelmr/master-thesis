@@ -1,5 +1,3 @@
-from typing import Callable
-
 from dataloader.base_recording import BaseRecording
 from tsa.dataloaders.syscall_filter import SyscallFilter
 

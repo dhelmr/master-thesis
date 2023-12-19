@@ -1,5 +1,3 @@
-from abc import abstractmethod
-
 from sklearn.covariance import EllipticEnvelope
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor

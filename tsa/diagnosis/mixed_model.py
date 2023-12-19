@@ -3,8 +3,8 @@ import math
 from tqdm import tqdm
 
 from algorithms.building_block import BuildingBlock
-from tsa.histogram import Histogram
 from tsa.diagnosis.preprocessing import OutlierDetector
+from tsa.histogram import Histogram
 
 
 class NgramNaiveBayes:

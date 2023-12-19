@@ -1,5 +1,3 @@
-import dataclasses
-
 from dataloader.base_data_loader import BaseDataLoader
 
 class TsaBaseDataloader(BaseDataLoader):

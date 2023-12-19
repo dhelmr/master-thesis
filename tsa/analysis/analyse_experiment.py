@@ -3,7 +3,6 @@ from pandas import DataFrame
 from algorithms.building_block import BuildingBlock, IDSPhase
 from algorithms.ids import IDS
 from dataloader.syscall import Syscall
-
 from tsa.analysis.analyser import AnalyserBB
 from tsa.experiment import Experiment
 from tsa.utils import log_pandas_df

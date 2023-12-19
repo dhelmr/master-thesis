@@ -1,16 +1,11 @@
 import argparse
-import tempfile
 
-import matplotlib.pyplot as plt
 import numpy
 import pandas
 import sklearn
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler
+from sklearn import linear_model
 
 from tsa.perf_pred.cv import PerformancePredictor
-
-from sklearn import linear_model
 
 
 class LogisticRegression(PerformancePredictor):

@@ -1,6 +1,5 @@
 from typing import List
 
-from dataloader.base_data_loader import BaseDataLoader
 from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 
 

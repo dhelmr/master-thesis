@@ -5,8 +5,8 @@ from typing import Dict
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 from tsa.accommodation.frequency_encoding import FrequencyAnomalyFunction
-from tsa.histogram import Histogram
 from tsa.analysis.ngram_thread_matrix import process_thread_id, Ngram
+from tsa.histogram import Histogram
 
 COMBINE_VALUES = ["arithmetic", "harmonic", "geometric"]
 

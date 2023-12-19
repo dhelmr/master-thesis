@@ -1,13 +1,11 @@
 from typing import List
 
-from dataloader.data_loader_2021 import DataLoader2021, RecordingType, TRAINING, TEST
+from dataloader.data_loader_2021 import DataLoader2021, RecordingType, TEST
 from dataloader.direction import Direction
 from dataloader.recording_2021 import Recording2021
-
 from tsa.dataloaders.combination_dl import yield_successively
 from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 from tsa.utils import split_list, random_permutation
-import random
 
 
 def get_scenario_name(scenario_path):

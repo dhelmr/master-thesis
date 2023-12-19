@@ -7,7 +7,6 @@ from numpy import e
 
 from algorithms.building_block import BuildingBlock, IDSPhase
 from dataloader.syscall import Syscall
-
 from tsa.histogram import Histogram
 
 

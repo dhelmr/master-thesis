@@ -1,14 +1,13 @@
-import os
 import csv
 import json
+import os
 
 from tqdm import tqdm
 
 from dataloader.direction import Direction
 from dataloader.recording_2019 import Recording2019, RecordingDataParts
-from dataloader.base_data_loader import BaseDataLoader
-from tsa.dataloaders.dataloader_2021 import get_scenario_name
 from tsa.dataloaders.combination_dl import yield_successively
+from tsa.dataloaders.dataloader_2021 import get_scenario_name
 from tsa.dataloaders.tsa_base_dl import TsaBaseDataloader
 from tsa.utils import split_list, random_permutation
 

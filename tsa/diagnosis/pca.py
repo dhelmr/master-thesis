@@ -1,4 +1,3 @@
-import numpy as np
 from sklearn.decomposition import PCA
 
 from algorithms.building_block import BuildingBlock

@@ -1,6 +1,6 @@
 import pprint
 from argparse import ArgumentParser
-from datetime import timedelta, datetime
+from datetime import timedelta
 from time import localtime, strftime
 
 import yaml

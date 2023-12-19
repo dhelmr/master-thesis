@@ -1,9 +1,9 @@
+import matplotlib.pyplot as plt
 import numpy as np
-import pandas
 from sklearn.decomposition import PCA
 
 from tsa.analysis.analyser import AnalyserBB
-import matplotlib.pyplot as plt
+
 
 class Visualize(AnalyserBB):
 

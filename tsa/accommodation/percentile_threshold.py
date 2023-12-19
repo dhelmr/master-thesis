@@ -3,9 +3,8 @@ Building Block for max value of training threshold.
 """
 import numpy as np
 
-from dataloader.syscall import Syscall
-
 from algorithms.building_block import BuildingBlock
+from dataloader.syscall import Syscall
 
 
 class PercentileThreshold(BuildingBlock):

@@ -3,6 +3,7 @@ import numpy as np
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
+
 class TupleBB(BuildingBlock):
     def __init__(self, input_bb):
         super().__init__()

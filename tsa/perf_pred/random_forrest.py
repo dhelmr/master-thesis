@@ -1,22 +1,11 @@
 import argparse
-import os.path
-import tempfile
 
-import matplotlib.pyplot as plt
 import numpy
 import numpy as np
 import pandas
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler
 
 from tsa.perf_pred.cv import PerformancePredictor
-
-from sklearn.tree import DecisionTreeClassifier
-from sklearn import tree
-
-from sklearn.tree import export_text
-from subprocess import call
 
 
 class RandomForrest(PerformancePredictor):

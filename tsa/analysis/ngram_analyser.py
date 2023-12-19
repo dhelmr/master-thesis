@@ -1,10 +1,9 @@
 import math
 
 import numpy as np
-from numpy import e
 
 from tsa.analysis.analyser import AnalyserBB
-from tsa.ngram_thread_matrix import process_thread_id
+from tsa.analysis.ngram_thread_matrix import process_thread_id
 from tsa.utils import gini_coeff
 
 

@@ -1,19 +1,17 @@
 import hashlib
-import math
 import os
 import pickle
 
 import numpy as np
 from matplotlib import pyplot as plt
 from numpy.linalg import linalg
+from scipy.spatial.distance import pdist, cosine, squareform, euclidean
 from sklearn.covariance import EllipticEnvelope
 from sklearn.decomposition import PCA
 from sklearn.ensemble import IsolationForest
 from sklearn.manifold import MDS
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.preprocessing import MinMaxScaler
-
-from scipy.spatial.distance import pdist, cosine, squareform, euclidean
 
 from algorithms.building_block import BuildingBlock
 from tsa.analysis.ngram_thread_matrix import NgramThreadMatrix, process_thread_id

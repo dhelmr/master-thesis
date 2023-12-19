@@ -1,15 +1,11 @@
-import math
-from statistics import mean
-from typing import Dict, List
+from typing import Dict
 
 import numpy
-from sklearn.preprocessing import normalize, minmax_scale
+from sklearn.preprocessing import minmax_scale
 
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
-from tsa.accommodation.frequency_encoding import FrequencyAnomalyFunction
-from tsa.analysis.ngram_thread_matrix import NgramThreadMatrix, make_distance_matrix, process_thread_id
-from tsa.histogram import Histogram
+from tsa.analysis.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
 
 Ngram = tuple
 

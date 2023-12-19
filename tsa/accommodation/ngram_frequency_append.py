@@ -1,7 +1,7 @@
 from algorithms.building_block import BuildingBlock
 from tsa.accommodation.frequency_encoding import FrequencyAnomalyFunction
-from tsa.histogram import Histogram
 from tsa.analysis.ngram_thread_matrix import process_thread_id
+from tsa.histogram import Histogram
 
 
 class NgramFrequencyAppender(BuildingBlock):

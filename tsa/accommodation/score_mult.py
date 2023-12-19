@@ -1,8 +1,6 @@
 from typing import List
 
 from algorithms.building_block import BuildingBlock
-from tsa.accommodation.frequency_encoding import FrequencyAnomalyFunction
-from tsa.histogram import Histogram
 
 
 class ScoreMultiplication(BuildingBlock):

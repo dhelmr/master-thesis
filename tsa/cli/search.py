@@ -1,9 +1,7 @@
 import argparse
 import itertools
-import os.path
-import sys
 from copy import deepcopy
-from typing import List, Optional
+from typing import Optional
 
 import yaml
 from mlflow import MlflowClient

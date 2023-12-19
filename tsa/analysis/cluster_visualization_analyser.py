@@ -2,22 +2,18 @@ import os
 import tempfile
 from typing import List
 
+import matplotlib.pyplot as plt
 import mlflow
 import numpy as np
-import pandas
 from numpy.linalg import linalg
 from scipy.spatial.distance import squareform, pdist
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS
 from sklearn.preprocessing import MinMaxScaler
 
-from algorithms.features.impl.min_max_scaling import MinMaxScaling
-from tsa.diagnosis.thread_clustering import DISTANCE_FN
-from tsa.utils import log_pandas_df
 from tsa.analysis.analyser import AnalyserBB
-import matplotlib.pyplot as plt
-
 from tsa.analysis.ngram_thread_matrix import NgramThreadMatrix, process_thread_id
+from tsa.diagnosis.thread_clustering import DISTANCE_FN
 
 DEFAULT_DISTANCES = [
     "euclidean", "cosine", "hamming"

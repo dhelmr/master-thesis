@@ -1,15 +1,10 @@
 import hashlib
 import os
-import pickle
 
 from gensim.models import Word2Vec
 
 from algorithms.building_block import BuildingBlock
-from dataloader.syscall import Syscall
-
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
-from tsa.accommodation.frequency_encoding import FrequencyAnomalyFunction
-from tsa.histogram import Histogram
 
 
 class CacheableW2V(W2VEmbedding):

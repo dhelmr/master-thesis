@@ -1,8 +1,6 @@
 import math
-import random
 
 import numpy as np
-import numpy.random
 import scipy
 from numpy import e, nan
 
