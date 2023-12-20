@@ -55,15 +55,17 @@ The following shows how the results of the master's thesis can be reproduced.
 
 #### Setup 
 
-First, mlflow must be setup. It can either be installed locally, or an instance at DataBricks may be utilized. Refer to [mlflow's documentation](https://mlflow.org/docs/latest/getting-started/index.html) for this. In case that DataBricks is used, it must be setup separately.
+1. First, mlflow must be setup. It can either be installed locally, or an instance at DataBricks may be utilized. Refer to [mlflow's documentation](https://mlflow.org/docs/latest/getting-started/index.html) for this. In case that DataBricks is used, it must be setup separately.
 
-Furthermore, the experiments can be configured globally with a couple of environment variables. They should be set accordingly:
+2. The LID-DS dataset (both versions) must be downloaded (refer to the README), e.g. to the directory `data/`.
+
+3. Furthermore, the experiments can be configured globally with a couple of environment variables. They must be set accordingly:
 
 ```sh
 
 export EXPERIMENT_BASE_PATH=$(readlink -f experiments/slurm/)
 export MLFLOW_TRACKING_URI="" # "" to use a local instance or "databricks" to use databricks (refer to the mlflow documentation)
-export LID_DS_BASE="..." # The path to the LID-DS data
+export LID_DS_BASE=$(readlink -f data) # The path to the LID-DS data
 export EXPERIMENT_PREFIX="" # this can be left empty if mlflow is installed locally. If an mlflow instance at DataBricks is used, the prefix must match with the location of the experiments there.  
 ```
 
