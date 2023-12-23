@@ -3,7 +3,7 @@
 
 This repository contains the source code for running the experiments of the master's thesis *Robustness Studies and Training Set Analysis for HIDS*. 
 It bases on the Leipzig Intrusion Detection Data-Set ([LID-DS](https://github.com/LID-DS/LID-DS)). The original README of the LID-DS is also [included](README_LID-DS.md) in this repository. 
-Besides being a dataset for evaluating anomaly-based HIDS, the LID-DS also offers an accompanying python framework, which is used and extended by this project. 
+Besides being a dataset for evaluating anomaly-based HIDS, the LID-DS also offers an accompanying python framework, which is used and extended by this project. The remainder of this README first gives a short overview about the command-line interface to run the experiments, and about the source code contributed by the thesis. Then, it outlines how the experiments can be reproduced.
 
 ## Installation
 
@@ -48,6 +48,24 @@ optional arguments:
   -h, --help            show this help message and exit
 
 ```
+
+---
+
+## Source Code Overview
+
+The source code contribution of the thesis is mainly contained in the directroy `tsa/`.
+
+* The module `tsa.cli` includes the implementation of the various subcommands of the `cli.py` command-line interface.
+* The module `tsa.accommodation` includes the implementation of various accommodation appraoches for improving the robustness of HIDS.
+* The module `tsa.diagnosis` includes the implementation of various diagnosis approaches for improving the robustness of HIDS. They are implemented as building blocks that pre-process the dataset.
+* The module `tsa.analysis` includes the implementation of common training set analysis techniques and building blocks for the suitability dataset creation.
+* The module `tsa.dataloaders` includes the dataloader enhancements used by the experiments.
+* The module `tsa.mlflow` includes code for the integration of mlflow.
+* The module `tsa.perf_pred` includes code that is used for the suitability prediction in RSQ2.2 (e.g. the cross validation and decision trees)
+
+Furthermore, the original LID-DS implementation of the SOM is modified, and the Word2Vec-Vectors are modified to ensure deterministic behavior.
+
+---
 
 ## Reproducing Experiments
 
@@ -193,3 +211,4 @@ The following scripts generate the results for RSQ2.3:
 ./make_rsq2.3-dt.sh # generate decision tree SVGs
 ```
 
+---
