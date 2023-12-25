@@ -217,3 +217,7 @@ The following scripts generate the results for RSQ2.3:
 ```
 
 ---
+
+## LICENSE
+
+See the file [LICENSE](LICENSE).
