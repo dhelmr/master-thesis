@@ -63,14 +63,13 @@ The source code contribution of the thesis is mainly contained in the directroy 
 * The module `tsa.mlflow` includes code for the integration of mlflow.
 * The module `tsa.perf_pred` includes code that is used for the suitability prediction in RSQ2.2 (e.g. the cross validation and decision trees)
 
-Furthermore, the original LID-DS implementation of the SOM is modified, and the Word2Vec-Vectors are modified to ensure deterministic behavior.
+Furthermore, the original LID-DS implementation of the SOM is modified, and the Word2Vec-Vectors are modified to ensure deterministic behavior. 
 
 The directory `experiments/` contains the configuration files for all experiments utilizing the LID-DS. They are stored as yaml files in order to ensure reproducibility and transparency. 
 
 The `test/` directory contains various unit tests for the added source code.
 
 The root directory contains various scripts (`make_*.sh`) that are used to create the results shown in the thesis (e.g. diagrams and tables).
-
 ---
 
 ## Reproducing Experiments
@@ -161,7 +160,7 @@ For the robustness improvement experiments (cf. section 6.2 in the thesis), the 
 Accomodation" (Thread-OD + thread-f-stide): `experiments/slurm/preprocessing/thread-od/tfidf-lof-cosine-n2.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a2.yaml experiments/slurm/combination/stide/lof-cosine+thread-freq-homographic-a2.yaml`
 * "6.2.11 Combination of Thread-Based Outlier Diagnosis with SCG and STIDE
 Accomodation" (Thread-OD + norm-entropy-stide): `experiments/slurm/preprocessing/thread-od/tfidf-lof-cosine-n2.yaml experiments/slurm/thread-f-stide/norm_entropy.yaml experiments/slurm/combination/stide/lof-cosine+norm-entropy.yaml`
-* * "6.2.11 Combination of Thread-Based Outlier Diagnosis with SCG and STIDE
+* "6.2.11 Combination of Thread-Based Outlier Diagnosis with SCG and STIDE
 Accomodation" (Thread-OD + SCG+thread-wise graphs): `experiments/slurm/baseline/scg{,-thread-wise-graphs}.yaml experiments/slurm/combination/scg/lof-cosine+scg-baseline.yaml  experiments/slurm/combination/scg/lof-cosine+thread-wise.yaml`
 
 
