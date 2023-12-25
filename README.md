@@ -65,11 +65,11 @@ The source code contribution of the thesis is mainly contained in the directroy 
 
 Furthermore, the original LID-DS implementation of the SOM is modified, and the Word2Vec-Vectors are modified to ensure deterministic behavior. 
 
-The directory `experiments/` contains the configuration files for all experiments utilizing the LID-DS. They are stored as yaml files in order to ensure reproducibility and transparency. 
+The directory `experiments/` contains the configuration files for all experiments utilizing the LID-DS. They are stored as yaml files in order to ensure reproducibility and transparency. The `test/` directory contains various unit tests for the added source code. The root directory contains various scripts (`make_*.sh`) that are used to create the results shown in the thesis (e.g. diagrams and tables).
 
-The `test/` directory contains various unit tests for the added source code.
+Note that this repository does *not* include the `scenario/` folder of the original LID-DS repository, since it is only needed for creating the dataset itself. For this thesis however, the generated data of the existing LID-DS versions (2019 and 2021) is used. 
 
-The root directory contains various scripts (`make_*.sh`) that are used to create the results shown in the thesis (e.g. diagrams and tables).
+
 ---
 
 ## Reproducing Experiments
@@ -80,7 +80,7 @@ The following shows how the results of the master's thesis can be reproduced.
 
 1. First, mlflow must be setup. It can either be installed locally, or an instance at DataBricks may be utilized. Refer to [mlflow's documentation](https://mlflow.org/docs/latest/getting-started/index.html) for this. In case that DataBricks is used, it must be setup separately.
 
-2. The LID-DS dataset (both versions) must be downloaded (refer to the README), e.g. to the directory `data/`.
+2. The LID-DS dataset (both versions) must be downloaded (refer to the LID-DS README), e.g. to the directory `data/`.
 
 3. Furthermore, the experiments can be configured globally with a couple of environment variables. They must be set accordingly:
 
