@@ -65,6 +65,12 @@ The source code contribution of the thesis is mainly contained in the directroy 
 
 Furthermore, the original LID-DS implementation of the SOM is modified, and the Word2Vec-Vectors are modified to ensure deterministic behavior.
 
+The directory `experiments/` contains the configuration files for all experiments utilizing the LID-DS. They are stored as yaml files in order to ensure reproducibility and transparency. 
+
+The `test/` directory contains various unit tests for the added source code.
+
+The root directory contains various scripts (`make_*.sh`) that are used to create the results shown in the thesis (e.g. diagrams and tables).
+
 ---
 
 ## Reproducing Experiments
