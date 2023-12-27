@@ -20,7 +20,7 @@ function make-table { # $1 = basename file prefix (e.g. perf-ngrams-augmented) $
   pd -i $TMP_DIR/results.csv --sort "mean.precision" --descending --head 3 --only max_depth features "mean precision" "mean tnr" "mean f1-score" "precision gain"  --rename "mean.precision::mean precision" "mean.tnr::mean tnr" "mean.f1_score::mean f1-score" "gain.precision::precision gain" -q "max_depth == 10" -o $RSQ_DIR/$1-best-depth=10.csv
   pd -i $TMP_DIR/results.csv --sort "mean.precision" --descending --head 3 --only max_depth features "mean precision" "mean tnr" "mean f1-score" "precision gain"  --rename "mean.precision::mean precision" "mean.tnr::mean tnr" "mean.f1_score::mean f1-score" "gain.precision::precision gain" -q "max_depth == 20" -o $RSQ_DIR/$1-best-depth=20.csv
 
-  python concat-csv.py -i $RSQ_DIR/$1-best-depth={2,3,5,10,20}.csv -o $RSQ_DIR/$1-best-concat.csv
+  python scripts/concat-csv.py -i $RSQ_DIR/$1-best-depth={2,3,5,10,20}.csv -o $RSQ_DIR/$1-best-concat.csv
 
   LATEX_FILE="$ARTIFACTS_DIR/rsq2-2-$1-best.tex"
   pd -i $RSQ_DIR/$1-best-concat.csv --sort "mean precision" --descending --only max_depth features "mean precision" "mean tnr" --to latex -o "$LATEX_FILE"
