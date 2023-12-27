@@ -162,11 +162,11 @@ Accomodation" (Thread-OD + norm-entropy-stide): `experiments/slurm/preprocessing
 * "6.2.11 Combination of Thread-Based Outlier Diagnosis with SCG and STIDE
 Accomodation" (Thread-OD + SCG+thread-wise graphs): `experiments/slurm/baseline/scg{,-thread-wise-graphs}.yaml experiments/slurm/combination/scg/lof-cosine+scg-baseline.yaml  experiments/slurm/combination/scg/lof-cosine+thread-wise.yaml`
 
+Note that the `experiments/` directory contains many more experiment configurations. However, they are not used in the thesis.
 
 
 #### Training Set Suitability Estimation
 
-Note: For post-processing some of the experiment results, [a command-line interface](https://github.com/dhelmr/pd) to the `pandas` python library is used, which must be installed separately. It is needed for generating latex tables from the results.
 
 ##### Suitability Datasets
 
@@ -181,7 +181,7 @@ Once they are finished in mlflow, they can then be aggregated and downloaded wit
 
 ```sh
 python cli.py tsa-dl -o results/thread_matrix-n3.csv -e $EXPERIMENT_PREFIX/analysis-thread_matrix-n3.yaml --config experiments/slurm/analysis/thread_matrix-n3.yaml
-python cli.py tsa-dl -o results/thread_matrix-n2.csv -e $EXPERIMENT_PREFIX/analysis-thread_matrix-n3.yaml --config experiments/slurm/analysis/thread_matrix-n2.yaml
+python cli.py tsa-dl -o results/thread_matrix-n2.csv -e $EXPERIMENT_PREFIX/analysis-thread_matrix-n2.yaml --config experiments/slurm/analysis/thread_matrix-n2.yaml
 python cli.py tsa-dl -o results/analysis-all-ngrams.csv -e $EXPERIMENT_PREFIX/analysis-all-ngrams.yaml --config experiments/slurm/analysis/all-ngrams.yaml
 python cli.py tsa-dl -o results/data-drift-no-attacks.csv -e $EXPERIMENT_PREFIX/analysis-data_drift-data-drift-no-attacks.yaml --config experiments/slurm/analysis/data_drift/data-drift-no-attacks.yaml
 ```
@@ -214,6 +214,10 @@ The following scripts generate the results for RSQ2.3:
 ```sh
 scripts/make_rsq2.3-dt.sh # generate decision tree SVGs
 ```
+
+--- 
+
+Note: For post-processing some of the experiment results, [a command-line interface](https://github.com/dhelmr/pd) to the `pandas` python library is used, which must be installed separately. It is needed for generating latex tables from the results.
 
 ---
 
