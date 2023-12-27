@@ -53,7 +53,9 @@ optional arguments:
 
 ## Source Code Overview
 
-The source code contribution of the thesis is mainly contained in the directroy `tsa/`.
+As stated above, this repository contains the Python framework provided by the LID-DS. It is included in the directories `algorithms/`, `tools/`, and `dataloader`. Note that this repository does *not* include the `scenario/` and `lid_ds` folders of the original LID-DS repository, since they are only needed for creating the dataset itself. For this thesis however, the already-available data of the existing LID-DS versions (2019 and 2021) is used. 
+
+The main source code contribution of the thesis is contained in the directory `tsa/`:
 
 * The module `tsa.cli` includes the implementation of the various subcommands of the `cli.py` command-line interface.
 * The module `tsa.accommodation` includes the implementation of various accommodation appraoches for improving the robustness of HIDS.
@@ -63,11 +65,11 @@ The source code contribution of the thesis is mainly contained in the directroy 
 * The module `tsa.mlflow` includes code for the integration of mlflow.
 * The module `tsa.perf_pred` includes code that is used for the suitability prediction in RSQ2.2 (e.g. the cross validation and decision trees)
 
-Furthermore, the original LID-DS implementation of the SOM is modified, and the Word2Vec-Vectors are modified to ensure deterministic behavior. 
+Furthermore, the original LID-DS implementation of the SOM (`algorithms/decision_engines/som.py`) is modified, and the Word2Vec-Vectors are modified to ensure deterministic behavior. 
 
 The directory `experiments/` contains the configuration files for all experiments utilizing the LID-DS. They are stored as yaml files in order to ensure reproducibility and transparency. The `test/` directory contains various unit tests for the added source code. The root directory contains various scripts (`make_*.sh`) that are used to create the results shown in the thesis (e.g. diagrams and tables).
 
-Note that this repository does *not* include the `scenario/` folder of the original LID-DS repository, since it is only needed for creating the dataset itself. For this thesis however, the generated data of the existing LID-DS versions (2019 and 2021) is used. 
+
 
 
 ---
@@ -146,10 +148,10 @@ For the robustness improvement experiments (cf. section 6.2 in the thesis), the 
 * "6.2.1 Influence of N-Gram Size on STIDE’s Robustness": `experiments/slurm/baseline/stide-n2.yaml experiments/slurm/baseline/stide-n3.yaml experiments/slurm/baseline/stide.yaml experiments/slurm/baseline/stide-n6.yaml experiments/slurm/baseline/stide-n7.yaml experiments/slurm/baseline/stide-n10.yaml experiments/slurm/baseline/stide-n15.yaml experiments/slurm/baseline/stide-n20.yaml`
 * "6.2.2 f-STIDE": `experiments/slurm/f-stide/f-stide-exp-a0.3.yaml experiments/slurm/f-stide/f-stide-exp-a0.5.yaml experiments/slurm/f-stide/f-stide-exp-a0.7.yaml experiments/slurm/f-stide/f-stide-exp-a0.9.yaml experiments/slurm/f-stide/f-stide-exp-a0.95.yaml experiments/slurm/f-stide/f-stide-homographic-a0.5.yaml experiments/slurm/f-stide/f-stide-homographic-a2.yaml experiments/slurm/f-stide/f-stide-homographic-a5.yaml experiments/slurm/f-stide/f-stide-max-scaled.yaml`
 * "6.2.3 Thread-Based STIDE Accommodation": `experiments/slurm/thread-f-stide/norm_entropy.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a1.yaml experiments/slurm/thread-f-stide/thread-freq-homographic-a2.yaml experiments/slurm/tfidf-stide/tfidf_stide-mean-1.yaml`
-* "6.2.4 SCG Accomodation: Thread-Wise Graphs": ` experiments/slurm/baseline/scg{,-thread-wise-graphs}.yaml`
-* "6.2.5 SOM Accomodation: Frequency Features": `experiments/slurm/frequency_append/som-{ngram,thread,ngram-thread}.yaml experiments/slurm/baseline/som.yaml`
-* "6.2.6 SOM Accomodation: Smaller Sizes": `experiments/slurm/som/size0.{5,7,9}.yaml experiments/slurm/baseline/som.yaml`
-* "6.2.7 SOM Accomodation: Frequency-Based Sampling": `experiments/slurm/som/sample-0.{5,7,9,95,99}.yaml experiments/slurm/baseline/som.yaml`
+* "6.2.4 SCG Accommodation: Thread-Wise Graphs": ` experiments/slurm/baseline/scg{,-thread-wise-graphs}.yaml`
+* "6.2.5 SOM Accommodation: Frequency Features": `experiments/slurm/frequency_append/som-{ngram,thread,ngram-thread}.yaml experiments/slurm/baseline/som.yaml`
+* "6.2.6 SOM Accommodation: Smaller Sizes": `experiments/slurm/som/size0.{5,7,9}.yaml experiments/slurm/baseline/som.yaml`
+* "6.2.7 SOM Accommodation: Frequency-Based Sampling": `experiments/slurm/som/sample-0.{5,7,9,95,99}.yaml experiments/slurm/baseline/som.yaml`
 * "6.2.8 Combination of SOM Accommodation Methods": `experiments/slurm/som/sample-{0.95,0.99}.yaml experiments/slurm/som/sample-{0.95,0.99}+thread-size0.7.yaml`
 * "6.2.9 Frequency-Based Outlier Diagnosis" (absolute thresholds): `experiments/slurm/preprocessing/frequency-od/stide-t1.yaml experiments/slurm/preprocessing/frequency-od/stide-t3.yaml experiments/slurm/preprocessing/frequency-od/stide-t8.yaml experiments/slurm/preprocessing/frequency-od/stide-t15.yaml`
 * "6.2.9 Frequency-Based Outlier Diagnosis" (relative thresholds): `experiments/slurm/preprocessing/frequency-od/rel/stide-0.00005.yaml experiments/slurm/preprocessing/frequency-od/rel/stide-0.00001.yaml experiments/slurm/preprocessing/frequency-od/rel/stide-0.000005.yaml` 
