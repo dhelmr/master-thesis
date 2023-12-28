@@ -7,7 +7,13 @@ Besides being a dataset for evaluating anomaly-based HIDS, the LID-DS also offer
 
 ## Installation
 
-Install python (at least 3.8) and install the requirements with:
+Clone this directory via
+
+```
+git clone --depth 1 https://github.com/dhelmr/master-thesis
+```
+
+Install python (tested with version 3.8) and install the requirements with:
 
 ```
 pip install -r requirements.txt
@@ -217,7 +223,7 @@ scripts/make_rsq2.3-dt.sh # generate decision tree SVGs
 
 --- 
 
-Note: For post-processing some of the experiment results, [a command-line interface](https://github.com/dhelmr/pd) to the `pandas` python library is used, which must be installed separately. It is needed for generating latex tables from the results.
+Note: For post-processing some of the experiment results in the scripts above, [a command-line interface](https://github.com/dhelmr/pd) to the `pandas` python library is used, which must be installed separately. It is needed for generating latex tables from the results.
 
 ---
 
