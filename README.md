@@ -5,7 +5,7 @@ This repository contains the source code for running the experiments of the mast
 It bases on the Leipzig Intrusion Detection Data-Set ([LID-DS](https://github.com/LID-DS/LID-DS)). The original README of the LID-DS is also [included](README_LID-DS.md) in this repository. 
 Besides being a dataset for evaluating anomaly-based HIDS, the LID-DS also offers an accompanying python framework, which is used and extended by this project. The remainder of this README first gives a short overview about the command-line interface to run the experiments, and about the source code contributed by the thesis. Then, it outlines how the experiments can be reproduced.
 
-The thesis full-text PDF can be downloaded [here](https://ul.qucosa.de/api/qucosa%3A93624/attachment/ATT-0/).
+The thesis full-text PDF can be downloaded [here](https://ul.qucosa.de/id/qucosa%3A93624).
 
 ## Installation
 
